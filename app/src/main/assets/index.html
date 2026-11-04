@@ -838,6 +838,22 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-panel-toggle{pointer-events:auto!important;touch-action:manipulation!important}
 #constructionPanel.sb-collapsed{visibility:hidden!important;pointer-events:none!important}
 #constructionPanel:not(.sb-collapsed){visibility:visible!important;pointer-events:auto!important}
+
+/* Mobile menu repair + consistent undo/redo/delete interaction highlight. */
+#sb-panel-toggle{left:12px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;z-index:1200!important;pointer-events:auto!important;border-radius:16px!important}
+#constructionPanel{left:12px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;transform:translateX(0)!important;border-radius:22px!important;z-index:1100!important}
+#constructionPanel.sb-collapsed{transform:translateX(calc(-100% - 20px))!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+#constructionPanel:not(.sb-collapsed){transform:translateX(0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+#sb-panel-toggle:hover,#sb-panel-toggle:focus-visible,#sb-panel-toggle[aria-expanded="true"]{background:linear-gradient(145deg,rgba(80,226,205,.32),rgba(117,170,207,.18))!important;border-color:rgba(132,255,231,.72)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 0 2px rgba(100,255,220,.12),0 0 22px rgba(75,241,216,.28)!important;outline:none}
+.topbar button,#constructionPanel button,#sb-panel-toggle,#stationContextMenu button,#sb-action-dock button,#startMenu button,#sb-terms-overlay button{transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .12s ease!important;-webkit-tap-highlight-color:transparent}
+.topbar button:hover,#constructionPanel button:hover,#stationContextMenu button:hover,#sb-action-dock button:not(:disabled):hover,#startMenu button:hover,#sb-terms-overlay button:hover,.topbar button:focus-visible,#constructionPanel button:focus-visible,#stationContextMenu button:focus-visible,#sb-action-dock button:focus-visible{background:linear-gradient(145deg,rgba(45,205,180,.25),rgba(83,150,190,.17))!important;border-color:rgba(132,255,231,.68)!important;box-shadow:0 0 0 2px rgba(100,255,220,.12),0 0 17px rgba(40,220,190,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;outline:none}
+.topbar button:active,#constructionPanel button:active,#sb-panel-toggle:active,#stationContextMenu button:active,#sb-action-dock button:not(:disabled):active,#startMenu button:active,#sb-terms-overlay button:active{transform:scale(.95)!important;background:rgba(67,218,190,.34)!important;box-shadow:0 0 0 2px rgba(100,255,220,.2),0 0 19px rgba(40,220,190,.26)!important}
+#constructionPanel button.active,#constructionPanel button[aria-pressed="true"]{border-color:rgba(132,255,231,.76)!important;box-shadow:0 0 0 2px rgba(100,255,220,.12),0 0 16px rgba(40,220,190,.2)!important}
+#sb-action-dock .trash-dock-btn,#sb-action-dock .trash-dock-btn:hover,#sb-action-dock .trash-dock-btn:focus-visible{background:linear-gradient(145deg,rgba(217,47,69,.38),rgba(169,20,42,.3))!important;border-color:rgba(255,150,160,.62)!important;box-shadow:0 0 0 1px rgba(255,110,125,.12),0 0 15px rgba(220,35,58,.2)!important}
+#sb-action-dock .trash-dock-btn.active{background:linear-gradient(145deg,rgba(255,64,88,.52),rgba(181,18,42,.42))!important;box-shadow:0 0 0 2px rgba(255,110,125,.22),0 0 18px rgba(220,35,58,.3)!important}
+@media(max-width:560px){#sb-panel-toggle{left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:46px!important;height:46px!important;min-height:46px!important}#constructionPanel{left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:min(86vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 90px)!important}}
+@media(prefers-reduced-motion:reduce){#sb-panel-toggle,#constructionPanel,.topbar button,#constructionPanel button,#stationContextMenu button,#sb-action-dock button{transition:none!important}}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1668,18 +1684,17 @@ function toggleToolsPanel(open){
  const panel=document.getElementById('constructionPanel');
  const toggle=document.getElementById('sb-panel-toggle');
  if(!panel||!toggle)return;
- const expanded=!!open;
+ const expanded=typeof open==='boolean'?open:panel.classList.contains('sb-collapsed');
  panel.classList.toggle('sb-collapsed',!expanded);
  panel.setAttribute('aria-hidden',String(!expanded));
  toggle.hidden=false;
- toggle.style.display='flex';
  toggle.setAttribute('aria-expanded',String(expanded));
  toggle.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');
  toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
  if(expanded){
   panel.style.visibility='visible';
   panel.style.pointerEvents='auto';
-  requestAnimationFrame(()=>{if(window.map)map.invalidateSize({pan:false});});
+  requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
  }else{
   toggle.focus({preventScroll:true});
  }
@@ -1730,7 +1745,11 @@ function bindConstructionPanelControls(){
  const toggle=document.getElementById('sb-panel-toggle');
  if(toggle&&!toggle.dataset.controlsBound){
   toggle.dataset.controlsBound='true';
-  toggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleToolsPanel(panel.classList.contains('sb-collapsed'));});
+  toggle.addEventListener('click',event=>{
+   event.preventDefault();
+   event.stopPropagation();
+   toggleToolsPanel();
+  });
  }
  toggleToolsPanel(false);
 }
