@@ -320,16 +320,18 @@ function snapshot(){
    elevation:s.elevation||'at'
   })),
   tracks:tracks.map(t=>({
- a:t.a,
- b:t.b,
- style:t.style||'single',
- curve:!!t.curve,
- waypoints:(t.waypoints||[]).map(w=>({
-  lat:w.lat,
-  lng:w.lng,
-  elevation:w.elevation||'at'
- }))
-}))
+   a:t.a,
+   b:t.b,
+   style:t.style||'single',
+   curve:!!t.curve,
+   waypoints:(t.waypoints||[]).map(w=>({
+    lat:w.lat,
+    lng:w.lng,
+    elevation:w.elevation||'at'
+   }))
+  }))
+ };
+}
 
 function saveHistory(){
  history=history.slice(0,historyIndex+1);
