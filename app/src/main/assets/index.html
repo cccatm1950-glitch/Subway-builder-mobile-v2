@@ -363,10 +363,17 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
  .stat{font-size:8px}
  .stat strong{font-size:11px}
  .panel{left:7px;top:76px;width:min(78vw,285px);padding:10px;max-height:calc(100dvh - 155px)}
- .bottom{left:7px;right:7px;bottom:7px}
- #message{bottom:66px;font-size:11px;max-width:88%}
+ .bottom{right:12px;left:auto;bottom:14px;width:auto;display:flex;flex-direction:column;gap:9px;padding:8px;border-radius:18px}
+ .bottom button{width:48px;height:48px;min-height:48px;flex:none;margin:0;padding:0;border-radius:14px;font-size:21px;display:flex;align-items:center;justify-content:center}
+ #message{bottom:78px;font-size:11px;max-width:calc(100% - 92px);left:10px;transform:none}
 }
 
+
+/* Compact floating bottom-right action dock */
+.bottom{position:absolute;left:auto;right:14px;bottom:14px;width:auto;display:flex;flex-direction:column;gap:9px;padding:8px;border-radius:18px;background:rgba(5,13,25,.62);border:1px solid rgba(174,205,231,.2);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%)}
+.bottom button{width:50px;height:50px;min-height:50px;flex:none;margin:0;padding:0;display:flex;align-items:center;justify-content:center;border-radius:14px;font-size:21px;line-height:1}
+#message{bottom:82px;left:12px;transform:none;max-width:calc(100% - 100px)}
+@media(max-width:560px){.bottom{right:9px;bottom:10px;gap:7px;padding:7px}.bottom button{width:46px;height:46px;min-height:46px;border-radius:13px;font-size:20px}#message{left:9px;bottom:75px;max-width:calc(100% - 82px)}}
 
 /* 3D OpenStreetMap city preview */
 #sb-3d-map{position:absolute;inset:0;z-index:3;display:none;background:#0b1726}
@@ -526,10 +533,10 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
  " style="display:none;position:absolute;z-index:600;top:82px;left:10px;width:48px;height:48px;font-size:22px;">☰</button>
 <div id="message">Tap the map to build your first station.</div>
 
-<div class="bottom">
- <button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()">🏙 3D City</button>
- <button id="runBtn" onclick="toggleSimulation()">▶ Run Trains</button>
- <button onclick="resetSelection()">Cancel</button>
+<div class="bottom" role="group" aria-label="Map actions">
+ <button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">🏙</button>
+ <button id="runBtn" onclick="toggleSimulation()" aria-label="Run trains" title="Run trains">▶</button>
+ <button id="cancelBtn" onclick="resetSelection()" aria-label="Clear selection" title="Clear selection">✕</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -1269,11 +1276,11 @@ function toggleSimulation(){
   trainMovementTimers.forEach(clearInterval);trainMovementTimers=[];
   trainMarkers.forEach(m=>map.removeLayer(m));trainMarkers=[];
   platformCrowdMarkers.forEach(m=>map.removeLayer(m));platformCrowdMarkers=[];
-  document.getElementById('runBtn').textContent='▶ Run Trains';
+  document.getElementById('runBtn').textContent='▶';document.getElementById('runBtn').setAttribute('aria-label','Run trains');document.getElementById('runBtn').title='Run trains';
   message('Simulation paused.');return;
  }
  if(stations.length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
- running=true;document.getElementById('runBtn').textContent='Ⅱ Pause';
+ running=true;document.getElementById('runBtn').textContent='Ⅱ';document.getElementById('runBtn').setAttribute('aria-label','Pause trains');document.getElementById('runBtn').title='Pause trains';
  stations.forEach(station=>{if(!Number.isFinite(station.waitingPassengers))station.waitingPassengers=8+Math.floor(Math.random()*17);});
  renderNetwork();
  message('Trains are running — platform crowds are waiting and trains have limited capacity.');
@@ -1403,7 +1410,7 @@ window.toggle3DCityView=function(){
  if(enable){
   host.classList.add('active');
   document.getElementById('map').style.visibility='hidden';
-  toggle.classList.add('active');toggle.textContent='🗺 2D Build';
+  toggle.classList.add('active');toggle.textContent='🗺';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
   if(!sb3dMap){
    const c=map.getCenter();
    sb3dMap=new maplibregl.Map({
@@ -1455,7 +1462,7 @@ window.toggle3DCityView=function(){
  }else{
   host.classList.remove('active');
   document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.textContent='🏙 3D City';
+  toggle.classList.remove('active');toggle.textContent='🏙';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
   map.invalidateSize();
   message('2D construction view restored.');
  }
