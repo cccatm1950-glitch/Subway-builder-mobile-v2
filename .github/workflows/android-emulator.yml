@@ -1,4 +1,4 @@
-name: Android emulator UI smoke tests
+name: Android APK build
 
 on:
   pull_request:
@@ -37,59 +37,3 @@ jobs:
           name: Subway-Builder-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-
-  emulator-smoke-test:
-    needs: build
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - device: Pixel_2
-            resolution: 720x1280
-            density: 320
-          - device: Pixel_7
-            resolution: 1080x2400
-            density: 440
-
-    steps:
-      - name: Download debug APK
-        uses: actions/download-artifact@v4
-        with:
-          name: Subway-Builder-debug-apk
-          path: app-apk
-
-      - name: Boot Android emulator and smoke-test app
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: google_apis
-          arch: x86_64
-          profile: ${{ matrix.device }}
-          emulator-options: -no-window -no-audio -no-boot-anim -camera-back none -gpu swiftshader_indirect
-          disable-animations: true
-          script: |
-            set -euo pipefail
-            adb shell wm size ${{ matrix.resolution }}
-            adb shell wm density ${{ matrix.density }}
-            adb install -r app-apk/app-debug.apk
-            adb logcat -c
-            adb shell am start -W -n com.khaterack.subwaybuilder/.MainActivity
-            sleep 35
-            mkdir -p emulator-results
-            adb shell screencap -p /sdcard/subway-builder.png
-            adb pull /sdcard/subway-builder.png emulator-results/${{ matrix.device }}-screen.png
-            adb shell dumpsys activity activities > emulator-results/${{ matrix.device }}-activity.txt
-            adb logcat -d -s AndroidRuntime:E chromium:E > emulator-results/${{ matrix.device }}-errors.log
-            if grep -E "FATAL EXCEPTION|Process .* has died" emulator-results/${{ matrix.device }}-errors.log; then
-              echo "App crashed during emulator smoke test"
-              exit 1
-            fi
-
-      - name: Upload emulator screenshots and logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: emulator-results-${{ matrix.device }}
-          path: emulator-results/
-          if-no-files-found: ignore

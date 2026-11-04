@@ -803,6 +803,31 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 #constructionPanel.sb-collapsed{transform:translateX(calc(100% + 8px))!important;opacity:0!important}
 @media(max-width:560px){#sb-panel-toggle{top:84px!important;right:10px!important;width:48px!important;height:48px!important;min-height:48px!important}}
 
+
+/* Construction panel rebuild: preserve the translucent glass theme and original icon glyphs. */
+#constructionPanel .tool-group{padding:0;background:rgba(255,255,255,.035)!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:18px!important;overflow:hidden}
+#constructionPanel .tool-group summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;user-select:none}
+#constructionPanel .tool-group summary:focus-visible{outline:2px solid rgba(120,255,225,.7);outline-offset:-3px}
+#constructionPanel .tool-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;padding:8px 10px 12px}
+#constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-height:42px!important;justify-self:center;margin:0!important;padding:0!important;display:grid!important;place-items:center!important;border-radius:50%!important;font-size:19px!important;line-height:1!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+#constructionPanel .tool-grid button:active{transform:scale(.93)}
+#constructionPanel .tool-grid button.active{background:rgba(66,210,185,.24)!important;border-color:rgba(120,255,225,.58)!important;box-shadow:0 0 0 2px rgba(66,210,185,.08),inset 0 1px 0 rgba(255,255,255,.16)!important}
+#constructionPanel .sb-map-menu{padding-top:0}
+#constructionPanel .panel-hint{padding:0 12px 8px}
+#constructionPanel .network-stat{padding:8px 13px}
+#constructionPanel button:focus-visible{outline:2px solid rgba(120,255,225,.8);outline-offset:3px}
+@media(max-width:560px){#constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:8px 8px 11px}#constructionPanel .tool-grid button{width:40px!important;height:40px!important;min-height:40px!important}}
+/* Reliable touch targets, visible pressed states, and single hamburger menu. */
+#constructionPanel .tool-grid button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
+#constructionPanel .tool-grid button.active,#constructionPanel .tool-grid button[aria-pressed="true"]{background:rgba(32,196,169,.34)!important;border:1px solid rgba(116,255,226,.82)!important;box-shadow:0 0 0 2px rgba(53,231,208,.16),0 0 18px rgba(53,231,208,.24),inset 0 1px 0 rgba(255,255,255,.22)!important;color:#fff!important}
+#constructionPanel .tool-grid button:active{background:rgba(32,196,169,.48)!important;transform:scale(.94)!important}
+#sb-panel-toggle{display:flex!important;position:fixed!important;right:12px!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:48px!important;height:48px!important;min-height:48px!important;padding:0!important;align-items:center!important;justify-content:center!important;border-radius:16px!important;z-index:900!important;pointer-events:auto!important;touch-action:manipulation}
+#sb-panel-toggle svg{width:23px;height:23px;display:block}
+#constructionPanel.sb-collapsed{visibility:hidden!important;pointer-events:none!important}
+#constructionPanel:not(.sb-collapsed){visibility:visible!important;pointer-events:auto!important}
+#map{touch-action:pan-x pan-y}
+#sb-touch-pointer{pointer-events:none!important}
+@media(max-width:560px){#sb-panel-toggle{right:10px!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:46px!important;height:46px!important;min-height:46px!important}}
 </style>
 </head>
 <body>
@@ -887,45 +912,79 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
      SECTION 08 — CONSTRUCTION PANEL
      ======================================================== -->
 
-<div class="panel" id="constructionPanel">
- <div class="panel-heading"><span class="panel-title">CONSTRUCTION</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button><button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">3D</button></div><button id="closePanelBtn" type="button" aria-label="Collapse tools" title="Collapse tools" aria-expanded="true" onclick="toggleToolsPanel(false)">×</button></div>
- <details class="tool-group"><summary>▣ Stations & track</summary>
-  <button id="stationBtn" class="active" title="Place station" aria-label="Place station" onclick="setMode('station')">●</button>
-  <button id="trackBtn" title="Connect stations" aria-label="Connect stations" onclick="setMode('track')">↗</button>
-  <button id="waypointBtn" title="Shape route" aria-label="Shape route" onclick="setMode('waypoint')">⌁</button>
-  <button id="inspectBtn" title="Inspect network" aria-label="Inspect network" onclick="setMode('inspect')">i</button>
+<nav id="constructionPanel" class="panel sb-collapsed" aria-label="Construction tools" aria-hidden="true">
+ <div class="panel-heading">
+  <span class="panel-title">CONSTRUCTION</span>
+  <div id="sb-zoom-controls" aria-label="Map controls">
+   <button type="button" data-panel-action="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
+   <button type="button" data-panel-action="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
+   <button id="sb-3d-toggle" type="button" data-panel-action="toggle-3d" aria-label="Switch to 3D city view" title="3D City">3D</button>
+  </div>
+ 
+ </div>
+ <details class="tool-group" open>
+  <summary>▣ Stations &amp; track</summary>
+  <div class="tool-grid" role="group" aria-label="Construction mode">
+   <button id="stationBtn" class="active" type="button" data-panel-action="mode-station" title="Place station" aria-label="Place station" aria-pressed="true">●</button>
+   <button id="trackBtn" type="button" data-panel-action="mode-track" title="Connect stations" aria-label="Connect stations" aria-pressed="false">↗</button>
+   <button id="waypointBtn" type="button" data-panel-action="mode-waypoint" title="Shape route" aria-label="Shape route" aria-pressed="false">⌁</button>
+   <button id="inspectBtn" type="button" data-panel-action="mode-inspect" title="Inspect network" aria-label="Inspect network" aria-pressed="false">i</button>
+  </div>
  </details>
- <details class="tool-group"><summary>TRACK Track settings</summary>
-  <button id="singleTrackBtn" class="active" title="Single track" aria-label="Single track" onclick="setTrackStyle('single')">—</button>
-  <button id="parallelTrackBtn" title="Parallel tracks" aria-label="Parallel tracks" onclick="setTrackStyle('parallel')">Ⅱ</button>
-  <button title="Narrow platforms" data-platform-width="narrow" aria-label="Narrow platforms" onclick="setPlatformWidth('narrow')">N</button>
-  <button class="active" title="Standard platforms" data-platform-width="default" aria-label="Standard platforms" onclick="setPlatformWidth('default')">S</button>
-  <button title="Wide platforms" data-platform-width="wide" aria-label="Wide platforms" onclick="setPlatformWidth('wide')">W</button>
-  <button id="curveBtn" title="Curve tool" aria-label="Curve tool" onclick="toggleCurveMode()">∿</button>
+ <details class="tool-group">
+  <summary>TRACK Track settings</summary>
+  <div class="tool-grid" role="group" aria-label="Track settings">
+   <button id="singleTrackBtn" class="active" type="button" data-panel-action="track-single" title="Single track" aria-label="Single track" aria-pressed="true">—</button>
+   <button id="parallelTrackBtn" type="button" data-panel-action="track-parallel" title="Parallel tracks" aria-label="Parallel tracks" aria-pressed="false">Ⅱ</button>
+   <button type="button" data-platform-width="narrow" data-panel-action="platform-width" title="Narrow platforms" aria-label="Narrow platforms" aria-pressed="false">N</button>
+   <button class="active" type="button" data-platform-width="default" data-panel-action="platform-width" title="Standard platforms" aria-label="Standard platforms" aria-pressed="true">S</button>
+   <button type="button" data-platform-width="wide" data-panel-action="platform-width" title="Wide platforms" aria-label="Wide platforms" aria-pressed="false">W</button>
+   <button id="curveBtn" type="button" data-panel-action="curve" title="Curve tool" aria-label="Curve tool" aria-pressed="false">∿</button>
+  </div>
  </details>
- <details class="tool-group"><summary>▣ Tunnels & elevation</summary>
-  <button id="tunnelModeBtn" title="Tunnel construction" aria-label="Tunnel construction" onclick="toggleTunnelMode()">▱</button>
+ <details class="tool-group">
+  <summary>▣ Tunnels &amp; elevation</summary>
+  <div class="tool-grid" role="group" aria-label="Tunnel settings">
+   <button id="tunnelModeBtn" type="button" data-panel-action="tunnel" title="Tunnel construction" aria-label="Tunnel construction" aria-pressed="false">▱</button>
+  </div>
   <p class="panel-hint">Enable before connecting stations to route new track underground.</p>
  </details>
- <details class="tool-group"><summary>STATION Station design</summary>
-  <button title="Island platform" data-platform-type="island" aria-label="Island platform" onclick="setPlatformType('island')">▰</button>
-  <button title="Side platforms" data-platform-type="side" aria-label="Side platforms" onclick="setPlatformType('side')">▰</button>
+ <details class="tool-group">
+  <summary>STATION Station design</summary>
+  <div class="tool-grid" role="group" aria-label="Station design">
+   <button type="button" data-platform-type="island" data-panel-action="platform-type" title="Island platform" aria-label="Island platform" aria-pressed="true">▰</button>
+   <button type="button" data-platform-type="side" data-panel-action="platform-type" title="Side platforms" aria-label="Side platforms" aria-pressed="false">▰</button>
+  </div>
  </details>
- <details class="tool-group"><summary>2D Map appearance</summary>
-  <button id="themeToggleBtn" type="button" title="Map theme" aria-label="Map theme">◐</button>
-  <div id="mapMenu" style="display:none;padding:8px"><button title="Dark map" aria-label="Dark map" onclick="setMapTheme('dark')">◐</button><button title="Light map" aria-label="Light map" onclick="setMapTheme('light')">☼</button></div>
+ <details class="tool-group">
+  <summary>2D Map appearance</summary>
+  <div class="tool-grid" role="group" aria-label="Map appearance">
+   <button id="themeToggleBtn" type="button" data-panel-action="theme-menu" title="Map theme" aria-label="Map theme" aria-expanded="false">◐</button>
+  </div>
+  <div id="mapMenu" class="tool-grid sb-map-menu" style="display:none" aria-label="Map theme choices">
+   <button type="button" data-panel-action="theme-dark" title="Dark map" aria-label="Dark map">◐</button>
+   <button type="button" data-panel-action="theme-light" title="Light map" aria-label="Light map">☼</button>
+  </div>
  </details>
- <details class="tool-group"><summary>Train simulation</summary><button id="runBtn" onclick="toggleSimulation()" aria-label="Run trains" title="Run trains">▶</button><button id="cancelBtn" onclick="resetSelection()" aria-label="Clear selection" title="Clear selection">×</button></details>
- <details class="tool-group"><summary> Network status</summary>
-  <div id="stationCount" class="network-stat">Stations: 0</div><div id="trackCount" class="network-stat">Track: 0 sections</div>
+ <details class="tool-group">
+  <summary>Train simulation</summary>
+  <div class="tool-grid" role="group" aria-label="Train simulation">
+   <button id="runBtn" type="button" data-panel-action="simulation" aria-label="Run trains" title="Run trains">▶</button>
+   <button id="cancelBtn" type="button" data-panel-action="clear-selection" aria-label="Clear selection" title="Clear selection">×</button>
+  </div>
  </details>
-</div>
+ <details class="tool-group">
+  <summary>Network status</summary>
+  <div id="stationCount" class="network-stat">Stations: 0</div>
+  <div id="trackCount" class="network-stat">Track: 0 sections</div>
+ </details>
+</nav>
 
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
 
-<button id="sb-panel-toggle" type="button" aria-label="Expand build tools" title="Expand build tools" aria-expanded="false" onclick="toggleToolsPanel(true)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.2 6.1a5.2 5.2 0 0 0-6.8 6.8L2.8 17.5a2.1 2.1 0 0 0 3 3l4.6-4.6a5.2 5.2 0 0 0 6.8-6.8l-3 3-3.2-3.2 3.2-2.8Z"/></svg></button>
+<button id="sb-panel-toggle" type="button" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 <div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
 
 
@@ -987,7 +1046,7 @@ function toggleMapMenu(){
  const menu=document.getElementById('mapMenu');
  menu.style.display=menu.style.display==='none'?'block':'none';
 }
-document.getElementById('themeToggleBtn').addEventListener('click',toggleMapMenu);
+// Map-theme clicks are handled by the delegated construction-panel listener.
 setMapTheme(currentTheme);
 
 /* Default map zoom and attribution controls are intentionally hidden. */
@@ -1353,6 +1412,7 @@ if(mode==='delete'){
   }else{
     drawPlatform(0);
   }
+  L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:9,color:'#f4fbff',weight:2,fillColor:'#087f79',fillOpacity:1,interactive:false}).addTo(window.networkLayer);
   let marker=L.marker([s.lat,s.lng],{
  pane:'sbStationPane',draggable:true,
  icon:L.divIcon({
@@ -1443,8 +1503,11 @@ function setMode(newMode){
  mode=newMode;
  selected=null;
  const modeButtons={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
- document.querySelectorAll('#constructionPanel .tool-group:first-of-type button').forEach(btn=>btn.classList.remove('active'));
- if(modeButtons[mode])document.getElementById(modeButtons[mode])?.classList.add('active');
+ document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(btn=>{
+  const active=btn.id===modeButtons[mode];
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
 
 
  const trashDock=document.getElementById('trashModeBtn');
@@ -1462,8 +1525,11 @@ function setMode(newMode){
 function setTrackStyle(style){
  if(style!=='single'&&style!=='parallel')return;
  trackStyle=style;
- document.querySelectorAll('#singleTrackBtn,#parallelTrackBtn').forEach(btn=>btn.classList.remove('active'));
- document.getElementById(style==='single'?'singleTrackBtn':'parallelTrackBtn').classList.add('active');
+ document.querySelectorAll('#singleTrackBtn,#parallelTrackBtn').forEach(btn=>{
+  const active=btn.id===(style==='single'?'singleTrackBtn':'parallelTrackBtn');
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
 
  message(style==='parallel'?'Parallel track mode selected.':'Single track mode selected.');
 }
@@ -1597,57 +1663,59 @@ function moveTouchPointer(x,y,visible=true){
 function toggleToolsPanel(open){
  const panel=document.getElementById('constructionPanel');
  const toggle=document.getElementById('sb-panel-toggle');
- const close=document.getElementById('closePanelBtn');
  if(!panel||!toggle)return;
  const expanded=!!open;
  panel.classList.toggle('sb-collapsed',!expanded);
  panel.setAttribute('aria-hidden',String(!expanded));
- toggle.hidden=expanded;
- toggle.style.display=expanded?'none':'flex';
- toggle.setAttribute('aria-expanded',String(!expanded));
- toggle.setAttribute('aria-label',expanded?'Construction tools collapsed':'Expand construction tools');
- toggle.setAttribute('title',expanded?'Construction tools collapsed':'Expand construction tools');
- if(close){close.setAttribute('aria-expanded',String(expanded));close.setAttribute('aria-label','Collapse construction tools');}
+ toggle.hidden=false;
+ toggle.style.display='flex';
+ toggle.setAttribute('aria-expanded',String(expanded));
+ toggle.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');
+ toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
  if(expanded){
   panel.style.visibility='visible';
   panel.style.pointerEvents='auto';
   requestAnimationFrame(()=>{if(window.map)map.invalidateSize({pan:false});});
-  const summary=panel.querySelector('details.tool-group summary');
-  if(summary)summary.focus({preventScroll:true});
  }else{
   toggle.focus({preventScroll:true});
  }
 }
 function bindConstructionPanelControls(){
  const panel=document.getElementById('constructionPanel');
- if(!panel)return;
+ if(!panel||panel.dataset.controlsBound==='true')return;
+ panel.dataset.controlsBound='true';
  const actions={
-  station:()=>setMode('station'),track:()=>setMode('track'),waypoint:()=>setMode('waypoint'),inspect:()=>setMode('inspect'),
-  singleTrack:()=>setTrackStyle('single'),parallelTrack:()=>setTrackStyle('parallel'),
-  curve:()=>toggleCurveMode(),tunnel:()=>toggleTunnelMode(),island:()=>setPlatformType('island'),side:()=>setPlatformType('side'),
-  theme:()=>toggleMapMenu(),run:()=>toggleSimulation(),clear:()=>resetSelection()
+  'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
+  'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),
+  'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
+  'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
+  'theme-menu':()=>{toggleMapMenu();const b=document.getElementById('themeToggleBtn');if(b)b.setAttribute('aria-expanded',String(document.getElementById('mapMenu').style.display!=='none'));},
+  'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
+  'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
+  'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
+  'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
+  'toggle-3d':()=>toggle3DCityView()
  };
- const byId={stationBtn:'station',trackBtn:'track',waypointBtn:'waypoint',inspectBtn:'inspect',singleTrackBtn:'singleTrack',parallelTrackBtn:'parallelTrack',curveBtn:'curve',tunnelModeBtn:'tunnel',themeToggleBtn:'theme',runBtn:'run',cancelBtn:'clear'};
- Object.entries(byId).forEach(([id,action])=>{
-  const button=document.getElementById(id);if(!button)return;
-  button.onclick=event=>{event.preventDefault();event.stopPropagation();actions[action]();};
- });
- panel.querySelectorAll('[data-platform-width]').forEach(button=>{
-  button.onclick=event=>{event.preventDefault();event.stopPropagation();setPlatformWidth(button.dataset.platformWidth);};
- });
- panel.querySelectorAll('[data-platform-type]').forEach(button=>{
-  button.onclick=event=>{event.preventDefault();event.stopPropagation();setPlatformType(button.dataset.platformType);};
+ panel.addEventListener('click',event=>{
+  const button=event.target.closest('button[data-panel-action]');
+  if(!button||!panel.contains(button))return;
+  event.preventDefault();event.stopPropagation();
+  const action=button.dataset.panelAction;
+  if(action==='platform-width'){setPlatformWidth(button.dataset.platformWidth);return;}
+  if(action==='platform-type'){setPlatformType(button.dataset.platformType);return;}
+  if(typeof actions[action]==='function')actions[action]();
  });
  panel.querySelectorAll('details.tool-group').forEach(group=>{
   const summary=group.querySelector('summary');if(!summary)return;
   const update=()=>{summary.setAttribute('aria-expanded',String(group.open));group.classList.toggle('is-open',group.open);};
   group.addEventListener('toggle',update);update();
  });
- const close=document.getElementById('closePanelBtn');
- if(close)close.onclick=event=>{event.preventDefault();event.stopPropagation();toggleToolsPanel(false);};
  const toggle=document.getElementById('sb-panel-toggle');
- if(toggle)toggle.onclick=event=>{event.preventDefault();event.stopPropagation();toggleToolsPanel(true);};
- toggleToolsPanel(!panel.classList.contains('sb-collapsed'));
+ if(toggle&&!toggle.dataset.controlsBound){
+  toggle.dataset.controlsBound='true';
+  toggle.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleToolsPanel(panel.classList.contains('sb-collapsed'));});
+ }
+ toggleToolsPanel(false);
 }
 function resetSelection(){
  selected=null;
@@ -1773,7 +1841,11 @@ map.on('mousemove',function(e){
 });
 map.on('mouseout',function(){if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}});
 
-map.on('click',function(e){
+let lastTouchPlacementAt=0;
+function handleMapPlacement(latlng){
+ const now=Date.now();
+ if(now-lastTouchPlacementAt<450)return;
+ lastTouchPlacementAt=now;
  if(mode==='station'){
   if(money<500){
    message('Not enough money for a station.');
@@ -1782,8 +1854,8 @@ map.on('click',function(e){
 
   money-=500;
   stations.push({
-   lat:e.latlng.lat,
-   lng:e.latlng.lng,
+   lat:latlng.lat,
+   lng:latlng.lng,
    name:'Station '+(stations.length+1),
    platformType:platformType
   });
@@ -1810,8 +1882,8 @@ else if(mode==='delete'){
   if(!track.waypoints)track.waypoints=[];
 
   track.waypoints.push({
-   lat:e.latlng.lat,
-   lng:e.latlng.lng,
+   lat:latlng.lat,
+   lng:latlng.lng,
    elevation:'at'
   });
 
@@ -1819,7 +1891,14 @@ else if(mode==='delete'){
   renderNetwork();
   message('Waypoint added.');
  }
-});
+}
+map.on('click',function(e){handleMapPlacement(e.latlng);});
+map.getContainer().addEventListener('pointerup',function(event){
+ if(event.pointerType!=='touch')return;
+ if(event.target.closest('.leaflet-marker-icon,.leaflet-interactive,.leaflet-control'))return;
+ const point=map.mouseEventToContainerPoint(event);
+ handleMapPlacement(map.containerPointToLatLng(point));
+},{passive:true});
 
 /* =========================================================
    SECTION 18 — TRAIN SIMULATION
