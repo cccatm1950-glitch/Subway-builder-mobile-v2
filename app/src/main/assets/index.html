@@ -561,8 +561,7 @@ function snapshot(){
    lat:s.lat,
    lng:s.lng,
    name:s.name,
-   elevation:s.elevation||'at',
-platformType:s.platformType||'island'
+   elevation:s.elevation||'at'
   })),
   tracks:tracks.map(t=>({
    a:t.a,
@@ -603,7 +602,8 @@ function restoreSnapshot(data){
  waypoints:(t.waypoints||[]).map(w=>({
   lat:w.lat,
   lng:w.lng,
-  elevation:w.elevation||'at'
+  elevation:s.elevation||'at',
+platformType:s.platformType||'island''
  }))
 }));
 
