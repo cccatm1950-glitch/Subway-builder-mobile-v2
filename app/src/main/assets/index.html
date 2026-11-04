@@ -541,6 +541,18 @@ function setMode(newMode){
 
  document.getElementById('stationBtn').classList.toggle('active',mode==='station');
  document.getElementById('trackBtn').classList.toggle('active',mode==='track');
+ document.getElementById('waypointBtn').classList.toggle('active',mode==='waypoint');
+
+ renderNetwork();
+
+ if(mode==='station')message('Tap the map to place a station ($500).');
+ if(mode==='track')message('Tap one station, then another station to connect them ($150).');
+ if(mode==='waypoint')message('Tap a track to select it for waypoint editing.');
+ if(mode==='inspect')message('Tap a station to inspect it.');
+}
+
+ document.getElementById('stationBtn').classList.toggle('active',mode==='station');
+ document.getElementById('trackBtn').classList.toggle('active',mode==='track');
 
  renderNetwork();
 
