@@ -857,6 +857,18 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 @media(max-width:560px){#sb-panel-toggle{left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:46px!important;height:46px!important;min-height:46px!important}#constructionPanel{left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:min(86vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 90px)!important}}
 @media(prefers-reduced-motion:reduce){#sb-panel-toggle,#constructionPanel,.topbar button,#constructionPanel button,#stationContextMenu button,#sb-action-dock button{transition:none!important}}
 
+
+/* Native disclosure-based construction menu: keep the glass UI, replace drawer mechanics. */
+.sb-menu-shell{position:static!important}
+.sb-menu-shell>summary{list-style:none!important}
+.sb-menu-shell>summary::-webkit-details-marker{display:none!important}
+#sb-panel-toggle{display:flex!important;position:fixed!important;left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:48px!important;height:48px!important;min-height:48px!important;padding:0!important;align-items:center!important;justify-content:center!important;z-index:1400!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:manipulation!important;border-radius:16px!important;background:linear-gradient(145deg,rgba(239,249,255,.22),rgba(125,166,197,.10))!important;border:1px solid rgba(224,245,255,.28)!important;color:#effaff!important;backdrop-filter:blur(24px) saturate(165%)!important;-webkit-backdrop-filter:blur(24px) saturate(165%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 26px rgba(0,0,0,.25),0 0 20px rgba(85,218,210,.12)!important;cursor:pointer}
+#sb-panel-toggle svg{width:23px!important;height:23px!important;display:block!important}
+#sb-construction-menu:not([open])>#constructionPanel{display:none!important}
+#sb-construction-menu[open]>#constructionPanel{display:block!important;position:fixed!important;left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 136px)!important;width:min(86vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 148px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;transform:none!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;z-index:1300!important;border-radius:22px!important}
+#sb-construction-menu[open]>#sb-panel-toggle{background:linear-gradient(145deg,rgba(80,226,205,.32),rgba(117,170,207,.18))!important;border-color:rgba(132,255,231,.72)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 0 2px rgba(100,255,220,.12),0 0 22px rgba(75,241,216,.28)!important}
+@media(max-width:560px){#sb-panel-toggle{left:10px!important;right:auto!important;width:46px!important;height:46px!important;min-height:46px!important}#sb-construction-menu[open]>#constructionPanel{left:10px!important;right:auto!important;width:min(86vw,310px)!important}}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -932,7 +944,9 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
      SECTION 08 — CONSTRUCTION PANEL
      ======================================================== -->
 
-<nav id="constructionPanel" class="panel sb-collapsed" aria-label="Construction tools" aria-hidden="true">
+<details id="sb-construction-menu" class="sb-menu-shell">
+ <summary id="sb-panel-toggle" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary>
+ <nav id="constructionPanel" class="panel" aria-label="Construction tools" aria-hidden="true">
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
   <div id="sb-zoom-controls" aria-label="Map controls">
@@ -999,12 +1013,11 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
   <div id="trackCount" class="network-stat">Track: 0 sections</div>
  </details>
 </nav>
+</details>
 
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
-
-<button id="sb-panel-toggle" type="button" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 <div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
 
 
@@ -1684,40 +1697,17 @@ function moveTouchPointer(x,y,visible=true){
  document.addEventListener('touchend',()=>{if(sbTouchPointerEnabled)pointer.classList.remove('pressed');});
 })();
 function toggleToolsPanel(open){
+ const menu=document.getElementById('sb-construction-menu');
  const panel=document.getElementById('constructionPanel');
  const toggle=document.getElementById('sb-panel-toggle');
- if(!panel||!toggle)return;
- const wasOpen=panel.dataset.drawerOpen==='true';
- const expanded=typeof open==='boolean'?open:!wasOpen;
- panel.dataset.drawerOpen=String(expanded);
- panel.classList.toggle('sb-collapsed',!expanded);
- panel.setAttribute('aria-hidden',String(!expanded));
- panel.setAttribute('aria-expanded',String(expanded));
- toggle.hidden=false;
- toggle.removeAttribute('hidden');
- toggle.style.setProperty('display','flex','important');
- toggle.style.setProperty('position','fixed','important');
- toggle.style.setProperty('z-index','1400','important');
- toggle.style.setProperty('visibility','visible','important');
- toggle.style.setProperty('opacity','1','important');
- toggle.style.setProperty('pointer-events','auto','important');
+ if(!menu||!panel||!toggle)return;
+ menu.open=typeof open==='boolean'?open:!menu.open;
+ const expanded=menu.open;
  toggle.setAttribute('aria-expanded',String(expanded));
  toggle.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');
  toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
- panel.style.setProperty('position','fixed','important');
- panel.style.setProperty('display','block','important');
- panel.style.setProperty('left','10px','important');
- panel.style.setProperty('right','auto','important');
- panel.style.setProperty('z-index','1300','important');
- panel.style.setProperty('transform',expanded?'translate3d(0,0,0)':'translate3d(calc(-100% - 24px),0,0)','important');
- panel.style.setProperty('visibility',expanded?'visible':'hidden','important');
- panel.style.setProperty('opacity',expanded?'1':'0','important');
- panel.style.setProperty('pointer-events',expanded?'auto':'none','important');
- if(expanded){
-  requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
- }else{
-  toggle.focus({preventScroll:true});
- }
+ panel.setAttribute('aria-hidden',String(!expanded));
+ if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
 }
 function syncConstructionControls(){
  const states={
@@ -1746,16 +1736,20 @@ function syncConstructionControls(){
 }
 function bindConstructionPanelControls(){
  const panel=document.getElementById('constructionPanel');
+ const menu=document.getElementById('sb-construction-menu');
  const toggle=document.getElementById('sb-panel-toggle');
  if(!panel)return;
- // Bind the menu toggle independently from the panel controls so a panel
- // re-bind or an already-bound panel can never leave the hamburger inert.
- if(toggle){
-  // Use the button's direct click property so the menu remains operable even
-  // if delegated construction-panel binding is delayed or reinitialized.
-  toggle.onclick=event=>{
-   event.preventDefault();event.stopPropagation();toggleToolsPanel();
-  };
+ if(menu&&menu.dataset.stateBound!=='true'){
+  menu.dataset.stateBound='true';
+  menu.addEventListener('toggle',()=>{
+   const expanded=menu.open;
+   if(toggle){
+    toggle.setAttribute('aria-expanded',String(expanded));
+    toggle.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');
+    toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
+   }
+   panel.setAttribute('aria-hidden',String(!expanded));
+  });
  }
  if(panel.dataset.controlsBound!=='true'){
   panel.dataset.controlsBound='true';
@@ -1798,8 +1792,9 @@ function bindConstructionPanelControls(){
    group.addEventListener('toggle',update);update();
   });
  }
- panel.dataset.drawerOpen='false';
- toggleToolsPanel(false);
+ if(menu)menu.open=false;
+ if(toggle)toggle.setAttribute('aria-expanded','false');
+ panel.setAttribute('aria-hidden','true');
  syncConstructionControls();
 }
 function resetSelection(){
