@@ -488,7 +488,8 @@ button:active{transform:scale(.96)}
 .start-card button{flex:0 1 auto;min-height:clamp(38px,7.2vh,52px);height:auto;margin:0;padding:0 14px}
 .topbar{position:absolute!important;left:5px!important;right:5px!important;top:5px!important;min-height:58px;padding:8px 10px!important}
 .topbar .stats{margin-right:0!important}
-#sb-dashboard-dialog{position:static!important;display:none;width:auto!important;max-width:none!important;transform:none!important;margin:0!important;padding:7px 12px!important;border-radius:15px!important;text-align:center!important;font-size:11px!important;line-height:1.35;pointer-events:none;box-shadow:none!important}
+#sb-dashboard-dialog{position:static!important;display:none;flex:0 0 100%;width:100%!important;max-width:none!important;transform:none!important;margin:0!important;padding:7px 12px!important;border-radius:15px!important;text-align:center!important;font-size:11px!important;line-height:1.35;pointer-events:none;box-shadow:none!important}
+.topbar{flex-wrap:wrap!important}
 #sb-dashboard-dialog.open{display:block!important}
 #sb-dashboard-info{display:none!important}
 #sb-action-dock{position:fixed;z-index:900;right:9px;bottom:9px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:7px;border-radius:24px;background:rgba(15,25,40,.46);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);box-shadow:0 10px 32px rgba(0,0,0,.2)}
@@ -1123,7 +1124,7 @@ function setMode(newMode){
  document.getElementById('trackBtn').classList.toggle('active',mode==='track');
  document.getElementById('waypointBtn').classList.toggle('active',mode==='waypoint');
 
-document.getElementById('deleteBtn').classList.toggle('active',mode==='delete');
+
  const trashDock=document.getElementById('trashModeBtn');
  if(trashDock)trashDock.classList.toggle('active',mode==='delete');
 
