@@ -247,6 +247,59 @@ button:active {
  background:rgba(0,145,130,0.9);
  border:1px solid rgba(120,255,230,0.35);
 }
+/* Modern construction dropdowns */
+#constructionPanel{
+ background:rgba(235,243,252,0.90);
+ color:#172536;
+ border:1px solid rgba(255,255,255,0.65);
+ backdrop-filter:blur(16px);
+ -webkit-backdrop-filter:blur(16px);
+}
+
+#constructionPanel .tool-group{
+ margin:9px 0;
+ border:1px solid rgba(90,115,145,0.18);
+ border-radius:12px;
+ overflow:hidden;
+ background:rgba(255,255,255,0.48);
+}
+
+#constructionPanel .tool-group summary{
+ padding:12px 9px;
+ text-align:center;
+ font-size:12px;
+ font-weight:700;
+ letter-spacing:0.5px;
+ list-style:none;
+ cursor:pointer;
+}
+
+#constructionPanel .tool-group summary::-webkit-details-marker{
+ display:none;
+}
+
+#constructionPanel .tool-group summary:after{
+ content:"⌄";
+ float:right;
+}
+
+#constructionPanel .tool-group[open] summary:after{
+ content:"⌃";
+}
+
+#constructionPanel .tool-group button{
+ width:100%;
+ margin:4px 0;
+ color:#172536;
+ background:rgba(255,255,255,0.75);
+ border:1px solid rgba(90,115,145,0.18);
+ text-align:center;
+}
+
+#constructionPanel h3{
+ text-align:center;
+ color:#53677e;
+}
 </style>
 </head>
 <body>
