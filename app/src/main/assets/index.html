@@ -1007,6 +1007,17 @@ function toggleSimulation(){
 history.push(snapshot());
 updateUI();
 renderNetwork();
+function closeStartMenu(){
+ const menu=document.getElementById('startMenu');
+ if(menu){
+  menu.style.transition='opacity 0.35s ease';
+  menu.style.opacity='0';
+  setTimeout(function(){
+   menu.style.display='none';
+  },350);
+ }
+ message('Tap the map to build your first station.');
+}
 function hideSplash(){
   const splash=document.getElementById('sb-loading');
   if(!splash)return;
