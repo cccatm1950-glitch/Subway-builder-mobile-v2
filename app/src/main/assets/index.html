@@ -351,11 +351,16 @@ function restoreSnapshot(data){
  }));
 
  tracks=data.tracks.map(t=>({
-  a:t.a,
-  b:t.b,
-  style:t.style||'single',
-  curve:!!t.curve
- }));
+ a:t.a,
+ b:t.b,
+ style:t.style||'single',
+ curve:!!t.curve,
+ waypoints:(t.waypoints||[]).map(w=>({
+  lat:w.lat,
+  lng:w.lng,
+  elevation:w.elevation||'at'
+ }))
+}));
 
  selected=null;
  renderNetwork();
