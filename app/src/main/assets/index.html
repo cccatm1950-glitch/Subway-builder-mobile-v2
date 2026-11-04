@@ -723,6 +723,34 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
 @media(max-width:560px){#constructionPanel{top:calc(env(safe-area-inset-top,0px) + 68px)!important;width:min(84vw,292px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 78px)!important}#constructionPanel .panel-heading{margin:-9px -9px 8px!important}#constructionPanel #closePanelBtn{flex-basis:34px!important}#constructionPanel .tool-group>button{min-height:50px!important}}
 /* Explicit Leaflet panes keep routes below platforms and station markers. */
 
+/* PR #20 — unified iOS 16 / Windows 11 transparent glass system */
+:root{--sb-glass:rgba(17,29,47,.48);--sb-glass-line:rgba(225,241,255,.2)}
+.topbar,.panel,.bottom,#message,#sb-dashboard-dialog,#constructionPanel,#stationContextMenu,#mapMenu,.tool-group,.tool-group summary,.start-card,.maplibregl-ctrl-group,.leaflet-control-zoom{background:var(--sb-glass)!important;border:1px solid var(--sb-glass-line)!important;backdrop-filter:blur(28px) saturate(175%)!important;-webkit-backdrop-filter:blur(28px) saturate(175%)!important;box-shadow:0 12px 38px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.1)!important;color:#f3f8ff}
+#constructionPanel{background:rgba(12,24,41,.46)!important;border-color:rgba(220,240,255,.17)!important}
+#constructionPanel .tool-group{background:rgba(230,242,255,.045)!important;border-color:rgba(220,240,255,.13)!important}
+#constructionPanel .tool-group summary{background:rgba(220,238,255,.075)!important;color:#f0f7ff!important}
+#constructionPanel .tool-group>button,#mapMenu button,#stationContextMenu button{background:rgba(229,241,255,.085)!important;border:1px solid rgba(225,241,255,.17)!important;color:#f6faff!important}
+#constructionPanel .tool-group>button.active{background:rgba(62,211,188,.22)!important;border-color:rgba(118,255,225,.62)!important;box-shadow:0 0 0 1px rgba(89,245,220,.12),0 0 20px rgba(42,221,190,.16)!important}
+#constructionPanel .tool-group>button::after{content:attr(title)!important;color:rgba(233,245,255,.84)!important}
+#constructionPanel .panel-heading{background:rgba(13,27,44,.18)!important;border-color:transparent!important;box-shadow:none!important}
+#stationContextMenu{background:rgba(15,29,48,.58)!important;border-color:rgba(221,241,255,.22)!important;box-shadow:0 18px 48px rgba(0,0,0,.25),0 0 26px rgba(62,220,200,.08)!important}
+#mapMenu{border-radius:16px;padding:8px!important}
+button{background:rgba(230,241,255,.09)!important;border:1px solid rgba(220,238,255,.18)!important;color:#f5f9ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.1)!important;backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%)}
+button.active{background:rgba(58,205,180,.22)!important;border-color:rgba(120,255,225,.55)!important}
+button:disabled{opacity:.3!important;filter:saturate(.4)}
+#startMenu{background:rgba(5,12,24,.24)!important;backdrop-filter:blur(17px) saturate(135%)!important;-webkit-backdrop-filter:blur(17px) saturate(135%)!important}
+.start-card{position:relative;isolation:isolate;overflow:visible;width:min(100%,360px)!important;padding:28px 24px!important;border-radius:30px!important;background:linear-gradient(145deg,rgba(28,46,68,.62),rgba(13,26,45,.46))!important;border:1px solid rgba(233,247,255,.26)!important;backdrop-filter:blur(34px) saturate(185%)!important;-webkit-backdrop-filter:blur(34px) saturate(185%)!important;box-shadow:0 24px 70px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.17)!important}
+.start-card:before{content:"";position:absolute;inset:-12px;z-index:-1;border-radius:38px;background:rgba(91,191,207,.12);filter:blur(28px);pointer-events:none}
+.start-card button{position:relative;isolation:isolate;display:flex;align-items:center;gap:12px;min-height:54px!important;padding:10px 15px!important;border-radius:17px!important;background:rgba(237,247,255,.085)!important;border:1px solid rgba(239,248,255,.2)!important;box-shadow:0 5px 18px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.14)!important;transition:transform .18s ease,background .18s ease,box-shadow .18s ease!important}
+.start-card button:before{content:"";position:absolute;inset:-5px;z-index:-1;border-radius:21px;background:rgba(115,218,224,.16);filter:blur(12px);opacity:.62;pointer-events:none}
+.start-card button:hover,.start-card button:focus-visible{background:rgba(237,249,255,.16)!important;box-shadow:0 0 0 1px rgba(195,242,255,.2),0 8px 26px rgba(0,0,0,.18)!important}
+.start-card button:active{transform:scale(.975)!important}
+.start-card .start-primary{background:rgba(35,184,164,.28)!important;border-color:rgba(125,255,225,.45)!important}
+.start-card .menu-icon{width:25px;flex:0 0 25px;text-align:center;font-size:19px}
+.start-card .menu-label{flex:1;text-align:left}
+.start-card .menu-chevron{font-size:22px;color:rgba(235,249,255,.68)}
+#sb-3d-map{z-index:4!important;background:#0a1727}#map{z-index:1}#constructionPanel{z-index:650}#stationContextMenu{z-index:2000}#sb-panel-toggle{z-index:700}#sb-action-dock{z-index:710}
+@media(prefers-reduced-motion:reduce){.start-card button,button{transition:none!important}}
 </style>
 </head>
 <body>
@@ -822,9 +850,9 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
  <details class="tool-group"><summary>TRACK Track settings</summary>
   <button id="singleTrackBtn" class="active" title="Single track" aria-label="Single track" onclick="setTrackStyle('single')">—</button>
   <button id="parallelTrackBtn" title="Parallel tracks" aria-label="Parallel tracks" onclick="setTrackStyle('parallel')">Ⅱ</button>
-  <button title="Narrow platforms" aria-label="Narrow platforms" onclick="setPlatformWidth('narrow')">N</button>
-  <button class="active" title="Standard platforms" aria-label="Standard platforms" onclick="setPlatformWidth('default')">S</button>
-  <button title="Wide platforms" aria-label="Wide platforms" onclick="setPlatformWidth('wide')">W</button>
+  <button title="Narrow platforms" data-platform-width="narrow" aria-label="Narrow platforms" onclick="setPlatformWidth('narrow')">N</button>
+  <button class="active" title="Standard platforms" data-platform-width="default" aria-label="Standard platforms" onclick="setPlatformWidth('default')">S</button>
+  <button title="Wide platforms" data-platform-width="wide" aria-label="Wide platforms" onclick="setPlatformWidth('wide')">W</button>
   <button id="curveBtn" title="Curve tool" aria-label="Curve tool" onclick="toggleCurveMode()">∿</button>
  </details>
  <details class="tool-group"><summary>▣ Tunnels & elevation</summary>
@@ -832,8 +860,8 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
   <p class="panel-hint">Enable before connecting stations to route new track underground.</p>
  </details>
  <details class="tool-group"><summary>STATION Station design</summary>
-  <button title="Island platform" aria-label="Island platform" onclick="setPlatformType('island')">▰</button>
-  <button title="Side platforms" aria-label="Side platforms" onclick="setPlatformType('side')">▰</button>
+  <button title="Island platform" data-platform-type="island" aria-label="Island platform" onclick="setPlatformType('island')">▰</button>
+  <button title="Side platforms" data-platform-type="side" aria-label="Side platforms" onclick="setPlatformType('side')">▰</button>
  </details>
  <details class="tool-group"><summary>2D Map appearance</summary>
   <button id="themeToggleBtn" type="button" title="Map theme" aria-label="Map theme">◐</button>
@@ -857,6 +885,10 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 const map=L.map('map',{zoomControl:false,attributionControl:false}).setView([37.7749,-122.4194],13);
+map.createPane('sbTrackPane');map.getPane('sbTrackPane').style.zIndex=410;
+map.createPane('sbPlatformPane');map.getPane('sbPlatformPane').style.zIndex=430;
+map.createPane('sbStationPane');map.getPane('sbStationPane').style.zIndex=460;
+map.createPane('sbCrowdPane');map.getPane('sbCrowdPane').style.zIndex=480;
 map.createPane('sbTrackPane');map.getPane('sbTrackPane').style.zIndex=410;
 map.createPane('sbPlatformPane');map.getPane('sbPlatformPane').style.zIndex=430;
 map.createPane('sbStationPane');map.getPane('sbStationPane').style.zIndex=460;
@@ -923,14 +955,13 @@ let platformType='island';
 
 function setPlatformType(type){
  if(type!=='island'&&type!=='side')return;
-
  platformType=type;
- renderNetwork();
- saveHistory();
-
- message(type==='island'
-  ? 'Island platform selected.'
-  : 'Side platforms selected.');
+ document.querySelectorAll('[data-platform-type]').forEach(btn=>{
+  const active=btn.dataset.platformType===type;
+  btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));
+ });
+ renderNetwork();saveHistory();
+ message(type==='island'?'Island platform selected.':'Side platforms selected.');
 }
 let curveMode=false;
 let tunnelMode=false;
@@ -1305,6 +1336,7 @@ marker.on('mousedown touchstart',function(e){
 marker.on('mouseup touchend touchcancel mouseout',function(){
  clearTimeout(stationMenuTimer);
 });
+marker.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(stationMenuTimer);stationHoldTriggered=true;showStationMenu(i);});
 marker.on('click',function(e){
  L.DomEvent.stopPropagation(e);
  if(stationHoldTriggered||stationMenuIndex===i){stationHoldTriggered=false;return;}
@@ -1388,19 +1420,18 @@ function setTrackStyle(style){
 }
 
 function setPlatformWidth(width){
+ if(!['narrow','default','wide'].includes(width))return;
  platformWidth=width;
-
- document.querySelectorAll('[onclick^="setPlatformWidth"]').forEach(btn=>{
-  btn.classList.toggle('active',btn.textContent.trim().toLowerCase()===width);
+ document.querySelectorAll('[data-platform-width]').forEach(btn=>{
+  const active=btn.dataset.platformWidth===width;
+  btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));
  });
-
- message('Platform width: '+width+'.');
+ renderNetwork();message('Platform width: '+width+'.');
 }
-
 function toggleTunnelMode(){
  tunnelMode=!tunnelMode;
  const btn=document.getElementById("tunnelModeBtn");
- btn.textContent="Tunnel construction: "+(tunnelMode?"On":"Off");
+ btn.setAttribute("aria-pressed",String(tunnelMode));
  btn.classList.toggle("active",tunnelMode);
  message(tunnelMode?"Tunnel mode enabled — new track connections will run underground.":"Tunnel mode disabled — new track connections will run at grade.");
 }
@@ -1408,8 +1439,7 @@ function toggleTunnelMode(){
 function toggleCurveMode(){
  curveMode=!curveMode;
 
- document.getElementById('curveBtn').textContent=
-  '∿ Curve Tool: '+(curveMode?'On':'Off');
+ document.getElementById('curveBtn').setAttribute('aria-pressed',String(curveMode));
 
  document.getElementById('curveBtn').classList.toggle('active',curveMode);
 
@@ -1802,86 +1832,79 @@ window.addEventListener('load',function(){
 setTimeout(hideSplash,5000);
 </script>
 
-<script type="module">
-import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs';
+<script>
 let sb3dMap=null;
 let sb3dReady=false;
-const sb3dColors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'];
+let sb3dLibraryPromise=null;
 function sb3dData(){
- const lineFeatures=(window.getSubway3DTracks?window.getSubway3DTracks():[]);
- const stationFeatures=(window.getSubway3DStations?window.getSubway3DStations():[]);
- return {lines:{type:'FeatureCollection',features:lineFeatures},
-         stations:{type:'FeatureCollection',features:stationFeatures}};
+ const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
+ const stations=window.getSubway3DStations?window.getSubway3DStations():[];
+ return {lines:{type:'FeatureCollection',features:lines},stations:{type:'FeatureCollection',features:stations}};
 }
 function sb3dRefresh(){
- if(!sb3dReady)return;
- const d=sb3dData();
- sb3dMap.getSource('sb-lines')?.setData(d.lines);
- sb3dMap.getSource('sb-stations')?.setData(d.stations);
+ if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
+ const data=sb3dData();
+ sb3dMap.getSource('sb-lines')?.setData(data.lines);
+ sb3dMap.getSource('sb-stations')?.setData(data.stations);
 }
-window.toggle3DCityView=function(){
+function loadMapLibre(){
+ if(!sb3dLibraryPromise)sb3dLibraryPromise=import('https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs').then(mod=>mod).catch(error=>{sb3dLibraryPromise=null;throw error;});
+ return sb3dLibraryPromise;
+}
+async function ensure3DMap(){
+ if(sb3dMap)return sb3dMap;
+ const maplibregl=await loadMapLibre();
+ const center=map.getCenter();
+ sb3dMap=new maplibregl.Map({
+  container:'sb-3d-map',style:'https://tiles.openfreemap.org/styles/liberty',
+  center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
+  pitch:58,bearing:-18,maxPitch:70,antialias:true,attributionControl:false
+ });
+ sb3dMap.on('load',()=>{
+  try{
+   sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const layers=sb3dMap.getStyle().layers||[];
+   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
+   sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
+    filter:['!=',['get','hide_3d'],true],
+    paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
+     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
+   const data=sb3dData();
+   sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
+   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
+   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
+   sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
+   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
+   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
+   sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
+  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded. Switch back to 2D Build.');}
+ });
+ sb3dMap.on('error',event=>console.warn('3D city map:',event.error||event));
+ return sb3dMap;
+}
+window.toggle3DCityView=async function(){
  const host=document.getElementById('sb-3d-map');
  const toggle=document.getElementById('sb-3d-toggle');
  const enable=!host.classList.contains('active');
- if(enable){
-  host.classList.add('active');
-  document.getElementById('map').style.visibility='hidden';
-  toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
-  if(!sb3dMap){
-   const c=map.getCenter();
-   sb3dMap=new maplibregl.Map({
-    container:'sb-3d-map',
-    style:'https://tiles.openfreemap.org/styles/liberty',
-    center:[c.lng,c.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
-    pitch:58,bearing:-18,maxPitch:70,antialias:true,
-    attributionControl:false
-   });
-   /* MapLibre zoom controls hidden to keep the lower-right edge clear. */
-   sb3dMap.on('load',()=>{
-    sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-    const layers=sb3dMap.getStyle().layers||[];
-    const label=layers.find(l=>l.type==='symbol'&&l.layout&&l.layout['text-field']);
-    sb3dMap.addLayer({
-     id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',
-     type:'fill-extrusion',minzoom:13,
-     filter:['!=',['get','hide_3d'],true],
-     paint:{
-      'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],
-       0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
-      'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
-      'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
-      'fill-extrusion-opacity':0.92
-     }
-    },label?.id);
-    sb3dMap.addSource('sb-lines',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
-    sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',
-     layout:{'line-cap':'round','line-join':'round'},
-     paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
-    sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',
-     layout:{'line-cap':'round','line-join':'round'},
-     paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
-    sb3dMap.addSource('sb-stations',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
-    sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',
-     paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
-    sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',
-     paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-    sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
-   });
-   sb3dMap.on('error',e=>console.warn('3D city map:',e.error||e));
-  }else{
-   const c=map.getCenter();
-   sb3dMap.jumpTo({center:[c.lng,c.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
-   sb3dMap.resize();
-   sb3dRefresh();
-  }
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dMap.triggerRepaint();}}));
-  message('3D city preview — switch to 2D Build to edit your network.');
- }else{
-  host.classList.remove('active');
-  document.getElementById('map').style.visibility='visible';
+ if(!enable){
+  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
   toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
-  map.invalidateSize();
-  message('2D construction view restored.');
+  map.invalidateSize();message('2D construction view restored.');return;
+ }
+ host.classList.add('active');document.getElementById('map').style.visibility='hidden';
+ toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
+ try{
+  await ensure3DMap();
+  const center=map.getCenter();
+  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dRefresh();sb3dMap.triggerRepaint();}}));
+  message('3D city preview — switch to 2D Build to edit your network.');
+ }catch(error){
+  console.error('Unable to initialize 3D city map:',error);
+  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
+  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  map.invalidateSize();message('3D map could not load. Check your connection and try again.');
  }
 };
 window.refreshSubway3D=sb3dRefresh;
