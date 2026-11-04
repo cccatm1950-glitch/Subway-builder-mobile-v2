@@ -4,6 +4,8 @@
     <application
         android:allowBackup="true"
         android:label="Subway Builder"
+        android:icon="@drawable/subway_builder_logo"
+        android:roundIcon="@drawable/subway_builder_logo"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
 
@@ -18,7 +20,5 @@
             </intent-filter>
 
         </activity>
-    <application
-        android:icon="@drawable/subway_builder_logo"
-        android:roundIcon="@drawable/subway_builder_logo"
+    </application>
 </manifest>
