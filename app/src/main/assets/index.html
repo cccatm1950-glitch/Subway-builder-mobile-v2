@@ -332,7 +332,7 @@ html,body{background:var(--sb-ink);color:#f5f8fc}
 #constructionPanel .tool-group button{margin:4px 7px;width:calc(100% - 14px);min-height:38px;text-align:left;padding:10px 12px}
 #constructionPanel .tool-group[open]{background:rgba(5,13,25,.48)}
 #constructionPanel .tool-group[open] summary{border-bottom:1px solid rgba(185,215,242,.10)}
-#constructionPanel .tool-group summary:after{content:"＋"}
+#constructionPanel .tool-group summary:after{content:"+"}
 #constructionPanel .tool-group[open] summary:after{content:"−"}
 .panel h3{color:#8fa8c3;letter-spacing:1.3px}
 button{min-height:37px;border-radius:11px;color:#eaf3fc;
@@ -395,6 +395,28 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
 .sb-platform-crowd .people{letter-spacing:-3px;font-size:13px}.sb-platform-crowd strong{font-size:11px}
 .sb-train-stop .load{display:block;color:#9fe9db;font-size:9px;font-weight:600}
 @keyframes sb-board-pop{0%{transform:translateY(8px) scale(.7);opacity:0}100%{transform:translateY(0) scale(1);opacity:1}}
+
+:root{--ios-glass:rgba(15,25,40,.46);--ios-line:rgba(255,255,255,.22)}
+.topbar,.panel,.bottom,#message,#stationContextMenu,.start-card{border-radius:22px!important;background:var(--ios-glass)!important;border:1px solid var(--ios-line)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
+button,.leaflet-control-zoom a,.maplibregl-ctrl-group button{border-radius:999px!important;background:rgba(255,255,255,.09)!important;border:1px solid rgba(255,255,255,.2)!important;color:#f6f9ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transition:background .18s ease,transform .18s ease}
+button.active{background:rgba(65,190,170,.24)!important;border-color:rgba(120,255,225,.55)!important}
+button:active{transform:scale(.96)}
+#constructionPanel{position:absolute!important;left:auto!important;right:0!important;top:78px!important;width:min(310px,84vw)!important;max-height:calc(100dvh - 92px)!important;border-radius:24px 0 0 24px!important;border-right:0!important;padding:12px!important;transition:transform .24s ease,opacity .24s ease!important;transform:translateX(0);overflow-y:auto;z-index:650!important}
+#constructionPanel.sb-collapsed{transform:translateX(100%);opacity:0;pointer-events:none}
+#constructionPanel .panel-heading{position:sticky;top:-12px;z-index:2;background:rgba(10,20,34,.58);backdrop-filter:blur(18px);padding:5px 0 10px}
+#constructionPanel .panel-heading button{width:38px;height:38px;min-height:38px;padding:0;font-size:18px}
+#constructionPanel .tool-group{border-radius:18px!important;background:rgba(255,255,255,.045)!important}
+#constructionPanel .tool-group button{width:calc(100% - 14px)!important;margin:5px 7px!important;text-align:left}
+#sb-panel-toggle{display:flex!important;position:absolute;z-index:700;right:0;top:84px;width:42px;height:54px;min-height:54px;padding:0;align-items:center;justify-content:center;border-radius:18px 0 0 18px!important;border-right:0!important;font-size:20px}
+#sb-zoom-controls{display:flex;gap:7px;align-items:center}
+#sb-zoom-controls button{width:38px;height:38px;min-height:38px;padding:0;font-size:20px}
+.panel-heading .panel-title{margin-right:auto}
+.bottom{right:12px!important;left:auto!important;bottom:12px!important;gap:8px!important;padding:8px!important}
+.bottom button{width:46px!important;height:46px!important;min-height:46px!important;border-radius:50%!important;font-size:17px!important}
+.trash-dock-btn,.trash-dock-btn.active{background:rgba(255,90,110,.18)!important;border-color:rgba(255,140,155,.4)!important;box-shadow:none!important}
+#stationContextMenu{border-radius:24px!important}
+#sb-3d-map .maplibregl-ctrl-group{border-radius:18px!important;overflow:hidden}
+@media(max-width:560px){#constructionPanel{top:72px!important;width:min(86vw,310px)!important;max-height:calc(100dvh - 82px)!important}#sb-panel-toggle{top:78px;width:38px;height:48px;min-height:48px}.bottom{right:9px!important;bottom:10px!important}.bottom button{width:43px!important;height:43px!important;min-height:43px!important}}
 </style>
 </head>
 <body>
@@ -425,7 +447,7 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
   <p>DESIGN • BUILD • CONNECT</p>
 
   <button class="start-primary" onclick="closeStartMenu()">
-   🚇 Start Building
+   ▣ Start Building
   </button>
 
   <button onclick="message('Welcome back to Subway Builder!')">
@@ -433,11 +455,11 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
   </button>
 
   <button onclick="message('Settings coming soon.')">
-   ⚙ Settings
+   SETTINGS Settings
   </button>
 
   <button onclick="message('Subway Builder Mobile')">
-   ⓘ About
+   i About
   </button>
  </div>
 </div>
@@ -475,7 +497,7 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
      ======================================================== -->
 
 <div class="topbar">
- <div class="brand">🚇 SUBWAY BUILDER</div>
+ <div class="brand">▣ SUBWAY BUILDER</div>
  <div class="stats">
   <div class="stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
@@ -488,27 +510,27 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
      ======================================================== -->
 
 <div class="panel" id="constructionPanel">
- <div class="panel-heading"><span>BUILD TOOLS</span><button id="closePanelBtn" aria-label="Close tools" onclick="document.getElementById('constructionPanel').style.display='none';document.getElementById('openPanelBtn').style.display='block';">×</button></div>
- <details class="tool-group"><summary>🚇 Stations & track</summary>
-  <button id="stationBtn" class="active" onclick="setMode('station')">＋ Place station</button>
-  <button id="trackBtn" onclick="setMode('track')">〰 Connect stations</button>
-  <button id="waypointBtn" onclick="setMode('waypoint')">📍 Shape route</button>
-  <button id="deleteBtn" onclick="setMode('delete')">🗑 Remove</button>
-  <button onclick="setMode('inspect')">ⓘ Inspect network</button>
+ <div class="panel-heading"><span class="panel-title">BUILD TOOLS</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button></div><button id="closePanelBtn" aria-label="Collapse tools" title="Collapse tools" onclick="toggleToolsPanel(false)">‹</button></div>
+ <details class="tool-group"><summary>▣ Stations & track</summary>
+  <button id="stationBtn" class="active" onclick="setMode('station')">+ Place station</button>
+  <button id="trackBtn" onclick="setMode('track')">∿ Connect stations</button>
+  <button id="waypointBtn" onclick="setMode('waypoint')">WAYPOINT Shape route</button>
+  <button id="deleteBtn" onclick="setMode('delete')">⌫ Remove</button>
+  <button onclick="setMode('inspect')">i Inspect network</button>
  </details>
- <details class="tool-group"><summary>🛤 Track settings</summary>
+ <details class="tool-group"><summary>TRACK Track settings</summary>
   <button id="singleTrackBtn" class="active" onclick="setTrackStyle('single')">Single track</button>
   <button id="parallelTrackBtn" onclick="setTrackStyle('parallel')">Parallel tracks</button>
   <button onclick="setPlatformWidth('narrow')">Narrow platforms</button>
   <button class="active" onclick="setPlatformWidth('default')">Standard platforms</button>
   <button onclick="setPlatformWidth('wide')">Wide platforms</button>
-  <button id="curveBtn" onclick="toggleCurveMode()">〰 Curve tool: Off</button>
+  <button id="curveBtn" onclick="toggleCurveMode()">∿ Curve tool: Off</button>
  </details>
- <details class="tool-group"><summary>🚇 Tunnels & elevation</summary>
+ <details class="tool-group"><summary>▣ Tunnels & elevation</summary>
   <button id="tunnelModeBtn" onclick="toggleTunnelMode()">Tunnel construction: Off</button>
   <p class="panel-hint">Enable before connecting stations to route new track underground.</p>
  </details>
- <details class="tool-group"><summary>🏗 Station design</summary>
+ <details class="tool-group"><summary>STATION Station design</summary>
   <button onclick="setPlatformType('island')">▰ Island platform</button>
   <button onclick="setPlatformType('side')">▰ Side platforms</button>
  </details>
@@ -516,11 +538,11 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
   <button id="undoBtn" onclick="undo()">↶ Undo</button>
   <button id="redoBtn" onclick="redo()">↷ Redo</button>
  </details>
- <details class="tool-group"><summary>🗺 Map appearance</summary>
-  <button id="themeToggleBtn" type="button">🌙 Map theme</button>
-  <div id="mapMenu" style="display:none;padding:8px"><button onclick="setMapTheme('dark')">🌙 Dark map</button><button onclick="setMapTheme('light')">☀️ Light map</button></div>
+ <details class="tool-group"><summary>2D Map appearance</summary>
+  <button id="themeToggleBtn" type="button"> Map theme</button>
+  <div id="mapMenu" style="display:none;padding:8px"><button onclick="setMapTheme('dark')"> Dark map</button><button onclick="setMapTheme('light')"> Light map</button></div>
  </details>
- <details class="tool-group"><summary>📊 Network status</summary>
+ <details class="tool-group"><summary> Network status</summary>
   <div id="stationCount" class="network-stat">Stations: 0</div><div id="trackCount" class="network-stat">Track: 0 sections</div>
  </details>
 </div>
@@ -529,18 +551,10 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
 
-<button id="openPanelBtn" onclick="
- document.getElementById('constructionPanel').style.display='block';
- this.style.display='none';
- " style="display:none;position:absolute;z-index:600;top:82px;left:10px;width:48px;height:48px;font-size:22px;">☰</button>
+<button id="sb-panel-toggle" type="button" aria-label="Expand build tools" title="Expand build tools" onclick="toggleToolsPanel(true)">›</button>
 <div id="message">Tap the map to build your first station.</div>
 
-<div class="bottom" role="group" aria-label="Map actions">
- <button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">🏙</button>
- <button id="runBtn" onclick="toggleSimulation()" aria-label="Run trains" title="Run trains">▶</button>
- <button id="cancelBtn" onclick="resetSelection()" aria-label="Clear selection" title="Clear selection">✕</button>
- <button id="trashModeBtn" class="trash-dock-btn" onclick="activateDeleteMode()" aria-label="Delete an individual track or station" title="Delete track or station">🗑</button>
-</div>
+<div class="bottom" role="group" aria-label="Map actions"><button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">3D</button><button id="runBtn" onclick="toggleSimulation()" aria-label="Run trains" title="Run trains">▶</button><button id="cancelBtn" onclick="resetSelection()" aria-label="Clear selection" title="Clear selection">×</button><button id="trashModeBtn" class="trash-dock-btn" onclick="activateDeleteMode()" aria-label="Delete an individual track or station" title="Delete track or station">⌫</button></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -782,7 +796,7 @@ function renderNetwork(){
 
 if(t.waypoints){
  t.waypoints.forEach((w,waypointIndex)=>{
-  let symbol=w.elevation==='below'?'🚇':
+  let symbol=w.elevation==='below'?'▣':
            w.elevation==='above'?'⬆':'●';
 if(mode==='delete'){
   L.circleMarker([w.lat,w.lng],{
@@ -1066,7 +1080,7 @@ function toggleCurveMode(){
  curveMode=!curveMode;
 
  document.getElementById('curveBtn').textContent=
-  '〰 Curve Tool: '+(curveMode?'On':'Off');
+  '∿ Curve Tool: '+(curveMode?'On':'Off');
 
  document.getElementById('curveBtn').classList.toggle('active',curveMode);
 
@@ -1119,6 +1133,7 @@ function setStationElevation(level){
    SECTION 16 — SELECTION AND EDITING
    ========================================================= */
 
+function toggleToolsPanel(open){const panel=document.getElementById('constructionPanel');const toggle=document.getElementById('sb-panel-toggle');panel.classList.toggle('sb-collapsed',!open);toggle.style.display=open?'none':'flex';toggle.setAttribute('aria-label',open?'Collapse build tools':'Expand build tools');}
 function resetSelection(){
  selected=null;
  renderNetwork();
@@ -1304,7 +1319,7 @@ function toggleSimulation(){
   for(let i=1;i<route.length;i++){const d=map.distance(route[i-1],route[i]);lengths.push(d);total+=d;}
   if(total<1)return;
   const color=colors[trackIndex%colors.length];
-  const train=L.marker(route[0],{icon:L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">🚇</div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
+  const train=L.marker(route[0],{icon:L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
   trainMarkers.push(train);
   let segment=0,segmentProgress=0,direction=1,stoppedUntil=0;
   const capacity=60;
@@ -1314,7 +1329,7 @@ function toggleSimulation(){
    if(!running)return;
    const now=Date.now();
    if(stoppedUntil>now)return;
-   if(stoppedUntil&&now>=stoppedUntil){stoppedUntil=0;train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">🚇</div>',iconSize:[34,34],iconAnchor:[17,17]}));}
+   if(stoppedUntil&&now>=stoppedUntil){stoppedUntil=0;train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));}
    const step=2.2;
    segmentProgress+=step/Math.max(1,lengths[segment]);
    if(segmentProgress>=1){
@@ -1334,7 +1349,7 @@ function toggleSimulation(){
       station.waitingPassengers+=1+Math.floor(Math.random()*4);
       updateUI();
       train.setLatLng([station.lat,station.lng]);
-      train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-stop"><span>🚇</span><b>+'+boarded+' boarding<span class="load">'+alighted+' off · '+onboard+'/'+capacity+' aboard</span></b></div>',iconSize:[132,52],iconAnchor:[66,26]}));
+      train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-stop"><span>▣</span><b>+'+boarded+' boarding<span class="load">'+alighted+' off · '+onboard+'/'+capacity+' aboard</span></b></div>',iconSize:[132,52],iconAnchor:[66,26]}));
       train.bindTooltip(station.name+' · '+boarded+' boarded · '+alighted+' left',{direction:'top',offset:[0,-18]}).openTooltip();
       renderNetwork();
       message(station.name+': '+alighted+' off, '+boarded+' boarded · train '+onboard+'/'+capacity+' full.');
@@ -1419,7 +1434,7 @@ window.toggle3DCityView=function(){
  if(enable){
   host.classList.add('active');
   document.getElementById('map').style.visibility='hidden';
-  toggle.classList.add('active');toggle.textContent='🗺';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
+  toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
   if(!sb3dMap){
    const c=map.getCenter();
    sb3dMap=new maplibregl.Map({
@@ -1472,7 +1487,7 @@ window.toggle3DCityView=function(){
  }else{
   host.classList.remove('active');
   document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.textContent='🏙';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
   map.invalidateSize();
   message('2D construction view restored.');
  }
