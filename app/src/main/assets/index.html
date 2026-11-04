@@ -691,6 +691,15 @@ function resetSelection(){
  renderNetwork();
  message('Selection cleared.');
 }
+ function setWaypointElevation(trackIndex,waypointIndex,level){
+ let track=tracks[trackIndex];
+ if(!track||!track.waypoints[waypointIndex])return;
+
+ track.waypoints[waypointIndex].elevation=level;
+ saveHistory();
+ renderNetwork();
+ message('Waypoint elevation changed to '+level+' grade.');
+ }
 function selectTrackForWaypoints(trackIndex){
  selectedTrackIndex=trackIndex;
  message('Track selected. Tap the map to add a waypoint.');
