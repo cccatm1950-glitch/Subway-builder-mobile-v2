@@ -287,10 +287,15 @@ function snapshot(){
  return {
   money:money,
   stations:stations.map(s=>({
-   lat:s.lat,lng:s.lng
+   lat:s.lat,
+   lng:s.lng,
+   name:s.name
   })),
   tracks:tracks.map(t=>({
-   a:t.a,b:t.b
+   a:t.a,
+   b:t.b,
+   style:t.style||'single',
+   curve:!!t.curve
   }))
  };
 }
