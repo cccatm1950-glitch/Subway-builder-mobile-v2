@@ -1687,13 +1687,17 @@ function toggleToolsPanel(open){
  const panel=document.getElementById('constructionPanel');
  const toggle=document.getElementById('sb-panel-toggle');
  if(!panel||!toggle)return;
- const expanded=typeof open==='boolean'?open:panel.classList.contains('sb-collapsed');
+ const wasOpen=panel.dataset.drawerOpen==='true';
+ const expanded=typeof open==='boolean'?open:!wasOpen;
+ panel.dataset.drawerOpen=String(expanded);
  panel.classList.toggle('sb-collapsed',!expanded);
  panel.setAttribute('aria-hidden',String(!expanded));
  panel.setAttribute('aria-expanded',String(expanded));
  toggle.hidden=false;
  toggle.removeAttribute('hidden');
  toggle.style.setProperty('display','flex','important');
+ toggle.style.setProperty('position','fixed','important');
+ toggle.style.setProperty('z-index','1400','important');
  toggle.style.setProperty('visibility','visible','important');
  toggle.style.setProperty('opacity','1','important');
  toggle.style.setProperty('pointer-events','auto','important');
@@ -1701,6 +1705,9 @@ function toggleToolsPanel(open){
  toggle.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');
  toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
  panel.style.setProperty('position','fixed','important');
+ panel.style.setProperty('display','block','important');
+ panel.style.setProperty('left','10px','important');
+ panel.style.setProperty('right','auto','important');
  panel.style.setProperty('z-index','1300','important');
  panel.style.setProperty('transform',expanded?'translate3d(0,0,0)':'translate3d(calc(-100% - 24px),0,0)','important');
  panel.style.setProperty('visibility',expanded?'visible':'hidden','important');
@@ -1743,11 +1750,12 @@ function bindConstructionPanelControls(){
  if(!panel)return;
  // Bind the menu toggle independently from the panel controls so a panel
  // re-bind or an already-bound panel can never leave the hamburger inert.
- if(toggle&&toggle.dataset.controlsBound!=='true'){
-  toggle.dataset.controlsBound='true';
-  toggle.addEventListener('click',event=>{
+ if(toggle){
+  // Use the button's direct click property so the menu remains operable even
+  // if delegated construction-panel binding is delayed or reinitialized.
+  toggle.onclick=event=>{
    event.preventDefault();event.stopPropagation();toggleToolsPanel();
-  });
+  };
  }
  if(panel.dataset.controlsBound!=='true'){
   panel.dataset.controlsBound='true';
@@ -1790,6 +1798,7 @@ function bindConstructionPanelControls(){
    group.addEventListener('toggle',update);update();
   });
  }
+ panel.dataset.drawerOpen='false';
  toggleToolsPanel(false);
  syncConstructionControls();
 }
