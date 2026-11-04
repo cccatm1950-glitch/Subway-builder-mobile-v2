@@ -47,6 +47,12 @@ button:active{opacity:.7}
  <h3>EDIT</h3>
  <button id="undoBtn" onclick="undo()">↶ Undo</button>
  <button id="redoBtn" onclick="redo()">↷ Redo</button>
+ <h3>MAP APPEARANCE</h3>
+<button onclick="toggleMapMenu()">🌙 Map Theme</button>
+<div id="mapMenu" style="display:none;background:#24364d;padding:9px;border-radius:9px;margin-bottom:10px">
+  <button onclick="setMapTheme('light')">☀️ Light Map</button>
+  <button onclick="setMapTheme('dark')">🌙 Dark Map</button>
+</div>
  <h3>NETWORK</h3>
  <div id="stationCount" style="font-size:12px;margin:5px 0 10px">Stations: 0</div>
  <div id="trackCount" style="font-size:12px;margin:5px 0">Track: 0 sections</div>
@@ -63,10 +69,48 @@ button:active{opacity:.7}
 <script>
 const map=L.map('map').setView([37.7749,-122.4194],13);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
- maxZoom:19,
- attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
-}).addTo(map);
+const lightTiles = L.tileLayer(
+ 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+ {
+  maxZoom:19,
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+ }
+);
+
+const darkTiles = L.tileLayer(
+ 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+ {
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
+ }
+);
+
+let currentTheme=localStorage.getItem('mapTheme')||'light';
+
+function setMapTheme(theme){
+ if(theme!=='light'&&theme!=='dark')return;
+
+ map.removeLayer(lightTiles);
+ map.removeLayer(darkTiles);
+
+ if(theme==='dark'){
+  darkTiles.addTo(map);
+  message('Dark map enabled.');
+ }else{
+  lightTiles.addTo(map);
+  message('Light map enabled.');
+ }
+
+ currentTheme=theme;
+ localStorage.setItem('mapTheme',theme);
+}
+
+function toggleMapMenu(){
+ const menu=document.getElementById('mapMenu');
+ menu.style.display=menu.style.display==='none'?'block':'none';
+}
+
+setMapTheme(currentTheme);
 
 L.control.zoom({position:'bottomright'}).addTo(map);
 
