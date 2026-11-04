@@ -561,7 +561,8 @@ function snapshot(){
    lat:s.lat,
    lng:s.lng,
    name:s.name,
-   elevation:s.elevation||'at'
+   elevation:s.elevation||'at',
+platformType:s.platformType||platformType'
   })),
   tracks:tracks.map(t=>({
    a:t.a,
