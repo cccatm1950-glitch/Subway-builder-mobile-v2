@@ -1035,7 +1035,7 @@ function toggleMapMenu(){
  const menu=document.getElementById('mapMenu');
  menu.style.display=menu.style.display==='none'?'block':'none';
 }
-document.getElementById('themeToggleBtn').addEventListener('click',toggleMapMenu);
+// Map-theme clicks are handled by the delegated construction-panel listener.
 setMapTheme(currentTheme);
 
 /* Default map zoom and attribution controls are intentionally hidden. */
