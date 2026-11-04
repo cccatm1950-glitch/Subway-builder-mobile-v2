@@ -751,6 +751,35 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 .start-card .menu-chevron{font-size:22px;color:rgba(235,249,255,.68)}
 #sb-3d-map{z-index:4!important;background:#0a1727}#map{z-index:1}#constructionPanel{z-index:650}#stationContextMenu{z-index:2000}#sb-panel-toggle{z-index:700}#sb-action-dock{z-index:710}
 @media(prefers-reduced-motion:reduce){.start-card button,button{transition:none!important}}
+
+/* PR#21 — single-play launch, background map blur and optional touch pointer */
+#map.sb-start-blur,.sb-start-blur{filter:blur(4px) brightness(.62) saturate(.82);transform:scale(1.018);transition:filter .35s ease}
+#sb-3d-map.sb-start-blur{filter:blur(4px) brightness(.62)}
+#startMenu{background:rgba(5,12,24,.12)!important;backdrop-filter:blur(0)!important;-webkit-backdrop-filter:blur(0)!important}
+.play-launch{display:flex;flex-direction:column;align-items:center;gap:18px;padding:26px 32px;text-align:center;pointer-events:none}
+.play-brand{font-size:clamp(19px,5vw,27px);font-weight:900;letter-spacing:3px;color:#f3fbff;text-shadow:0 2px 22px rgba(65,220,220,.35)}
+#sb-play-button{pointer-events:auto;width:104px;height:104px;min-height:104px;padding:0;margin:0;border-radius:50%!important;display:grid;place-items:center;background:rgba(19,180,163,.22)!important;border:1px solid rgba(142,255,235,.66)!important;box-shadow:0 0 0 7px rgba(63,225,205,.08),0 0 32px rgba(52,255,220,.3),inset 0 1px 0 rgba(255,255,255,.28)!important;transition:transform .2s ease,box-shadow .2s ease,background .2s ease!important}
+#sb-play-button span{font-size:34px;margin-left:5px;color:#eafffb;text-shadow:0 0 18px rgba(94,255,224,.9)}
+#sb-play-button:hover,#sb-play-button:focus-visible,#sb-play-button.sb-pointer-hover{transform:scale(1.08)!important;background:rgba(24,219,194,.4)!important;box-shadow:0 0 0 9px rgba(63,225,205,.13),0 0 24px rgba(67,255,225,.72),0 0 62px rgba(67,255,225,.5),inset 0 1px 0 rgba(255,255,255,.4)!important;outline:none}
+#sb-play-button:active{transform:scale(.94)!important}
+.play-caption{font-size:10px;letter-spacing:3px;color:rgba(230,248,255,.8)}
+#sb-touch-pointer{position:fixed;z-index:5000;left:-100px;top:-100px;width:26px;height:26px;border:2px solid rgba(134,255,236,.95);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);opacity:0;transition:opacity .12s,transform .12s;filter:drop-shadow(0 0 7px rgba(47,255,219,.8))}
+#sb-touch-pointer.visible{opacity:1}
+#sb-touch-pointer span{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#eafffb;transform:translate(-50%,-50%);box-shadow:0 0 8px #5fffe2}
+#sb-touch-pointer.pressed{transform:translate(-50%,-50%) scale(.72);background:rgba(81,255,226,.22)}
+.sb-pointer-click{position:fixed;z-index:4999;width:20px;height:20px;border:2px solid rgba(119,255,229,.9);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:sb-pointer-ripple .38s ease-out forwards}
+@keyframes sb-pointer-ripple{to{width:54px;height:54px;opacity:0;box-shadow:0 0 24px rgba(69,255,220,.5)}}
+#sb-pointer-toggle{flex:0 0 auto;width:32px;height:32px;min-height:32px;padding:0;margin:0 6px 0 0;border-radius:50%!important;font-size:16px;display:grid;place-items:center}
+#sb-city-stat{margin-left:3px}
+#sb-dashboard-dialog{margin-left:3px}
+#constructionPanel .tool-group[open]{border-color:rgba(116,255,229,.42)!important;box-shadow:0 0 0 1px rgba(76,241,214,.1),0 0 20px rgba(51,218,197,.1)!important}
+#constructionPanel .tool-group[open]>summary{background:rgba(51,212,190,.13)!important;color:#eafffb!important}
+#constructionPanel .tool-group>button.active{background:rgba(35,219,188,.26)!important;border-color:rgba(121,255,229,.72)!important;box-shadow:0 0 0 1px rgba(104,255,224,.16),0 0 18px rgba(54,241,208,.25)!important}
+#constructionPanel .tool-group>button:focus-visible{outline:2px solid rgba(132,255,235,.85);outline-offset:2px}
+#constructionPanel .tool-group>button:not(.active):focus{box-shadow:none}
+.sb-station-marker{filter:drop-shadow(0 0 5px rgba(110,245,255,.8))}
+@media(prefers-reduced-motion:reduce){#sb-play-button,#sb-touch-pointer{transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -779,19 +808,14 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 
 <div id="map"></div>
 <div id="sb-3d-map" aria-label="3D OpenStreetMap city preview"></div>
-<div id="startMenu">
- <div class="start-card">
-  <img src="subway_builder_logo.png" alt="Subway Builder">
-  <h1>SUBWAY BUILDER</h1>
-  <p>DESIGN • BUILD • CONNECT</p>
-  <div id="startMenuNotice" role="status" aria-live="polite" hidden></div>
-
-  <button class="start-primary" onclick="closeStartMenu()"><span class="menu-icon">⌖</span><span class="menu-label">Start Building</span><span class="menu-chevron">›</span></button>
-  <button onclick="message('Welcome back to Subway Builder!');closeStartMenu()"><span class="menu-icon">⌁</span><span class="menu-label">Continue</span><span class="menu-chevron">›</span></button>
-  <button type="button" onclick="showStartMenuNotice('Settings are coming soon.')"><span class="menu-icon">⚙</span><span class="menu-label">Settings</span><span class="menu-chevron">›</span></button>
-  <button type="button" onclick="showStartMenuNotice('Subway Builder Mobile')"><span class="menu-icon">ⓘ</span><span class="menu-label">About</span><span class="menu-chevron">›</span></button>
+<div id="startMenu" aria-label="Start Subway Builder">
+ <div class="play-launch">
+  <div class="play-brand">SUBWAY BUILDER</div>
+  <button id="sb-play-button" type="button" aria-label="Play Subway Builder" onclick="closeStartMenu()"><span>▶</span></button>
+  <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -828,7 +852,8 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 <div class="topbar">
  <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
  <div class="stats">
-  <div class="stat">CITY<strong>San Francisco</strong></div>
+  <button id="sb-pointer-toggle" type="button" aria-pressed="false" title="Enable touch pointer" aria-label="Enable touch pointer" onclick="toggleTouchPointer()">⌖</button>
+  <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
   <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
  </div>
@@ -845,7 +870,7 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
   <button id="stationBtn" class="active" title="Place station" aria-label="Place station" onclick="setMode('station')">●</button>
   <button id="trackBtn" title="Connect stations" aria-label="Connect stations" onclick="setMode('track')">↗</button>
   <button id="waypointBtn" title="Shape route" aria-label="Shape route" onclick="setMode('waypoint')">⌁</button>
-  <button title="Inspect network" aria-label="Inspect network" onclick="setMode('inspect')">i</button>
+  <button id="inspectBtn" title="Inspect network" aria-label="Inspect network" onclick="setMode('inspect')">i</button>
  </details>
  <details class="tool-group"><summary>TRACK Track settings</summary>
   <button id="singleTrackBtn" class="active" title="Single track" aria-label="Single track" onclick="setTrackStyle('single')">—</button>
@@ -1228,11 +1253,12 @@ if(mode==='delete'){
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
   const routeColor=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
   if(elevation==='below'){
-   L.polyline(shifted,{pane:'sbTrackPane',color:'#06101d',weight:12,opacity:.96,lineCap:'round'}).addTo(window.networkLayer);
-   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:5,opacity:.98,lineCap:'round',dashArray:'5 9'}).addTo(window.networkLayer);
+   L.polyline(shifted,{pane:'sbTrackPane',color:'#020914',weight:14,opacity:1,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer);
+   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
    [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:'#d8f5ff',weight:2,fillColor:'#0c2638',fillOpacity:1}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
   }else{
-   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:5,opacity:1,lineCap:'round',dashArray:elevation==='at'?null:'10 8'}).addTo(window.networkLayer);
+   L.polyline(shifted,{pane:'sbTrackPane',color:'#06101d',weight:12,opacity:.96,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer);
+   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:elevation==='at'?null:'10 8'}).addTo(window.networkLayer);
   }
 }  
 
@@ -1393,9 +1419,9 @@ function updateUI(){
 function setMode(newMode){
  mode=newMode;
  selected=null;
- document.getElementById('stationBtn').classList.toggle('active',mode==='station');
- document.getElementById('trackBtn').classList.toggle('active',mode==='track');
- document.getElementById('waypointBtn').classList.toggle('active',mode==='waypoint');
+ const modeButtons={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
+ document.querySelectorAll('#constructionPanel .tool-group:first-of-type button').forEach(btn=>btn.classList.remove('active'));
+ if(modeButtons[mode])document.getElementById(modeButtons[mode])?.classList.add('active');
 
 
  const trashDock=document.getElementById('trashModeBtn');
@@ -1411,10 +1437,10 @@ function setMode(newMode){
 }
 
 function setTrackStyle(style){
+ if(style!=='single'&&style!=='parallel')return;
  trackStyle=style;
-
- document.getElementById('singleTrackBtn').classList.toggle('active',style==='single');
- document.getElementById('parallelTrackBtn').classList.toggle('active',style==='parallel');
+ document.querySelectorAll('#singleTrackBtn,#parallelTrackBtn').forEach(btn=>btn.classList.remove('active'));
+ document.getElementById(style==='single'?'singleTrackBtn':'parallelTrackBtn').classList.add('active');
 
  message(style==='parallel'?'Parallel track mode selected.':'Single track mode selected.');
 }
@@ -1518,6 +1544,33 @@ function setStationElevation(level){
    ========================================================= */
 
 function toggleDashboardDialog(open){const dialog=document.getElementById("sb-dashboard-dialog");if(open===false){dialog.classList.remove("open");clearTimeout(sbMessageTimer);}else message("Build stations, connect routes, adjust track settings, and run trains.");}
+let sbTouchPointerEnabled=false;
+function setTouchPointerEnabled(enabled){
+ sbTouchPointerEnabled=!!enabled;
+ document.body.classList.toggle('sb-touch-pointer-enabled',sbTouchPointerEnabled);
+ const button=document.getElementById('sb-pointer-toggle');
+ if(button){button.classList.toggle('active',sbTouchPointerEnabled);button.setAttribute('aria-pressed',String(sbTouchPointerEnabled));button.title=sbTouchPointerEnabled?'Switch to normal touch controls':'Enable touch pointer';button.setAttribute('aria-label',button.title);}
+ const pointer=document.getElementById('sb-touch-pointer');
+ if(pointer){pointer.classList.toggle('visible',sbTouchPointerEnabled);if(!sbTouchPointerEnabled)pointer.classList.remove('pressed');}
+}
+function toggleTouchPointer(){setTouchPointerEnabled(!sbTouchPointerEnabled);message(sbTouchPointerEnabled?'Touch pointer enabled. Tap or drag with the pointer; turn it off for normal touch controls.':'Normal touch controls enabled.');}
+function moveTouchPointer(x,y,visible=true){
+ const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
+ pointer.style.left=x+'px';pointer.style.top=y+'px';pointer.classList.toggle('visible',!!visible);
+ const play=document.getElementById('sb-play-button');
+ if(play){const r=play.getBoundingClientRect();play.classList.toggle('sb-pointer-hover',x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom&&visible);}
+}
+(function installTouchPointer(){
+ const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
+ document.addEventListener('pointermove',e=>{if(sbTouchPointerEnabled||document.getElementById('startMenu')?.style.display!=='none')moveTouchPointer(e.clientX,e.clientY,true);});
+ document.addEventListener('pointerdown',e=>{if(sbTouchPointerEnabled||document.getElementById('startMenu')?.style.display!=='none'){moveTouchPointer(e.clientX,e.clientY,true);pointer.classList.add('pressed');}});
+ document.addEventListener('pointerup',()=>pointer.classList.remove('pressed'));
+ document.addEventListener('pointercancel',()=>pointer.classList.remove('pressed'));
+ document.addEventListener('click',e=>{if(!sbTouchPointerEnabled&&document.getElementById('startMenu')?.style.display==='none')return;const ripple=document.createElement('i');ripple.className='sb-pointer-click';ripple.style.left=e.clientX+'px';ripple.style.top=e.clientY+'px';document.body.appendChild(ripple);setTimeout(()=>ripple.remove(),420);});
+ document.addEventListener('touchmove',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
+ document.addEventListener('touchstart',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
+ document.addEventListener('touchend',()=>{if(sbTouchPointerEnabled)pointer.classList.remove('pressed');});
+})();
 function toggleToolsPanel(open){const panel=document.getElementById('constructionPanel');const toggle=document.getElementById('sb-panel-toggle');if(!panel||!toggle)return;panel.classList.toggle('sb-collapsed',!open);toggle.style.display=open?'none':'flex';toggle.setAttribute('aria-label',open?'Collapse build tools':'Expand build tools');toggle.setAttribute('title',open?'Collapse build tools':'Expand build tools');}
 function resetSelection(){
  selected=null;
@@ -1783,12 +1836,8 @@ renderNetwork();
 
 let sbStartMapPanTimer=null;
 function startStartMenuMapPan(){
- if(sbStartMapPanTimer||!window.map)return;
- sbStartMapPanTimer=setInterval(function(){
-  const menu=document.getElementById('startMenu');
-  if(!menu||menu.style.display==='none'){clearInterval(sbStartMapPanTimer);sbStartMapPanTimer=null;return;}
-  map.panBy([1,0],{animate:false});
- },85);
+ document.getElementById('map')?.classList.add('sb-start-blur');
+ document.getElementById('sb-3d-map')?.classList.add('sb-start-blur');
 }
 function dismissStartupOverlays(){
  const splash=document.getElementById('sb-loading');
@@ -1797,6 +1846,8 @@ function dismissStartupOverlays(){
  if(menu){menu.style.display='none';menu.setAttribute('aria-hidden','true');}
  const terms=document.getElementById('sb-terms-overlay');
  if(terms)terms.classList.remove('open');
+ document.getElementById('map')?.classList.remove('sb-start-blur');
+ document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
  if(sbStartMapPanTimer){clearInterval(sbStartMapPanTimer);sbStartMapPanTimer=null;}
 }
 function showStartMenuNotice(text){
@@ -1808,6 +1859,7 @@ function showStartMenuNotice(text){
 function closeStartMenu(){
  if(!localStorage.getItem("sbTermsAccepted")){showTermsDialog();return;}
  dismissStartupOverlays();
+ setTouchPointerEnabled(false);
  message('Tap the map to build your first station.');
 }
 function showTermsDialog(){const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');}
@@ -1816,6 +1868,7 @@ function acceptTerms(){
  if(!check||!check.checked)return;
  localStorage.setItem('sbTermsAccepted','yes');
  dismissStartupOverlays();
+ setTouchPointerEnabled(false);
  message('Tap the map to build your first station.');
 }
 function hideSplash(){
