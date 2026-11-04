@@ -511,6 +511,7 @@ marker.on('click',function(e){
 });
 
 marker.on('dragstart',function(){
+ clearTimeout(stationMenuTimer);
  map.dragging.disable();
 });
 
