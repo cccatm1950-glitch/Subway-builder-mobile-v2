@@ -1,0 +1,25 @@
+name: UI source checks
+
+on:
+  pull_request:
+    paths:
+      - 'app/src/main/assets/index.html'
+      - 'scripts/check-ui-source.mjs'
+      - '.github/workflows/ui-source-check.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'app/src/main/assets/index.html'
+      - 'scripts/check-ui-source.mjs'
+      - '.github/workflows/ui-source-check.yml'
+
+jobs:
+  check-ui-source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Parse inline JavaScript and verify UI wiring
+        run: node scripts/check-ui-source.mjs
