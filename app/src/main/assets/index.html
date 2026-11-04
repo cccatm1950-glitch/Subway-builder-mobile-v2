@@ -591,21 +591,21 @@ function restoreSnapshot(data){
   lat:s.lat,
   lng:s.lng,
   name:s.name||'Station '+(i+1),
-elevation:w.elevation||'at'
+  elevation:s.elevation||'at',
+  platformType:s.platformType||'island'
  }));
 
  tracks=data.tracks.map(t=>({
- a:t.a,
- b:t.b,
- style:t.style||'single',
- curve:!!t.curve,
- waypoints:(t.waypoints||[]).map(w=>({
-  lat:w.lat,
-  lng:w.lng,
-  elevation:s.elevation||'at',
-platformType:s.platformType||'island''
- }))
-}));
+  a:t.a,
+  b:t.b,
+  style:t.style||'single',
+  curve:!!t.curve,
+  waypoints:(t.waypoints||[]).map(w=>({
+   lat:w.lat,
+   lng:w.lng,
+   elevation:w.elevation||'at'
+  }))
+ }));
 
  selected=null;
  renderNetwork();
