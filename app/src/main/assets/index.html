@@ -383,7 +383,7 @@ function renderNetwork(){
  }
  window.networkLayer=L.layerGroup().addTo(map);
 
- tracks.forEach(t=>{
+ tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
   let b=stations[t.b];
   if(!a||!b)return;
