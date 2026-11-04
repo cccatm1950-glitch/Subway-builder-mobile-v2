@@ -1631,18 +1631,31 @@ function startStartMenuMapPan(){
   map.panBy([1,0],{animate:false});
  },85);
 }
-function closeStartMenu(){
- if(!localStorage.getItem("sbTermsAccepted")){showTermsDialog();return;}
+function dismissStartupOverlays(){
+ const splash=document.getElementById('sb-loading');
+ if(splash){splash.style.display='none';splash.remove();}
  const menu=document.getElementById('startMenu');
  if(menu){menu.style.display='none';menu.setAttribute('aria-hidden','true');}
+ const terms=document.getElementById('sb-terms-overlay');
+ if(terms)terms.classList.remove('open');
  if(sbStartMapPanTimer){clearInterval(sbStartMapPanTimer);sbStartMapPanTimer=null;}
+}
+function closeStartMenu(){
+ if(!localStorage.getItem("sbTermsAccepted")){showTermsDialog();return;}
+ dismissStartupOverlays();
  message('Tap the map to build your first station.');
 }
 function showTermsDialog(){const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');}
-function acceptTerms(){const check=document.getElementById('sb-terms-agree');if(!check||!check.checked)return;localStorage.setItem('sbTermsAccepted','yes');document.getElementById('sb-terms-overlay').classList.remove('open');}
+function acceptTerms(){
+ const check=document.getElementById('sb-terms-agree');
+ if(!check||!check.checked)return;
+ localStorage.setItem('sbTermsAccepted','yes');
+ dismissStartupOverlays();
+ message('Tap the map to build your first station.');
+}
 function hideSplash(){
  const splash=document.getElementById('sb-loading');
- if(splash)splash.remove();
+ if(splash){splash.style.display='none';splash.remove();}
  startStartMenuMapPan();
  if(!localStorage.getItem('sbTermsAccepted'))showTermsDialog();
 }
