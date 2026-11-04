@@ -518,6 +518,19 @@ L.control.zoom({position:'bottomright'}).addTo(map);
 let mode='station';
 let trackStyle='single';
 let platformWidth='default';
+let platformType='island';
+
+function setPlatformType(type){
+ if(type!=='island'&&type!=='side')return;
+
+ platformType=type;
+ renderNetwork();
+ saveHistory();
+
+ message(type==='island'
+  ? 'Island platform selected.'
+  : 'Side platforms selected.');
+}
 let curveMode=false;
 let money=25000;
 let passengers=0;
