@@ -1199,8 +1199,11 @@ window.getSubway3DTracks=function(){
  return tracks.map((t,i)=>{
   const a=stations[t.a],b=stations[t.b];if(!a||!b)return null;
   const coords=[[a.lng,a.lat],...(t.waypoints||[]).map(w=>[w.lng,w.lat]),[b.lng,b.lat]];
-  return {type:'Feature',properties:{color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5]},
-   geometry:{type:'LineString',coordinates:coords}};
+  return {type:'Feature',properties:{
+   color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],
+   from:a.name||('Station '+(t.a+1)),to:b.name||('Station '+(t.b+1)),
+   trackNumber:i+1,elevation:t.elevation||'at',style:t.style||'single'
+  },geometry:{type:'LineString',coordinates:coords}};
  }).filter(Boolean);
 };
 window.getSubway3DStations=function(){
@@ -1709,6 +1712,19 @@ function bindConstructionPanelControls(){
  panel.querySelectorAll('details.tool-group').forEach(group=>{
   const summary=group.querySelector('summary');if(!summary)return;
   const update=()=>{summary.setAttribute('aria-expanded',String(group.open));group.classList.toggle('is-open',group.open);};
+  // Own the disclosure toggle explicitly: this avoids relying on the browser's
+  // native summary activation when the panel is being scrolled/tapped on mobile.
+  summary.addEventListener('click',event=>{
+   event.preventDefault();
+   group.open=!group.open;
+   update();
+  });
+  summary.addEventListener('keydown',event=>{
+   if(event.key!=='Enter'&&event.key!==' ')return;
+   event.preventDefault();
+   group.open=!group.open;
+   update();
+  });
   group.addEventListener('toggle',update);update();
  });
  const toggle=document.getElementById('sb-panel-toggle');
@@ -2067,8 +2083,11 @@ async function ensure3DMap(){
  sb3dMap=new maplibregl.Map({
   container:'sb-3d-map',style:'https://tiles.openfreemap.org/styles/liberty',
   center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
-  pitch:58,bearing:-18,maxPitch:70,antialias:true,attributionControl:false
+  pitch:58,bearing:-18,maxPitch:78,minPitch:0,antialias:true,attributionControl:false,
+  interactive:true,dragRotate:true,touchPitch:true,touchZoomRotate:true,
+  pitchWithRotate:true,cooperativeGestures:false
  });
+ sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}), 'top-right');
  sb3dMap.on('load',()=>{
   try{
    sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
@@ -2086,6 +2105,34 @@ async function ensure3DMap(){
    sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
    sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
    sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
+   // Buildings, stations and routes are now directly inspectable in the 3D city.
+   sb3dMap.on('mouseenter','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
+   sb3dMap.on('mouseleave','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='';});
+   sb3dMap.on('click','sb-3d-buildings',event=>{
+    const feature=event.features&&event.features[0];if(!feature)return;
+    const props=feature.properties||{};
+    const name=props.name||props.name_en||'City building';
+    const height=Number(props.render_height||props.height);
+    const detail=Number.isFinite(height)&&height>0?Math.round(height)+' m tall':'Building footprint';
+    new maplibregl.Popup({closeButton:true,closeOnClick:true,offset:12})
+     .setLngLat(event.lngLat).setText(name+' · '+detail).addTo(sb3dMap);
+   });
+   sb3dMap.on('click','sb-station-dots',event=>{
+    const feature=event.features&&event.features[0];if(!feature)return;
+    const name=feature.properties?.name||'Subway station';
+    new maplibregl.Popup({closeButton:true,offset:14})
+     .setLngLat(event.lngLat).setText(name+' · Subway Builder station').addTo(sb3dMap);
+   });
+   sb3dMap.on('click','sb-route-lines',event=>{
+    const feature=event.features&&event.features[0];if(!feature)return;
+    const p=feature.properties||{};
+    new maplibregl.Popup({closeButton:true,offset:12})
+     .setLngLat(event.lngLat).setText((p.from||'Station')+' ↔ '+(p.to||'Station')+' · Track '+(p.trackNumber||'')).addTo(sb3dMap);
+   });
+   sb3dMap.on('mouseenter','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
+   sb3dMap.on('mouseleave','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='';});
+   sb3dMap.on('mouseenter','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
+   sb3dMap.on('mouseleave','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='';});
    sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
   }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded. Switch back to 2D Build.');}
  });
