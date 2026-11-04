@@ -487,8 +487,26 @@ function renderNetwork(){
 
 marker.bindTooltip(s.name);
 
+marker.on('mousedown touchstart',function(){
+ clearTimeout(stationMenuTimer);
+
+ stationMenuTimer=setTimeout(function(){
+  stationMenuIndex=i;
+  document.getElementById('stationMenuTitle').textContent=stations[i].name;
+  document.getElementById('stationContextMenu').style.display='block';
+  message('Station options: '+stations[i].name);
+ },650);
+});
+
+marker.on('mouseup touchend touchcancel mouseout',function(){
+ clearTimeout(stationMenuTimer);
+});
+
 marker.on('click',function(e){
  L.DomEvent.stopPropagation(e);
+
+ if(stationMenuIndex===i)return;
+
  handleStationClick(i);
 });
 
