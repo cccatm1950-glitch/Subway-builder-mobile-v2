@@ -150,6 +150,60 @@ button:active {
 .leaflet-bottom.leaflet-right {
   bottom: 70px;
 }
+/* Modern translucent start menu */
+#startMenu{
+ position:fixed;
+ inset:0;
+ z-index:3000;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ padding:20px;
+ background:rgba(5,12,24,0.48);
+ backdrop-filter:blur(9px);
+ -webkit-backdrop-filter:blur(9px);
+}
+
+.start-card{
+ width:100%;
+ max-width:310px;
+ padding:22px;
+ text-align:center;
+ border-radius:22px;
+ background:rgba(24,38,58,0.82);
+ border:1px solid rgba(255,255,255,0.22);
+ box-shadow:0 18px 55px rgba(0,0,0,0.4);
+}
+
+.start-card img{
+ width:76px;
+ height:76px;
+ object-fit:contain;
+ margin-bottom:8px;
+}
+
+.start-card h1{
+ font-size:21px;
+ letter-spacing:1.5px;
+ margin:5px 0;
+}
+
+.start-card p{
+ color:#b5c7d9;
+ font-size:12px;
+ margin:8px 0 20px;
+}
+
+.start-card button{
+ min-height:44px;
+ font-size:13px;
+ margin-bottom:9px;
+}
+
+.start-primary{
+ background:rgba(0,145,130,0.9);
+ border:1px solid rgba(120,255,230,0.35);
+}
 </style>
 </head>
 <body>
