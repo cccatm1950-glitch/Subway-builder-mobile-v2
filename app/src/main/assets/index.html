@@ -415,9 +415,8 @@ function renderNetwork(){
   let end=L.latLng(b.lat,b.lng);
 
   let points=[];
-  if(t.waypoints){
- t.waypoints.forEach((w,waypointIndex)=>{
- if(t.waypoints){
+
+if(t.waypoints){
  t.waypoints.forEach((w,waypointIndex)=>{
   let symbol=w.elevation==='below'?'🚇':
            w.elevation==='above'?'⬆':'●';
@@ -439,7 +438,6 @@ function renderNetwork(){
   );
  });
 }
-
   if(t.curve){
  let route=[
   [start.lat,start.lng],
