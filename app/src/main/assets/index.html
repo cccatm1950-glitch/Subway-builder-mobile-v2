@@ -1843,8 +1843,8 @@ function handleMapPlacement(latlng){
 
   money-=500;
   stations.push({
-   lat:e.latlng.lat,
-   lng:e.latlng.lng,
+   lat:latlng.lat,
+   lng:latlng.lng,
    name:'Station '+(stations.length+1),
    platformType:platformType
   });
@@ -1871,8 +1871,8 @@ else if(mode==='delete'){
   if(!track.waypoints)track.waypoints=[];
 
   track.waypoints.push({
-   lat:e.latlng.lat,
-   lng:e.latlng.lng,
+   lat:latlng.lat,
+   lng:latlng.lng,
    elevation:'at'
   });
 
