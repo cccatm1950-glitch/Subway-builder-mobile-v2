@@ -1832,86 +1832,79 @@ window.addEventListener('load',function(){
 setTimeout(hideSplash,5000);
 </script>
 
-<script type="module">
-import * as maplibregl from 'https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs';
+<script>
 let sb3dMap=null;
 let sb3dReady=false;
-const sb3dColors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'];
+let sb3dLibraryPromise=null;
 function sb3dData(){
- const lineFeatures=(window.getSubway3DTracks?window.getSubway3DTracks():[]);
- const stationFeatures=(window.getSubway3DStations?window.getSubway3DStations():[]);
- return {lines:{type:'FeatureCollection',features:lineFeatures},
-         stations:{type:'FeatureCollection',features:stationFeatures}};
+ const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
+ const stations=window.getSubway3DStations?window.getSubway3DStations():[];
+ return {lines:{type:'FeatureCollection',features:lines},stations:{type:'FeatureCollection',features:stations}};
 }
 function sb3dRefresh(){
- if(!sb3dReady)return;
- const d=sb3dData();
- sb3dMap.getSource('sb-lines')?.setData(d.lines);
- sb3dMap.getSource('sb-stations')?.setData(d.stations);
+ if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
+ const data=sb3dData();
+ sb3dMap.getSource('sb-lines')?.setData(data.lines);
+ sb3dMap.getSource('sb-stations')?.setData(data.stations);
 }
-window.toggle3DCityView=function(){
+function loadMapLibre(){
+ if(!sb3dLibraryPromise)sb3dLibraryPromise=import('https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs').then(mod=>mod).catch(error=>{sb3dLibraryPromise=null;throw error;});
+ return sb3dLibraryPromise;
+}
+async function ensure3DMap(){
+ if(sb3dMap)return sb3dMap;
+ const maplibregl=await loadMapLibre();
+ const center=map.getCenter();
+ sb3dMap=new maplibregl.Map({
+  container:'sb-3d-map',style:'https://tiles.openfreemap.org/styles/liberty',
+  center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
+  pitch:58,bearing:-18,maxPitch:70,antialias:true,attributionControl:false
+ });
+ sb3dMap.on('load',()=>{
+  try{
+   sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const layers=sb3dMap.getStyle().layers||[];
+   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
+   sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
+    filter:['!=',['get','hide_3d'],true],
+    paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
+     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
+   const data=sb3dData();
+   sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
+   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
+   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
+   sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
+   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
+   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
+   sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
+  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded. Switch back to 2D Build.');}
+ });
+ sb3dMap.on('error',event=>console.warn('3D city map:',event.error||event));
+ return sb3dMap;
+}
+window.toggle3DCityView=async function(){
  const host=document.getElementById('sb-3d-map');
  const toggle=document.getElementById('sb-3d-toggle');
  const enable=!host.classList.contains('active');
- if(enable){
-  host.classList.add('active');
-  document.getElementById('map').style.visibility='hidden';
-  toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
-  if(!sb3dMap){
-   const c=map.getCenter();
-   sb3dMap=new maplibregl.Map({
-    container:'sb-3d-map',
-    style:'https://tiles.openfreemap.org/styles/liberty',
-    center:[c.lng,c.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
-    pitch:58,bearing:-18,maxPitch:70,antialias:true,
-    attributionControl:false
-   });
-   /* MapLibre zoom controls hidden to keep the lower-right edge clear. */
-   sb3dMap.on('load',()=>{
-    sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-    const layers=sb3dMap.getStyle().layers||[];
-    const label=layers.find(l=>l.type==='symbol'&&l.layout&&l.layout['text-field']);
-    sb3dMap.addLayer({
-     id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',
-     type:'fill-extrusion',minzoom:13,
-     filter:['!=',['get','hide_3d'],true],
-     paint:{
-      'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],
-       0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
-      'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
-      'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
-      'fill-extrusion-opacity':0.92
-     }
-    },label?.id);
-    sb3dMap.addSource('sb-lines',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
-    sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',
-     layout:{'line-cap':'round','line-join':'round'},
-     paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
-    sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',
-     layout:{'line-cap':'round','line-join':'round'},
-     paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
-    sb3dMap.addSource('sb-stations',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
-    sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',
-     paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
-    sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',
-     paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-    sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
-   });
-   sb3dMap.on('error',e=>console.warn('3D city map:',e.error||e));
-  }else{
-   const c=map.getCenter();
-   sb3dMap.jumpTo({center:[c.lng,c.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
-   sb3dMap.resize();
-   sb3dRefresh();
-  }
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dMap.triggerRepaint();}}));
-  message('3D city preview — switch to 2D Build to edit your network.');
- }else{
-  host.classList.remove('active');
-  document.getElementById('map').style.visibility='visible';
+ if(!enable){
+  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
   toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
-  map.invalidateSize();
-  message('2D construction view restored.');
+  map.invalidateSize();message('2D construction view restored.');return;
+ }
+ host.classList.add('active');document.getElementById('map').style.visibility='hidden';
+ toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
+ try{
+  await ensure3DMap();
+  const center=map.getCenter();
+  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dRefresh();sb3dMap.triggerRepaint();}}));
+  message('3D city preview — switch to 2D Build to edit your network.');
+ }catch(error){
+  console.error('Unable to initialize 3D city map:',error);
+  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
+  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  map.invalidateSize();message('3D map could not load. Check your connection and try again.');
  }
 };
 window.refreshSubway3D=sb3dRefresh;
