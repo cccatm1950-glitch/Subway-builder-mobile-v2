@@ -632,7 +632,10 @@ function resetSelection(){
  renderNetwork();
  message('Selection cleared.');
 }
-
+function selectTrackForWaypoints(trackIndex){
+ selectedTrackIndex=trackIndex;
+ message('Track selected. Tap the map to add a waypoint.');
+}
 function handleStationClick(index){
  if(mode==='track'){
   if(selected===null){
