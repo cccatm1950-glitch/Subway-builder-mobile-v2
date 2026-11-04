@@ -755,15 +755,6 @@ map.on('click',function(e){
  }
 });
 
-  saveHistory();
-  renderNetwork();
-  message('Station built successfully.');
- }
- else if(mode==='track'){
-  message('Tap an existing station marker, not the map, to select it.');
- }
-});
-
 function toggleSimulation(){
  if(running){
   clearInterval(simulation);
