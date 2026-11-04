@@ -300,6 +300,61 @@ button:active {
  text-align:center;
  color:#53677e;
 }
+
+/* =========================================================
+   SUBWAY BUILDER — REFERENCE THEME POLISH
+   ========================================================= */
+:root{
+ --sb-ink:#08111f;--sb-panel:rgba(9,18,32,.88);
+ --sb-line:rgba(174,205,231,.18);--sb-muted:#9eb3c9;
+ --sb-red:#ff5263;--sb-green:#42d69a;--sb-blue:#55a7ff;
+ --sb-yellow:#f4c451;--sb-purple:#b58aff;
+}
+html,body{background:var(--sb-ink);color:#f5f8fc}
+.topbar,.panel,.bottom,#message{
+ background:linear-gradient(145deg,rgba(10,22,39,.94),rgba(17,35,56,.86));
+ border:1px solid var(--sb-line);box-shadow:0 14px 38px #02081280;
+ backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);
+}
+.topbar{min-height:58px;border-radius:17px;padding:10px 14px}
+.topbar .brand{letter-spacing:1.1px;font-size:13px;color:#f7fbff}
+.stats{gap:clamp(7px,2vw,18px)}
+.stat{color:#91a8c1;font-size:9px;letter-spacing:1px}
+.stat strong{color:#66e0c0;font-size:13px}
+.panel{width:clamp(148px,24vw,190px);max-height:calc(100dvh - 178px);border-radius:17px;padding:12px}
+.panel h3{color:#8fa8c3;letter-spacing:1.3px}
+button{min-height:37px;border-radius:11px;color:#eaf3fc;
+ background:linear-gradient(180deg,rgba(61,86,116,.58),rgba(35,55,79,.7));
+ border:1px solid rgba(184,211,239,.15);font-size:11px;letter-spacing:.15px}
+button.active,.start-primary{background:linear-gradient(135deg,#087f79,#12a995);
+ border-color:rgba(113,255,224,.35);box-shadow:0 5px 16px #00a88a2b}
+button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
+.bottom{padding:9px;border-radius:17px;gap:8px}
+.bottom button{min-height:42px}
+#message{color:#e8f3ff;border-radius:13px;box-shadow:0 8px 25px #0006}
+#constructionPanel{background:rgba(10,21,37,.93);color:#f3f7fc;border-color:var(--sb-line)}
+#constructionPanel .tool-group{background:rgba(255,255,255,.035);border-color:rgba(169,202,232,.13)}
+#constructionPanel .tool-group summary{color:#dceafa;text-align:left;padding:12px}
+#constructionPanel .tool-group summary:after{color:#79a6c8}
+#constructionPanel .tool-group button{color:#eaf3fc;background:rgba(255,255,255,.07);border-color:rgba(169,202,232,.12)}
+#constructionPanel h3{color:#a9c2dc}
+.start-card{background:linear-gradient(145deg,rgba(12,28,48,.96),rgba(22,43,67,.92));border-color:rgba(167,205,239,.24)}
+.start-card h1{letter-spacing:2px}
+#sb-loading{background:radial-gradient(ellipse at 50% 35%,#203b54 0%,#0c1929 62%,#070e19 100%)}
+#sb-loading .logo{border:1px solid rgba(182,217,245,.22);background:rgba(13,27,44,.8);box-shadow:0 18px 55px #0008}
+.leaflet-control-zoom a{border-radius:9px!important}
+.leaflet-control-attribution{background:rgba(8,17,31,.7)!important;color:#a8bbcf!important}
+@media(max-width:560px){
+ .topbar{left:7px;right:7px;top:7px;padding:9px 10px;gap:5px}
+ .topbar .brand{font-size:11px}
+ .stats{gap:7px}
+ .stat{font-size:8px}
+ .stat strong{font-size:11px}
+ .panel{left:7px;top:76px;width:145px;padding:9px;max-height:calc(100dvh - 155px)}
+ .bottom{left:7px;right:7px;bottom:7px}
+ #message{bottom:66px;font-size:11px;max-width:88%}
+}
+
 </style>
 </head>
 <body>
@@ -763,7 +818,7 @@ if(mode==='delete'){
  )?t.waypoints[0].elevation:'at';
 
   L.polyline(shifted,{
- color:'#087f79',
+ color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5],
  weight:5,
  opacity:1,
  lineCap:'round',
