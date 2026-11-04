@@ -339,7 +339,8 @@ function restoreSnapshot(data){
  stations=data.stations.map((s,i)=>({
   lat:s.lat,
   lng:s.lng,
-  name:s.name||'Station '+(i+1)
+  name:s.name||'Station '+(i+1),
+  elevation:s.elevation||'at'
  }));
 
  tracks=data.tracks.map(t=>({
