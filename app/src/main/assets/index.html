@@ -14,6 +14,11 @@ body{margin:0;font-family:Arial,sans-serif;background:#101827;color:white;overfl
 .stats{display:flex;gap:12px;font-size:12px;flex-wrap:wrap}
 .stat strong{display:block;color:#62d9c4;font-size:14px;margin-top:3px}
 .panel{position:absolute;z-index:500;top:82px;left:10px;width:150px;background:#172438ed;border:1px solid #40516a;border-radius:12px;padding:9px}
+.panel{
+ max-height:calc(100dvh - 175px);
+ overflow-y:auto;
+ overscroll-behavior:contain;
+}
 .panel h3{font-size:12px;color:#9eb4cb;margin:3px 0 9px}
 button{border:0;border-radius:8px;padding:10px 8px;color:white;background:#30445f;font-weight:bold;font-size:12px;width:100%;margin-bottom:7px}
 button.active{background:#087f79}
