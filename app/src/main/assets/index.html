@@ -817,6 +817,17 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 #constructionPanel .network-stat{padding:8px 13px}
 #constructionPanel button:focus-visible{outline:2px solid rgba(120,255,225,.8);outline-offset:3px}
 @media(max-width:560px){#constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:8px 8px 11px}#constructionPanel .tool-grid button{width:40px!important;height:40px!important;min-height:40px!important}}
+/* Reliable touch targets, visible pressed states, and single hamburger menu. */
+#constructionPanel .tool-grid button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
+#constructionPanel .tool-grid button.active,#constructionPanel .tool-grid button[aria-pressed="true"]{background:rgba(32,196,169,.34)!important;border:1px solid rgba(116,255,226,.82)!important;box-shadow:0 0 0 2px rgba(53,231,208,.16),0 0 18px rgba(53,231,208,.24),inset 0 1px 0 rgba(255,255,255,.22)!important;color:#fff!important}
+#constructionPanel .tool-grid button:active{background:rgba(32,196,169,.48)!important;transform:scale(.94)!important}
+#sb-panel-toggle{display:flex!important;position:fixed!important;right:12px!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:48px!important;height:48px!important;min-height:48px!important;padding:0!important;align-items:center!important;justify-content:center!important;border-radius:16px!important;z-index:900!important;pointer-events:auto!important;touch-action:manipulation}
+#sb-panel-toggle svg{width:23px;height:23px;display:block}
+#constructionPanel.sb-collapsed{visibility:hidden!important;pointer-events:none!important}
+#constructionPanel:not(.sb-collapsed){visibility:visible!important;pointer-events:auto!important}
+#map{touch-action:pan-x pan-y}
+#sb-touch-pointer{pointer-events:none!important}
+@media(max-width:560px){#sb-panel-toggle{right:10px!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:46px!important;height:46px!important;min-height:46px!important}}
 </style>
 </head>
 <body>
@@ -2111,16 +2122,3 @@ window.refreshSubway3D=sb3dRefresh;
 
 </body>
 </html>
-
-
-/* Reliable touch targets, visible pressed states, and single hamburger menu. */
-#constructionPanel .tool-grid button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
-#constructionPanel .tool-grid button.active,#constructionPanel .tool-grid button[aria-pressed="true"]{background:rgba(32,196,169,.34)!important;border:1px solid rgba(116,255,226,.82)!important;box-shadow:0 0 0 2px rgba(53,231,208,.16),0 0 18px rgba(53,231,208,.24),inset 0 1px 0 rgba(255,255,255,.22)!important;color:#fff!important}
-#constructionPanel .tool-grid button:active{background:rgba(32,196,169,.48)!important;transform:scale(.94)!important}
-#sb-panel-toggle{display:flex!important;position:fixed!important;right:12px!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:48px!important;height:48px!important;min-height:48px!important;padding:0!important;align-items:center!important;justify-content:center!important;border-radius:16px!important;z-index:900!important;pointer-events:auto!important;touch-action:manipulation}
-#sb-panel-toggle svg{width:23px;height:23px;display:block}
-#constructionPanel.sb-collapsed{visibility:hidden!important;pointer-events:none!important}
-#constructionPanel:not(.sb-collapsed){visibility:visible!important;pointer-events:auto!important}
-#map{touch-action:pan-x pan-y}
-#sb-touch-pointer{pointer-events:none!important}
-@media(max-width:560px){#sb-panel-toggle{right:10px!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:46px!important;height:46px!important;min-height:46px!important}}
