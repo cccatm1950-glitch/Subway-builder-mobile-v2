@@ -217,6 +217,29 @@ button:active {
 </div>
 
 <div id="map"></div>
+<div id="startMenu">
+ <div class="start-card">
+  <img src="subway_builder_logo.png" alt="Subway Builder">
+  <h1>SUBWAY BUILDER</h1>
+  <p>DESIGN • BUILD • CONNECT</p>
+
+  <button class="start-primary" onclick="closeStartMenu()">
+   🚇 Start Building
+  </button>
+
+  <button onclick="message('Welcome back to Subway Builder!')">
+   ▶ Continue
+  </button>
+
+  <button onclick="message('Settings coming soon.')">
+   ⚙ Settings
+  </button>
+
+  <button onclick="message('Subway Builder Mobile')">
+   ⓘ About
+  </button>
+ </div>
+</div>
 <div id="stationContextMenu" style="
  display:none;
  position:fixed;
