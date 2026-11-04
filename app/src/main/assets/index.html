@@ -516,7 +516,12 @@ function handleStationClick(index){
   }
 
   money-=150;
-  tracks.push({a:first,b:second});
+  tracks.push({
+  a:first,
+  b:second,
+  style:trackStyle,
+  curve:curveMode
+});
   selected=null;
   saveHistory();
   renderNetwork();
