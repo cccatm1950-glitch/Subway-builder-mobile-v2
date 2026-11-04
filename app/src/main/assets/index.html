@@ -412,17 +412,26 @@ function renderNetwork(){
   if(!a||!b)return;
 
   let start=L.latLng(a.lat,a.lng);
-  if(mode==='waypoint'){
+  if(mode==='waypoint'||mode==='delete'){
  L.polyline([
   [a.lat,a.lng],
   [b.lat,b.lng]
  ],{
-  color:'#f0a52b',
-  weight:12,
+  color:mode==='delete'?'#e74c3c':'#f0a52b',
+  weight:16,
   opacity:0.01
  }).addTo(window.networkLayer).on('click',function(e){
   L.DomEvent.stopPropagation(e);
-  selectTrackForWaypoints(trackIndex);
+
+  if(mode==='delete'){
+   tracks.splice(trackIndex,1);
+   selectedTrackIndex=null;
+   saveHistory();
+   renderNetwork();
+   message('Track section deleted.');
+  }else{
+   selectTrackForWaypoints(trackIndex);
+  }
  });
 }
   let end=L.latLng(b.lat,b.lng);
