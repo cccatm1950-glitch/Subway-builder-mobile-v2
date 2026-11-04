@@ -439,6 +439,42 @@ button:active{transform:scale(.96)}
 #sb-3d-map canvas{outline:none}
 #sb-3d-map .maplibregl-ctrl-group{border-radius:18px!important;overflow:hidden;background:rgba(10,22,38,.72)!important;border:1px solid rgba(255,255,255,.2)!important;backdrop-filter:blur(18px)}
 @media(max-width:560px){#constructionPanel{width:min(86vw,310px)!important}#message{top:76px!important;max-width:calc(100vw - 100px)!important}#sb-dashboard-info{right:8px;width:34px;height:34px;min-height:34px}.topbar .stats{margin-right:40px}}
+
+/* Centered iOS-style main menu and navigation controls */
+#startMenu{background:rgba(3,10,20,.58);backdrop-filter:blur(22px) saturate(165%);-webkit-backdrop-filter:blur(22px) saturate(165%)}
+.start-card{width:min(88vw,360px);padding:28px 24px;border-radius:30px;background:rgba(14,27,44,.68);border:1px solid rgba(255,255,255,.2);box-shadow:0 22px 70px #0008;backdrop-filter:blur(30px) saturate(175%);-webkit-backdrop-filter:blur(30px) saturate(175%)}
+.start-card h1{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;font-size:22px;font-weight:650;letter-spacing:1.4px}
+.start-card p{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;letter-spacing:2px}
+.start-card button{position:relative;display:flex;align-items:center;justify-content:center;gap:13px;width:100%;min-height:54px;margin:9px 0;padding:0 18px;border-radius:19px!important;background:rgba(255,255,255,.075)!important;border:1px solid rgba(255,255,255,.18)!important;color:#f5f9ff!important;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",sans-serif;font-size:15px;font-weight:550;letter-spacing:.1px;text-align:left;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.start-card button .menu-icon{display:inline-flex;align-items:center;justify-content:center;width:27px;height:27px;flex:0 0 27px;margin-left:0;border-radius:9px;background:rgba(116,190,255,.13);color:#9bd5ff;font-size:18px}
+.start-card button .menu-label{flex:1;text-align:left}
+.start-card button .menu-chevron{color:#9eb3c9;font-size:17px}
+.start-card button.start-primary{background:rgba(52,190,174,.16)!important;border-color:rgba(100,255,230,.3)!important}
+#sb-terms-overlay{position:fixed;inset:0;z-index:4000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,8,17,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#sb-terms-overlay.open{display:flex}
+#sb-terms-card{width:min(92vw,440px);max-height:min(82dvh,680px);overflow:auto;padding:22px;border-radius:28px;background:rgba(13,26,43,.94);border:1px solid rgba(255,255,255,.22);box-shadow:0 24px 80px #0009;color:#f4f8ff}
+#sb-terms-card h2{text-align:center;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif;font-size:20px;letter-spacing:.6px;margin:2px 0 12px}
+#sb-terms-card p,#sb-terms-card li{font-size:13px;line-height:1.55;color:#c4d3e2}
+#sb-terms-card .terms-scroll{max-height:38dvh;overflow:auto;padding:0 4px}
+#sb-terms-card label{display:flex;align-items:flex-start;gap:10px;margin:16px 0;font-size:13px;line-height:1.45;color:#f4f8ff}
+#sb-terms-card input{width:18px;height:18px;flex:0 0 18px;accent-color:#42d6c2}
+#sb-terms-card button{width:100%;min-height:48px;border-radius:17px;background:rgba(52,190,174,.22);border:1px solid rgba(100,255,230,.3);color:#fff}
+#sb-terms-card button:disabled{opacity:.35}
+.topbar{background:rgba(12,23,39,.45)!important;border-color:rgba(255,255,255,.15)!important}
+.brand{display:flex;align-items:center;gap:9px}
+#trashModeBtn{width:34px;height:34px;min-height:34px;flex:0 0 34px;padding:0;margin:0;border-radius:50%!important;background:rgba(255,90,110,.15)!important;border:1px solid rgba(255,140,155,.35)!important;color:#ff9aa8!important;display:inline-flex;align-items:center;justify-content:center;font-size:17px}
+#constructionPanel{background:rgba(9,20,35,.34)!important;border-color:rgba(255,255,255,.16)!important;backdrop-filter:blur(30px) saturate(175%)!important;-webkit-backdrop-filter:blur(30px) saturate(175%)!important}
+#constructionPanel .panel-heading{background:transparent!important}
+#constructionPanel .panel-title{background:transparent!important}
+#sb-3d-toggle{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;border:1px solid rgba(255,255,255,.22)!important;color:#f7fbff!important;font-size:12px!important}
+#sb-3d-toggle.active{background:rgba(66,210,185,.22)!important;border-color:rgba(125,255,228,.5)!important}
+#sb-zoom-controls{gap:5px!important}
+#sb-zoom-controls button{width:34px!important;height:34px!important;min-height:34px!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;border:1px solid rgba(255,255,255,.2)!important}
+#constructionPanel .tool-group{background:rgba(255,255,255,.025)!important}
+.bottom{display:none!important}
+.leaflet-bottom.leaflet-right{bottom:10px!important}
+@media(max-width:560px){.start-card{width:min(90vw,360px);padding:24px 19px}.topbar{gap:6px}.brand{font-size:14px}.stats{gap:7px}.stat{font-size:10px}#trashModeBtn{width:31px;height:31px;min-height:31px;flex-basis:31px}#sb-3d-toggle{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}}
+
 </style>
 </head>
 <body>
@@ -460,6 +496,11 @@ button:active{transform:scale(.96)}
      SECTION 05 — MAP AND START MENU
      ======================================================== -->
 
+
+<div id="sb-terms-overlay" role="dialog" aria-modal="true" aria-labelledby="sb-terms-title">
+ <div id="sb-terms-card"><h2 id="sb-terms-title">Terms of Use</h2><div class="terms-scroll"><p>Welcome to Subway Builder. By continuing, you agree to use this app responsibly and understand that it is provided for entertainment and simulation purposes.</p><ul><li><strong>Simulation only:</strong> Routes, stations, passenger counts, costs and map overlays are fictional game data and are not real transit guidance.</li><li><strong>Map data:</strong> Map imagery and geographic information are provided by third-party map services and may be incomplete or inaccurate.</li><li><strong>Availability:</strong> The app is provided as-is. Features, saved progress and external services may change or become unavailable.</li><li><strong>Responsible use:</strong> Do not rely on the app for real-world navigation, safety, construction, financial or transport decisions.</li><li><strong>Privacy:</strong> The app may use local device storage for preferences and agreement status. Third-party map providers may process requests needed to display map tiles.</li></ul><p>These terms apply when you use the app. If you do not agree, do not continue into the game.</p></div><label><input id="sb-terms-agree" type="checkbox" onchange="document.getElementById('sb-terms-accept').disabled=!this.checked"><span>I have read and agree to the Terms of Use.</span></label><button id="sb-terms-accept" type="button" disabled onclick="acceptTerms()">Agree &amp; Continue</button></div>
+</div>
+
 <div id="map"></div>
 <div id="sb-3d-map" aria-label="3D OpenStreetMap city preview"></div>
 <div id="startMenu">
@@ -468,21 +509,10 @@ button:active{transform:scale(.96)}
   <h1>SUBWAY BUILDER</h1>
   <p>DESIGN • BUILD • CONNECT</p>
 
-  <button class="start-primary" onclick="closeStartMenu()">
-   ▣ Start Building
-  </button>
-
-  <button onclick="message('Welcome back to Subway Builder!')">
-   ▶ Continue
-  </button>
-
-  <button onclick="message('Settings coming soon.')">
-   SETTINGS Settings
-  </button>
-
-  <button onclick="message('Subway Builder Mobile')">
-   i About
-  </button>
+  <button class="start-primary" onclick="closeStartMenu()"><span class="menu-icon">⌖</span><span class="menu-label">Start Building</span><span class="menu-chevron">›</span></button>
+  <button onclick="message('Welcome back to Subway Builder!')"><span class="menu-icon">⌁</span><span class="menu-label">Continue</span><span class="menu-chevron">›</span></button>
+  <button onclick="message('Settings coming soon.')"><span class="menu-icon">⚙</span><span class="menu-label">Settings</span><span class="menu-chevron">›</span></button>
+  <button onclick="message('Subway Builder Mobile')"><span class="menu-icon">ⓘ</span><span class="menu-label">About</span><span class="menu-chevron">›</span></button>
  </div>
 </div>
  
@@ -519,7 +549,7 @@ button:active{transform:scale(.96)}
      ======================================================== -->
 
 <div class="topbar">
- <div class="brand">▣ SUBWAY BUILDER</div>
+ <div class="brand"><span>▣ SUBWAY BUILDER</span><button id="trashModeBtn" type="button" onclick="activateDeleteMode()" aria-label="Delete an individual track or station" title="Delete">⌫</button></div>
  <div class="stats">
   <div class="stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
@@ -534,7 +564,7 @@ button:active{transform:scale(.96)}
      ======================================================== -->
 
 <div class="panel" id="constructionPanel">
- <div class="panel-heading"><span class="panel-title">CONSTRUCTION</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button></div><button id="closePanelBtn" aria-label="Collapse tools" title="Collapse tools" onclick="toggleToolsPanel(false)">‹</button></div>
+ <div class="panel-heading"><span class="panel-title">CONSTRUCTION</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button><button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">3D</button></div><button id="closePanelBtn" aria-label="Collapse tools" title="Collapse tools" onclick="toggleToolsPanel(false)">‹</button></div>
  <details class="tool-group"><summary>▣ Stations & track</summary>
   <button id="stationBtn" class="active" title="Place station" aria-label="Place station" onclick="setMode('station')">●</button>
   <button id="trackBtn" title="Connect stations" aria-label="Connect stations" onclick="setMode('track')">↗</button>
@@ -566,6 +596,7 @@ button:active{transform:scale(.96)}
   <button id="themeToggleBtn" type="button" title="Map theme" aria-label="Map theme">◐</button>
   <div id="mapMenu" style="display:none;padding:8px"><button title="Dark map" aria-label="Dark map" onclick="setMapTheme('dark')">◐</button><button title="Light map" aria-label="Light map" onclick="setMapTheme('light')">☼</button></div>
  </details>
+ <details class="tool-group"><summary>Train simulation</summary><button id="runBtn" onclick="toggleSimulation()" aria-label="Run trains" title="Run trains">▶</button><button id="cancelBtn" onclick="resetSelection()" aria-label="Clear selection" title="Clear selection">×</button></details>
  <details class="tool-group"><summary> Network status</summary>
   <div id="stationCount" class="network-stat">Stations: 0</div><div id="trackCount" class="network-stat">Track: 0 sections</div>
  </details>
@@ -578,7 +609,7 @@ button:active{transform:scale(.96)}
 <button id="sb-panel-toggle" type="button" aria-label="Expand build tools" title="Expand build tools" onclick="toggleToolsPanel(true)">›</button>
 <div id="message">Tap the map to build your first station.</div>
 
-<div class="bottom" role="group" aria-label="Map actions"><button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">3D</button><button id="runBtn" onclick="toggleSimulation()" aria-label="Run trains" title="Run trains">▶</button><button id="cancelBtn" onclick="resetSelection()" aria-label="Clear selection" title="Clear selection">×</button><button id="trashModeBtn" class="trash-dock-btn" onclick="activateDeleteMode()" aria-label="Delete an individual track or station" title="Delete track or station">⌫</button></div>
+
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -1406,6 +1437,7 @@ renderNetwork();
    ========================================================= */
 
 function closeStartMenu(){
+ if(!localStorage.getItem("sbTermsAccepted")){showTermsDialog();return;}
  const menu=document.getElementById('startMenu');
  if(menu){
   menu.style.transition='opacity 0.35s ease';
@@ -1416,6 +1448,8 @@ function closeStartMenu(){
  }
  message('Tap the map to build your first station.');
 }
+function showTermsDialog(){const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');}
+function acceptTerms(){const check=document.getElementById('sb-terms-agree');if(!check||!check.checked)return;localStorage.setItem('sbTermsAccepted','yes');document.getElementById('sb-terms-overlay').classList.remove('open');}
 function hideSplash(){
   const splash=document.getElementById('sb-loading');
   if(!splash)return;
@@ -1425,6 +1459,7 @@ function hideSplash(){
 
   setTimeout(function(){
     splash.remove();
+    if(!localStorage.getItem('sbTermsAccepted'))showTermsDialog();
   },550);
 }
 
