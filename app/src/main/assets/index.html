@@ -828,22 +828,23 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 #map{touch-action:pan-x pan-y}
 #sb-touch-pointer{pointer-events:none!important}
 @media(max-width:560px){#sb-panel-toggle{right:10px!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:46px!important;height:46px!important;min-height:46px!important}}
+
+/* Start screen: OSM map only, softly blurred behind the Play control. */
+body.sb-start-menu-open #map{filter:blur(5px) brightness(.68) saturate(.86)!important;transform:scale(1.025);transition:filter .35s ease,transform .35s ease}
+body.sb-start-menu-open .topbar,body.sb-start-menu-open #constructionPanel,body.sb-start-menu-open #sb-panel-toggle,body.sb-start-menu-open #sb-action-dock,body.sb-start-menu-open #message,body.sb-start-menu-open #sb-dashboard-dialog{visibility:hidden!important;pointer-events:none!important}
+body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!important}
+#startMenu{background:rgba(4,11,21,.10)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#startMenu .play-launch{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#sb-panel-toggle{pointer-events:auto!important;touch-action:manipulation!important}
+#constructionPanel.sb-collapsed{visibility:hidden!important;pointer-events:none!important}
+#constructionPanel:not(.sb-collapsed){visibility:visible!important;pointer-events:auto!important}
 </style>
 </head>
-<body>
+<body class="sb-start-menu-open">
 
 <!-- ========================================================
      SECTION 04 — LOADING SCREEN
      ======================================================== -->
-
-<div id="sb-loading">
-  <div class="logo">
-    <img src="subway_builder_logo.png"
-         alt="Subway Builder"
-         style="width:100%;height:100%;object-fit:contain;border-radius:22px">
-  </div>
-  <div class="subtitle">DESIGN • BUILD • CONNECT</div>
-</div>
 
 <!-- ========================================================
      SECTION 05 — MAP AND START MENU
@@ -984,7 +985,7 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
 
-<button id="sb-panel-toggle" type="button" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+<button id="sb-panel-toggle" type="button" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
 <div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
 
 
@@ -1993,16 +1994,16 @@ renderNetwork();
 
 let sbStartMapPanTimer=null;
 function startStartMenuMapPan(){
+ document.body.classList.add('sb-start-menu-open');
  document.getElementById('map')?.classList.add('sb-start-blur');
- document.getElementById('sb-3d-map')?.classList.add('sb-start-blur');
+ document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
 }
 function dismissStartupOverlays(){
- const splash=document.getElementById('sb-loading');
- if(splash){splash.style.display='none';splash.remove();}
  const menu=document.getElementById('startMenu');
  if(menu){menu.style.display='none';menu.setAttribute('aria-hidden','true');}
  const terms=document.getElementById('sb-terms-overlay');
  if(terms)terms.classList.remove('open');
+ document.body.classList.remove('sb-start-menu-open');
  document.getElementById('map')?.classList.remove('sb-start-blur');
  document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
  if(sbStartMapPanTimer){clearInterval(sbStartMapPanTimer);sbStartMapPanTimer=null;}
@@ -2029,8 +2030,6 @@ function acceptTerms(){
  message('Tap the map to build your first station.');
 }
 function hideSplash(){
- const splash=document.getElementById('sb-loading');
- if(splash){splash.style.display='none';splash.remove();}
  startStartMenuMapPan();
  if(!localStorage.getItem('sbTermsAccepted'))showTermsDialog();
 }
