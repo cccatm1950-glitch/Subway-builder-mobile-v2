@@ -2,69 +2,70 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Subway Builder</title>
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial,sans-serif;background:#101827;color:white;overflow:hidden}
 #map{position:absolute;inset:0;z-index:1}
-.topbar{position:absolute;z-index:500;top:10px;left:10px;right:10px;background:#172438ed;border:1px solid #40516a;border-radius:12px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 4px 15px #0005}
+.topbar{position:absolute;z-index:500;top:10px;left:10px;right:10px;background:#172438ed;border:1px solid #40516a;border-radius:12px;padding:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
 .brand{font-weight:bold;font-size:16px}
 .stats{display:flex;gap:12px;font-size:12px;flex-wrap:wrap}
 .stat strong{display:block;color:#62d9c4;font-size:14px;margin-top:3px}
-.panel{position:absolute;z-index:500;top:82px;left:10px;width:145px;background:#172438ed;border:1px solid #40516a;border-radius:12px;padding:9px;box-shadow:0 4px 15px #0005}
+.panel{position:absolute;z-index:500;top:82px;left:10px;width:150px;background:#172438ed;border:1px solid #40516a;border-radius:12px;padding:9px}
 .panel h3{font-size:12px;color:#9eb4cb;margin:3px 0 9px}
 button{border:0;border-radius:8px;padding:10px 8px;color:white;background:#30445f;font-weight:bold;font-size:12px;width:100%;margin-bottom:7px}
 button.active{background:#087f79}
+button:disabled{opacity:.35}
 button:active{opacity:.7}
-.bottom{position:absolute;z-index:500;bottom:12px;left:10px;right:10px;background:#172438ed;border:1px solid #40516a;border-radius:12px;padding:9px;display:flex;gap:8px;align-items:center}
+.bottom{position:absolute;z-index:500;bottom:12px;left:10px;right:10px;background:#172438ed;border:1px solid #40516a;border-radius:12px;padding:9px;display:flex;gap:7px}
 .bottom button{margin:0;flex:1}
-#message{position:absolute;z-index:500;bottom:76px;left:50%;transform:translateX(-50%);background:#172438ed;padding:9px 13px;border-radius:9px;font-size:12px;white-space:nowrap;max-width:90%;text-align:center}
+#message{position:absolute;z-index:500;bottom:76px;left:50%;transform:translateX(-50%);background:#172438ed;padding:9px 13px;border-radius:9px;font-size:12px;max-width:90%;text-align:center}
 .leaflet-control-attribution{font-size:9px!important}
-.leaflet-container{background:#dce4e7}
 @media(max-height:430px){.topbar{top:5px;padding:6px}.panel{top:65px}.bottom{bottom:5px}.panel button{padding:7px}.stats{gap:7px}}
 </style>
 </head>
-
 <body>
+
 <div id="map"></div>
 
 <div class="topbar">
-  <div class="brand">🚇 SUBWAY BUILDER</div>
-  <div class="stats">
-    <div class="stat">CITY<strong>San Francisco</strong></div>
-    <div class="stat">MONEY<strong id="money">$25,000</strong></div>
-    <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
-  </div>
+ <div class="brand">🚇 SUBWAY BUILDER</div>
+ <div class="stats">
+  <div class="stat">CITY<strong>San Francisco</strong></div>
+  <div class="stat">MONEY<strong id="money">$25,000</strong></div>
+  <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
+ </div>
 </div>
 
 <div class="panel">
-  <h3>CONSTRUCTION</h3>
-  <button id="stationBtn" class="active" onclick="setMode('station')">＋ Station</button>
-  <button id="trackBtn" onclick="setMode('track')">〰 Build Track</button>
-  <button onclick="setMode('inspect')">ⓘ Inspect</button>
-  <h3>NETWORK</h3>
-  <div id="stationCount" style="font-size:12px;margin:5px 0 10px">Stations: 0</div>
-  <div id="trackCount" style="font-size:12px;margin:5px 0">Track: 0 sections</div>
+ <h3>CONSTRUCTION</h3>
+ <button id="stationBtn" class="active" onclick="setMode('station')">＋ Station</button>
+ <button id="trackBtn" onclick="setMode('track')">〰 Build Track</button>
+ <button onclick="setMode('inspect')">ⓘ Inspect</button>
+ <h3>EDIT</h3>
+ <button id="undoBtn" onclick="undo()">↶ Undo</button>
+ <button id="redoBtn" onclick="redo()">↷ Redo</button>
+ <h3>NETWORK</h3>
+ <div id="stationCount" style="font-size:12px;margin:5px 0 10px">Stations: 0</div>
+ <div id="trackCount" style="font-size:12px;margin:5px 0">Track: 0 sections</div>
 </div>
 
-<div id="message">Tap the map to place your first station.</div>
+<div id="message">Tap the map to build your first station.</div>
 
 <div class="bottom">
-  <button id="runBtn" onclick="toggleSimulation()">▶ Run Trains</button>
-  <button onclick="resetSelection()">Cancel</button>
+ <button id="runBtn" onclick="toggleSimulation()">▶ Run Trains</button>
+ <button onclick="resetSelection()">Cancel</button>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const map=L.map('map',{zoomControl:false}).setView([37.7749,-122.4194],13);
+const map=L.map('map').setView([37.7749,-122.4194],13);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-  maxZoom:19,
-  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+ maxZoom:19,
+ attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
 }).addTo(map);
 
 L.control.zoom({position:'bottomright'}).addTo(map);
@@ -78,9 +79,102 @@ let selected=null;
 let running=false;
 let simulation=null;
 let trainMarkers=[];
+let history=[];
+let historyIndex=0;
 
-function message(text){
- document.getElementById('message').textContent=text;
+function message(t){
+ document.getElementById('message').textContent=t;
+}
+
+function snapshot(){
+ return {
+  money:money,
+  stations:stations.map(s=>({
+   lat:s.lat,lng:s.lng
+  })),
+  tracks:tracks.map(t=>({
+   a:t.a,b:t.b
+  }))
+ };
+}
+
+function saveHistory(){
+ history=history.slice(0,historyIndex+1);
+ history.push(snapshot());
+ historyIndex=history.length-1;
+ updateUI();
+}
+
+function restoreSnapshot(data){
+ money=data.money;
+ stations=data.stations.map((s,i)=>({
+  lat:s.lat,lng:s.lng,
+  name:'Station '+(i+1)
+ }));
+ tracks=data.tracks.map(t=>({a:t.a,b:t.b}));
+ selected=null;
+ renderNetwork();
+ updateUI();
+}
+
+function undo(){
+ if(historyIndex<=0){
+  message('Nothing to undo.');
+  return;
+ }
+ historyIndex--;
+ restoreSnapshot(history[historyIndex]);
+ message('Last construction action undone.');
+}
+
+function redo(){
+ if(historyIndex>=history.length-1){
+  message('Nothing to redo.');
+  return;
+ }
+ historyIndex++;
+ restoreSnapshot(history[historyIndex]);
+ message('Construction action restored.');
+}
+
+function renderNetwork(){
+ if(window.networkLayer){
+  map.removeLayer(window.networkLayer);
+ }
+ window.networkLayer=L.layerGroup().addTo(map);
+
+ tracks.forEach(t=>{
+  let a=stations[t.a];
+  let b=stations[t.b];
+  if(!a||!b)return;
+
+  L.polyline([
+   [a.lat,a.lng],
+   [b.lat,b.lng]
+  ],{
+   color:'#087f79',
+   weight:6,
+   opacity:1,
+   lineCap:'round'
+  }).addTo(window.networkLayer);
+ });
+
+ stations.forEach((s,i)=>{
+  let marker=L.circleMarker([s.lat,s.lng],{
+   radius:selected===i?13:9,
+   color:'#ffffff',
+   weight:3,
+   fillColor:selected===i?'#e5a52b':'#087f79',
+   fillOpacity:1
+  }).addTo(window.networkLayer);
+
+  marker.bindTooltip(s.name);
+
+  marker.on('click',function(e){
+   L.DomEvent.stopPropagation(e);
+   handleStationClick(i);
+  });
+ });
 }
 
 function updateUI(){
@@ -88,130 +182,175 @@ function updateUI(){
  document.getElementById('passengers').textContent=passengers.toLocaleString();
  document.getElementById('stationCount').textContent='Stations: '+stations.length;
  document.getElementById('trackCount').textContent='Track: '+tracks.length+' sections';
+ document.getElementById('undoBtn').disabled=historyIndex<=0;
+ document.getElementById('redoBtn').disabled=historyIndex>=history.length-1;
 }
 
 function setMode(newMode){
  mode=newMode;
  selected=null;
+
  document.getElementById('stationBtn').classList.toggle('active',mode==='station');
  document.getElementById('trackBtn').classList.toggle('active',mode==='track');
- message(mode==='station'?'Tap the map to place a station ($500).':
- mode==='track'?'Select two stations to connect them ($150).':
- 'Tap a station to inspect it.');
+
+ renderNetwork();
+
+ if(mode==='station')message('Tap the map to place a station ($500).');
+ if(mode==='track')message('Tap one station, then another station to connect them ($150).');
+ if(mode==='inspect')message('Tap a station to inspect it.');
 }
 
 function resetSelection(){
  selected=null;
+ renderNetwork();
  message('Selection cleared.');
+}
+
+function handleStationClick(index){
+ if(mode==='track'){
+  if(selected===null){
+   selected=index;
+   renderNetwork();
+   message(stations[index].name+' selected. Now tap another station.');
+   return;
+  }
+
+  if(selected===index){
+   selected=null;
+   renderNetwork();
+   message('Selection cleared.');
+   return;
+  }
+
+  let first=selected;
+  let second=index;
+
+  if(tracks.some(t=>
+   (t.a===first&&t.b===second)||
+   (t.a===second&&t.b===first)
+  )){
+   selected=null;
+   renderNetwork();
+   message('These stations are already connected.');
+   return;
+  }
+
+  if(money<150){
+   selected=null;
+   renderNetwork();
+   message('Not enough money to build track.');
+   return;
+  }
+
+  money-=150;
+  tracks.push({a:first,b:second});
+  selected=null;
+  saveHistory();
+  renderNetwork();
+  message('Track successfully connected to both stations!');
+  return;
+ }
+
+ if(mode==='inspect'){
+  let connections=tracks.filter(t=>t.a===index||t.b===index).length;
+  message(stations[index].name+' — '+connections+' connected track sections.');
+  return;
+ }
+
+ if(mode==='station'){
+  message(stations[index].name+' already exists. Select Build Track to connect it.');
+ }
 }
 
 map.on('click',function(e){
  if(mode==='station'){
-   if(money<500){message('Not enough money for a station.');return;}
-   money-=500;
-   let number=stations.length+1;
-   let marker=L.circleMarker(e.latlng,{
-     radius:9,color:'#ffffff',weight:2,fillColor:'#087f79',fillOpacity:1
-   }).addTo(map);
-   marker.bindTooltip('Station '+number);
-   marker.on('click',function(ev){
-     L.DomEvent.stopPropagation(ev);
-     inspectStation(number-1);
-   });
-   stations.push({latlng:e.latlng,marker:marker,name:'Station '+number});
-   updateUI();
-   message('Station '+number+' built.');
+  if(money<500){
+   message('Not enough money for a station.');
+   return;
+  }
+
+  money-=500;
+  stations.push({
+   lat:e.latlng.lat,
+   lng:e.latlng.lng,
+   name:'Station '+(stations.length+1)
+  });
+
+  saveHistory();
+  renderNetwork();
+  message('Station built successfully.');
  }
  else if(mode==='track'){
-   if(selected===null){
-     if(stations.length===0){message('Build stations first.');return;}
-     let nearest=findNearest(e.latlng);
-     if(nearest===null){message('Tap near a station to select it.');return;}
-     selected=nearest;
-     message('Selected '+stations[nearest].name+'. Now select another station.');
-   }else{
-     let second=findNearest(e.latlng);
-     if(second===null||second===selected){message('Select a different station.');return;}
-     if(tracks.some(t=>(t.a===selected&&t.b===second)||(t.a===second&&t.b===selected))){
-       message('Those stations are already connected.');selected=null;return;
-     }
-     if(money<150){message('Not enough money to build track.');selected=null;return;}
-     money-=150;
-     let line=L.polyline([
-       stations[selected].latlng,
-       stations[second].latlng
-     ],{color:'#087f79',weight:5,opacity:.9}).addTo(map);
-     tracks.push({a:selected,b:second,line:line});
-     message('Track section completed!');
-     selected=null;
-     updateUI();
-   }
+  message('Tap an existing station marker, not the map, to select it.');
  }
 });
 
-function findNearest(point){
- let best=-1;
- let distance=Infinity;
- stations.forEach((s,i)=>{
-   let d=map.distance(point,s.latlng);
-   if(d<distance){distance=d;best=i;}
- });
- return distance<250?best:null;
-}
-
-function inspectStation(index){
- if(!stations[index])return;
- message(stations[index].name+' — connected track: '+
- tracks.filter(t=>t.a===index||t.b===index).length);
-}
-
 function toggleSimulation(){
  if(running){
-   clearInterval(simulation);
-   simulation=null;
-   running=false;
-   document.getElementById('runBtn').textContent='▶ Run Trains';
-   message('Simulation paused.');
-   trainMarkers.forEach(m=>map.removeLayer(m));
-   trainMarkers=[];
-   return;
+  clearInterval(simulation);
+  simulation=null;
+  running=false;
+  document.getElementById('runBtn').textContent='▶ Run Trains';
+
+  trainMarkers.forEach(m=>map.removeLayer(m));
+  trainMarkers=[];
+  message('Simulation paused.');
+  return;
  }
+
  if(stations.length<2||tracks.length<1){
-   message('Build at least two stations and connect them first.');
-   return;
+  message('Build and connect at least two stations first.');
+  return;
  }
+
  running=true;
  document.getElementById('runBtn').textContent='Ⅱ Pause';
  message('Trains are running!');
+
  simulation=setInterval(function(){
-   let connected=tracks[Math.floor(Math.random()*tracks.length)];
-   let from=stations[connected.a].latlng;
-   let to=stations[connected.b].latlng;
-   let train=L.circleMarker(from,{
-     radius:6,color:'#ffffff',weight:2,fillColor:'#e5a52b',fillOpacity:1
-   }).addTo(map);
-   trainMarkers.push(train);
-   let steps=0;
-   let movement=setInterval(function(){
-     steps++;
-     let fraction=steps/20;
-     train.setLatLng([
-       from.lat+(to.lat-from.lat)*fraction,
-       from.lng+(to.lng-from.lng)*fraction
-     ]);
-     if(steps>=20){
-       clearInterval(movement);
-       map.removeLayer(train);
-       trainMarkers=trainMarkers.filter(m=>m!==train);
-     }
-   },100);
-   passengers+=Math.floor(Math.random()*12)+5;
-   money+=Math.floor(Math.random()*100)+25;
-   updateUI();
+  if(tracks.length===0)return;
+
+  let track=tracks[Math.floor(Math.random()*tracks.length)];
+  let from=stations[track.a];
+  let to=stations[track.b];
+
+  let train=L.circleMarker([from.lat,from.lng],{
+   radius:7,
+   color:'#ffffff',
+   weight:2,
+   fillColor:'#e5a52b',
+   fillOpacity:1
+  }).addTo(map);
+
+  trainMarkers.push(train);
+  let steps=0;
+
+  let movement=setInterval(function(){
+   steps++;
+   let fraction=steps/20;
+
+   train.setLatLng([
+    from.lat+(to.lat-from.lat)*fraction,
+    from.lng+(to.lng-from.lng)*fraction
+   ]);
+
+   if(steps>=20){
+    clearInterval(movement);
+    map.removeLayer(train);
+    trainMarkers=trainMarkers.filter(m=>m!==train);
+   }
+  },100);
+
+  passengers+=Math.floor(Math.random()*12)+5;
+  money+=Math.floor(Math.random()*100)+25;
+  updateUI();
+
  },2500);
 }
 
+history.push(snapshot());
 updateUI();
+renderNetwork();
 </script>
 </body>
 </html>
