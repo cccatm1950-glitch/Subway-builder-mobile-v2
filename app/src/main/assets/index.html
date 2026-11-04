@@ -389,6 +389,19 @@ function renderNetwork(){
   if(!a||!b)return;
 
   let start=L.latLng(a.lat,a.lng);
+  if(mode==='waypoint'){
+ L.polyline([
+  [a.lat,a.lng],
+  [b.lat,b.lng]
+ ],{
+  color:'#f0a52b',
+  weight:12,
+  opacity:0.01
+ }).addTo(window.networkLayer).on('click',function(e){
+  L.DomEvent.stopPropagation(e);
+  selectTrackForWaypoints(trackIndex);
+ });
+}
   let end=L.latLng(b.lat,b.lng);
 
   let points=[];
