@@ -314,7 +314,8 @@ function snapshot(){
   stations:stations.map(s=>({
    lat:s.lat,
    lng:s.lng,
-   name:s.name
+   name:s.name,
+   elevation:s.elevation||'at'
   })),
   tracks:tracks.map(t=>({
    a:t.a,
