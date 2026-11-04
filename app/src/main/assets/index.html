@@ -1491,8 +1491,11 @@ function setMode(newMode){
  mode=newMode;
  selected=null;
  const modeButtons={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
- document.querySelectorAll('#constructionPanel .tool-group:first-of-type button').forEach(btn=>btn.classList.remove('active'));
- if(modeButtons[mode])document.getElementById(modeButtons[mode])?.classList.add('active');
+ document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(btn=>{
+  const active=btn.id===modeButtons[mode];
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
 
 
  const trashDock=document.getElementById('trashModeBtn');
@@ -1510,8 +1513,11 @@ function setMode(newMode){
 function setTrackStyle(style){
  if(style!=='single'&&style!=='parallel')return;
  trackStyle=style;
- document.querySelectorAll('#singleTrackBtn,#parallelTrackBtn').forEach(btn=>btn.classList.remove('active'));
- document.getElementById(style==='single'?'singleTrackBtn':'parallelTrackBtn').classList.add('active');
+ document.querySelectorAll('#singleTrackBtn,#parallelTrackBtn').forEach(btn=>{
+  const active=btn.id===(style==='single'?'singleTrackBtn':'parallelTrackBtn');
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
 
  message(style==='parallel'?'Parallel track mode selected.':'Single track mode selected.');
 }
