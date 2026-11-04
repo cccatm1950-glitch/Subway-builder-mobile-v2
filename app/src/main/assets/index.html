@@ -306,14 +306,14 @@ button:active {
    SUBWAY BUILDER — REFERENCE THEME POLISH
    ========================================================= */
 :root{
- --sb-ink:#08111f;--sb-panel:rgba(9,18,32,.88);
+ --sb-ink:#050b14;--sb-panel:rgba(5,12,23,.58);
  --sb-line:rgba(174,205,231,.18);--sb-muted:#9eb3c9;
  --sb-red:#ff5263;--sb-green:#42d69a;--sb-blue:#55a7ff;
  --sb-yellow:#f4c451;--sb-purple:#b58aff;
 }
 html,body{background:var(--sb-ink);color:#f5f8fc}
 .topbar,.panel,.bottom,#message{
- background:linear-gradient(145deg,rgba(10,22,39,.94),rgba(17,35,56,.86));
+ background:linear-gradient(145deg,rgba(5,13,25,.68),rgba(11,25,42,.58));
  border:1px solid var(--sb-line);box-shadow:0 14px 38px #02081280;
  backdrop-filter:blur(22px) saturate(150%);-webkit-backdrop-filter:blur(22px) saturate(150%);
 }
@@ -322,7 +322,18 @@ html,body{background:var(--sb-ink);color:#f5f8fc}
 .stats{gap:clamp(7px,2vw,18px)}
 .stat{color:#91a8c1;font-size:9px;letter-spacing:1px}
 .stat strong{color:#66e0c0;font-size:13px}
-.panel{width:clamp(148px,24vw,190px);max-height:calc(100dvh - 178px);border-radius:17px;padding:12px}
+.panel{width:clamp(230px,29vw,285px);max-height:calc(100dvh - 178px);border-radius:18px;padding:12px;overflow-y:auto}
+.panel-heading{display:flex;align-items:center;justify-content:space-between;padding:2px 2px 8px;color:#b9cce0;font-size:10px;font-weight:800;letter-spacing:1.8px}
+.panel-heading button{width:30px;min-height:30px;margin:0;padding:0;font-size:19px}
+.panel-hint{margin:4px 10px 10px;color:#9fb4c9;font-size:10px;line-height:1.5}
+.network-stat{padding:6px 10px;color:#b5c9dc;font-size:11px}
+#constructionPanel .tool-group{margin:7px 0;background:rgba(8,18,32,.34);border:1px solid rgba(185,215,242,.13);border-radius:13px}
+#constructionPanel .tool-group summary{padding:13px 12px;font-size:11px;letter-spacing:.7px}
+#constructionPanel .tool-group button{margin:4px 7px;width:calc(100% - 14px);min-height:38px;text-align:left;padding:10px 12px}
+#constructionPanel .tool-group[open]{background:rgba(5,13,25,.48)}
+#constructionPanel .tool-group[open] summary{border-bottom:1px solid rgba(185,215,242,.10)}
+#constructionPanel .tool-group summary:after{content:"＋"}
+#constructionPanel .tool-group[open] summary:after{content:"−"}
 .panel h3{color:#8fa8c3;letter-spacing:1.3px}
 button{min-height:37px;border-radius:11px;color:#eaf3fc;
  background:linear-gradient(180deg,rgba(61,86,116,.58),rgba(35,55,79,.7));
@@ -333,7 +344,7 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
 .bottom{padding:9px;border-radius:17px;gap:8px}
 .bottom button{min-height:42px}
 #message{color:#e8f3ff;border-radius:13px;box-shadow:0 8px 25px #0006}
-#constructionPanel{background:rgba(10,21,37,.93);color:#f3f7fc;border-color:var(--sb-line)}
+#constructionPanel{background:rgba(5,13,25,.66);color:#f3f7fc;border-color:rgba(180,215,245,.2)}
 #constructionPanel .tool-group{background:rgba(255,255,255,.035);border-color:rgba(169,202,232,.13)}
 #constructionPanel .tool-group summary{color:#dceafa;text-align:left;padding:12px}
 #constructionPanel .tool-group summary:after{color:#79a6c8}
@@ -351,7 +362,7 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
  .stats{gap:7px}
  .stat{font-size:8px}
  .stat strong{font-size:11px}
- .panel{left:7px;top:76px;width:145px;padding:9px;max-height:calc(100dvh - 155px)}
+ .panel{left:7px;top:76px;width:min(78vw,285px);padding:10px;max-height:calc(100dvh - 155px)}
  .bottom{left:7px;right:7px;bottom:7px}
  #message{bottom:66px;font-size:11px;max-width:88%}
 }
@@ -459,55 +470,42 @@ button:focus-visible{outline:2px solid #72e5d0;outline-offset:2px}
      ======================================================== -->
 
 <div class="panel" id="constructionPanel">
- <button id="closePanelBtn" onclick="
- document.getElementById('constructionPanel').style.display='none';
- document.getElementById('openPanelBtn').style.display='block';
- " style="position:absolute;top:7px;right:7px;width:30px;height:30px;padding:0;font-size:20px;">×</button>
- <details class="tool-group" open>
- <summary>🚇 CONSTRUCTION</summary>
- <button id="stationBtn" class="active" onclick="setMode('station')">＋ Station</button>
- <button id="trackBtn" onclick="setMode('track')">〰 Build Track</button>
- <button id="waypointBtn" onclick="setMode('waypoint')">📍 Waypoints</button>
- <button id="deleteBtn" onclick="setMode('delete')">🗑 Delete</button>
- <button onclick="setMode('inspect')">ⓘ Inspect</button>
-</details>
-
-<details class="tool-group">
- <summary>🛠 TRACK OPTIONS</summary>
- <button id="singleTrackBtn" class="active" onclick="setTrackStyle('single')">Single Track</button>
- <button id="parallelTrackBtn" onclick="setTrackStyle('parallel')">Parallel Tracks</button>
- <button onclick="setPlatformWidth('narrow')">Narrow Width</button>
- <button class="active" onclick="setPlatformWidth('default')">Default Width</button>
- <button onclick="setPlatformWidth('wide')">Wide Width</button>
- <button id="curveBtn" onclick="toggleCurveMode()">〰 Curve Tool: Off</button>
-</details>
-
-<details class="tool-group">
- <summary>🏗 STATION DESIGN</summary>
- <button onclick="setPlatformType('island')">▰ Island Platform</button>
- <button onclick="setPlatformType('side')">▰ Side Platforms</button>
-</details>
-
-<details class="tool-group">
- <summary>↶ EDIT</summary>
- <button id="undoBtn" onclick="undo()">↶ Undo</button>
- <button id="redoBtn" onclick="redo()">↷ Redo</button>
-</details>
-
-<details class="tool-group">
- <summary>🗺 MAP APPEARANCE</summary>
- <button id="themeToggleBtn" type="button">🌙 Map Theme</button>
- <div id="mapMenu" style="display:none;padding:8px">
-  <button onclick="setMapTheme('light')">☀️ Light Map</button>
-  <button onclick="setMapTheme('dark')">🌙 Dark Map</button>
- </div>
-</details>
-
-<details class="tool-group">
- <summary>📊 NETWORK</summary>
- <div id="stationCount">Stations: 0</div>
- <div id="trackCount">Track: 0 sections</div>
-</details>
+ <div class="panel-heading"><span>BUILD TOOLS</span><button id="closePanelBtn" aria-label="Close tools" onclick="document.getElementById('constructionPanel').style.display='none';document.getElementById('openPanelBtn').style.display='block';">×</button></div>
+ <details class="tool-group"><summary>🚇 Stations & track</summary>
+  <button id="stationBtn" class="active" onclick="setMode('station')">＋ Place station</button>
+  <button id="trackBtn" onclick="setMode('track')">〰 Connect stations</button>
+  <button id="waypointBtn" onclick="setMode('waypoint')">📍 Shape route</button>
+  <button id="deleteBtn" onclick="setMode('delete')">🗑 Remove</button>
+  <button onclick="setMode('inspect')">ⓘ Inspect network</button>
+ </details>
+ <details class="tool-group"><summary>🛤 Track settings</summary>
+  <button id="singleTrackBtn" class="active" onclick="setTrackStyle('single')">Single track</button>
+  <button id="parallelTrackBtn" onclick="setTrackStyle('parallel')">Parallel tracks</button>
+  <button onclick="setPlatformWidth('narrow')">Narrow platforms</button>
+  <button class="active" onclick="setPlatformWidth('default')">Standard platforms</button>
+  <button onclick="setPlatformWidth('wide')">Wide platforms</button>
+  <button id="curveBtn" onclick="toggleCurveMode()">〰 Curve tool: Off</button>
+ </details>
+ <details class="tool-group"><summary>🚇 Tunnels & elevation</summary>
+  <button id="tunnelModeBtn" onclick="toggleTunnelMode()">Tunnel construction: Off</button>
+  <p class="panel-hint">Enable before connecting stations to route new track underground.</p>
+ </details>
+ <details class="tool-group"><summary>🏗 Station design</summary>
+  <button onclick="setPlatformType('island')">▰ Island platform</button>
+  <button onclick="setPlatformType('side')">▰ Side platforms</button>
+ </details>
+ <details class="tool-group"><summary>↶ Edit history</summary>
+  <button id="undoBtn" onclick="undo()">↶ Undo</button>
+  <button id="redoBtn" onclick="redo()">↷ Redo</button>
+ </details>
+ <details class="tool-group"><summary>🗺 Map appearance</summary>
+  <button id="themeToggleBtn" type="button">🌙 Map theme</button>
+  <div id="mapMenu" style="display:none;padding:8px"><button onclick="setMapTheme('dark')">🌙 Dark map</button><button onclick="setMapTheme('light')">☀️ Light map</button></div>
+ </details>
+ <details class="tool-group"><summary>📊 Network status</summary>
+  <div id="stationCount" class="network-stat">Stations: 0</div><div id="trackCount" class="network-stat">Track: 0 sections</div>
+ </details>
+</div>
 
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
@@ -600,6 +598,7 @@ function setPlatformType(type){
   : 'Side platforms selected.');
 }
 let curveMode=false;
+let tunnelMode=false;
 let money=25000;
 let passengers=0;
 let stations=[];
@@ -611,6 +610,7 @@ let stationMenuIndex=null;
 let running=false;
 let simulation=null;
 let trainMarkers=[];
+let trainMovementTimers=[];
 let history=[];
 let historyIndex=0;
 
@@ -842,17 +842,15 @@ if(mode==='delete'){
       ];
     });
 
-  let elevation=(
- t.waypoints&&t.waypoints.length
- )?t.waypoints[0].elevation:'at';
-
-  L.polyline(shifted,{
- color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5],
- weight:5,
- opacity:1,
- lineCap:'round',
- dashArray:elevation==='at'?null:'10 8'
-}).addTo(window.networkLayer);
+  let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
+  const routeColor=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
+  if(elevation==='below'){
+   L.polyline(shifted,{color:'#06101d',weight:12,opacity:.96,lineCap:'round'}).addTo(window.networkLayer);
+   L.polyline(shifted,{color:routeColor,weight:5,opacity:.98,lineCap:'round',dashArray:'5 9'}).addTo(window.networkLayer);
+   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:'#d8f5ff',weight:2,fillColor:'#0c2638',fillOpacity:1}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
+  }else{
+   L.polyline(shifted,{color:routeColor,weight:5,opacity:1,lineCap:'round',dashArray:elevation==='at'?null:'10 8'}).addTo(window.networkLayer);
+  }
 }  
 
   if(t.style==='parallel'){
@@ -1025,6 +1023,14 @@ function setPlatformWidth(width){
  message('Platform width: '+width+'.');
 }
 
+function toggleTunnelMode(){
+ tunnelMode=!tunnelMode;
+ const btn=document.getElementById("tunnelModeBtn");
+ btn.textContent="Tunnel construction: "+(tunnelMode?"On":"Off");
+ btn.classList.toggle("active",tunnelMode);
+ message(tunnelMode?"Tunnel mode enabled — new track connections will run underground.":"Tunnel mode disabled — new track connections will run at grade.");
+}
+
 function toggleCurveMode(){
  curveMode=!curveMode;
 
@@ -1161,6 +1167,7 @@ function handleStationClick(index){
   b:second,
   style:trackStyle,
   curve:curveMode,
+  elevation:tunnelMode?"below":"at",
   waypoints:[]
 });
   selected=null;
@@ -1239,65 +1246,35 @@ else if(mode==='delete'){
 
 function toggleSimulation(){
  if(running){
-  clearInterval(simulation);
-  simulation=null;
-  running=false;
+  clearInterval(simulation);simulation=null;running=false;
+  trainMovementTimers.forEach(clearInterval);trainMovementTimers=[];
+  trainMarkers.forEach(m=>map.removeLayer(m));trainMarkers=[];
   document.getElementById('runBtn').textContent='▶ Run Trains';
-
-  trainMarkers.forEach(m=>map.removeLayer(m));
-  trainMarkers=[];
-  message('Simulation paused.');
-  return;
+  message('Simulation paused.');return;
  }
-
- if(stations.length<2||tracks.length<1){
-  message('Build and connect at least two stations first.');
-  return;
- }
-
- running=true;
- document.getElementById('runBtn').textContent='Ⅱ Pause';
- message('Trains are running!');
-
+ if(stations.length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
+ running=true;document.getElementById('runBtn').textContent='Ⅱ Pause';message('Trains are running!');
  simulation=setInterval(function(){
-  if(tracks.length===0)return;
-
-  let track=tracks[Math.floor(Math.random()*tracks.length)];
-  let from=stations[track.a];
-  let to=stations[track.b];
-
-  let train=L.circleMarker([from.lat,from.lng],{
-   radius:7,
-   color:'#ffffff',
-   weight:2,
-   fillColor:'#e5a52b',
-   fillOpacity:1
-  }).addTo(map);
-
-  trainMarkers.push(train);
-  let steps=0;
-
-  let movement=setInterval(function(){
-   steps++;
-   let fraction=steps/20;
-
-   train.setLatLng([
-    from.lat+(to.lat-from.lat)*fraction,
-    from.lng+(to.lng-from.lng)*fraction
-   ]);
-
-   if(steps>=20){
-    clearInterval(movement);
-    map.removeLayer(train);
-    trainMarkers=trainMarkers.filter(m=>m!==train);
-   }
-  },100);
-
-  passengers+=Math.floor(Math.random()*12)+5;
-  money+=Math.floor(Math.random()*100)+25;
-  updateUI();
-
- },2500);
+  if(!tracks.length)return;
+  const trackIndex=Math.floor(Math.random()*tracks.length),track=tracks[trackIndex];
+  const from=stations[track.a],to=stations[track.b];if(!from||!to)return;
+  const route=[[from.lat,from.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[to.lat,to.lng]];
+  const lengths=[];let total=0;
+  for(let i=1;i<route.length;i++){const d=map.distance(route[i-1],route[i]);lengths.push(d);total+=d;}
+  const trainColor=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
+  const train=L.marker(route[0],{icon:L.divIcon({className:'sb-train-marker',html:'<div style="font-size:22px;line-height:26px;filter:drop-shadow(0 2px 5px #000)">🚇</div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
+  trainMarkers.push(train);let progress=0;
+  const movement=setInterval(function(){
+   progress+=.025;
+   if(progress>=1){clearInterval(movement);trainMovementTimers=trainMovementTimers.filter(t=>t!==movement);map.removeLayer(train);trainMarkers=trainMarkers.filter(m=>m!==train);return;}
+   let target=progress*total,segment=0;
+   while(segment<lengths.length-1&&target>lengths[segment]){target-=lengths[segment];segment++;}
+   const fraction=lengths[segment]?target/lengths[segment]:0,p=route[segment],q=route[segment+1];
+   train.setLatLng([p[0]+(q[0]-p[0])*fraction,p[1]+(q[1]-p[1])*fraction]);
+   const el=train.getElement()?.querySelector('div');if(el)el.style.filter='drop-shadow(0 0 5px '+trainColor+') drop-shadow(0 2px 5px #000)';
+  },70);
+  trainMovementTimers.push(movement);passengers+=Math.floor(Math.random()*12)+5;money+=Math.floor(Math.random()*100)+25;updateUI();
+ },2100);
 }
 
 history.push(snapshot());
