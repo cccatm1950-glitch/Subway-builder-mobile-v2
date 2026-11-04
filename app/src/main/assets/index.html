@@ -835,6 +835,9 @@ map.on('click',function(e){
   renderNetwork();
   message('Station built successfully.');
  }
+else if(mode==='delete'){
+  message('Tap a station, track, or waypoint to delete it.');
+}
  else if(mode==='track'){
   message('Tap an existing station marker, not the map, to select it.');
  }
