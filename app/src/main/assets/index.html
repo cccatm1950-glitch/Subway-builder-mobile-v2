@@ -555,6 +555,43 @@ function toggleCurveMode(){
 
  message(curveMode?'Curve tool enabled.':'Curve tool disabled.');
 }
+function closeStationMenu(){
+ document.getElementById('stationContextMenu').style.display='none';
+ stationMenuIndex=null;
+}
+
+function renameSelectedStation(){
+ if(stationMenuIndex===null)return;
+
+ let station=stations[stationMenuIndex];
+ let name=prompt('Enter station name:',station.name);
+
+ if(name&&name.trim()){
+  station.name=name.trim();
+  saveHistory();
+  renderNetwork();
+  message('Station renamed.');
+ }
+
+ closeStationMenu();
+}
+
+function setStationElevation(level){
+ if(stationMenuIndex===null)return;
+
+ stations[stationMenuIndex].elevation=level;
+ saveHistory();
+ renderNetwork();
+
+ let labels={
+  above:'Above Grade',
+  at:'At Grade',
+  below:'Below Grade'
+ };
+
+ message('Station elevation: '+labels[level]);
+ closeStationMenu();
+}
 function resetSelection(){
  selected=null;
  renderNetwork();
