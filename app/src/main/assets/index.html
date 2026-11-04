@@ -840,7 +840,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #constructionPanel:not(.sb-collapsed){visibility:visible!important;pointer-events:auto!important}
 
 /* Mobile menu repair + consistent undo/redo/delete interaction highlight. */
-#sb-panel-toggle{left:12px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;z-index:1200!important;pointer-events:auto!important;border-radius:16px!important}
+#sb-panel-toggle{display:flex!important;position:fixed!important;left:12px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;z-index:1200!important;pointer-events:auto!important;visibility:visible!important;opacity:1!important;border-radius:16px!important}
 #constructionPanel{left:12px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;transform:translateX(0)!important;border-radius:22px!important;z-index:1100!important}
 #constructionPanel.sb-collapsed{transform:translateX(calc(-100% - 20px))!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 #constructionPanel:not(.sb-collapsed){transform:translateX(0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
