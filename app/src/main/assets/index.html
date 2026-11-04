@@ -841,9 +841,12 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 
 /* Mobile menu repair + consistent undo/redo/delete interaction highlight. */
 #sb-panel-toggle{display:flex!important;position:fixed!important;left:12px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;z-index:1200!important;pointer-events:auto!important;visibility:visible!important;opacity:1!important;border-radius:16px!important}
-#constructionPanel{left:12px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;transform:translateX(0)!important;border-radius:22px!important;z-index:1100!important}
-#constructionPanel.sb-collapsed{transform:translateX(calc(-100% - 20px))!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
-#constructionPanel:not(.sb-collapsed){transform:translateX(0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+/* Single authoritative mobile drawer layout: keep the trigger above the drawer. */
+#sb-panel-toggle{display:flex!important;position:fixed!important;left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:48px!important;height:48px!important;min-height:48px!important;z-index:1400!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;touch-action:manipulation!important}
+#constructionPanel{position:fixed!important;display:block!important;left:10px!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 78px)!important;width:min(86vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 92px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;border-radius:22px!important;z-index:1300!important;transition:transform .22s ease,opacity .22s ease,visibility .22s ease!important}
+#constructionPanel.sb-collapsed{transform:translate3d(calc(-100% - 24px),0,0)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+#constructionPanel:not(.sb-collapsed){transform:translate3d(0,0,0)!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+@media(max-width:560px){#sb-panel-toggle{left:10px!important;right:auto!important}#constructionPanel{left:10px!important;right:auto!important}}
 #sb-panel-toggle:hover,#sb-panel-toggle:focus-visible,#sb-panel-toggle[aria-expanded="true"]{background:linear-gradient(145deg,rgba(80,226,205,.32),rgba(117,170,207,.18))!important;border-color:rgba(132,255,231,.72)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 0 2px rgba(100,255,220,.12),0 0 22px rgba(75,241,216,.28)!important;outline:none}
 .topbar button,#constructionPanel button,#sb-panel-toggle,#stationContextMenu button,#sb-action-dock button,#startMenu button,#sb-terms-overlay button{transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,transform .12s ease!important;-webkit-tap-highlight-color:transparent}
 .topbar button:hover,#constructionPanel button:hover,#stationContextMenu button:hover,#sb-action-dock button:not(:disabled):hover,#startMenu button:hover,#sb-terms-overlay button:hover,.topbar button:focus-visible,#constructionPanel button:focus-visible,#stationContextMenu button:focus-visible,#sb-action-dock button:focus-visible{background:linear-gradient(145deg,rgba(45,205,180,.25),rgba(83,150,190,.17))!important;border-color:rgba(132,255,231,.68)!important;box-shadow:0 0 0 2px rgba(100,255,220,.12),0 0 17px rgba(40,220,190,.20),inset 0 1px 0 rgba(255,255,255,.22)!important;outline:none}
@@ -1687,13 +1690,23 @@ function toggleToolsPanel(open){
  const expanded=typeof open==='boolean'?open:panel.classList.contains('sb-collapsed');
  panel.classList.toggle('sb-collapsed',!expanded);
  panel.setAttribute('aria-hidden',String(!expanded));
+ panel.setAttribute('aria-expanded',String(expanded));
  toggle.hidden=false;
+ toggle.removeAttribute('hidden');
+ toggle.style.setProperty('display','flex','important');
+ toggle.style.setProperty('visibility','visible','important');
+ toggle.style.setProperty('opacity','1','important');
+ toggle.style.setProperty('pointer-events','auto','important');
  toggle.setAttribute('aria-expanded',String(expanded));
  toggle.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');
  toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
+ panel.style.setProperty('position','fixed','important');
+ panel.style.setProperty('z-index','1300','important');
+ panel.style.setProperty('transform',expanded?'translate3d(0,0,0)':'translate3d(calc(-100% - 24px),0,0)','important');
+ panel.style.setProperty('visibility',expanded?'visible':'hidden','important');
+ panel.style.setProperty('opacity',expanded?'1':'0','important');
+ panel.style.setProperty('pointer-events',expanded?'auto':'none','important');
  if(expanded){
-  panel.style.visibility='visible';
-  panel.style.pointerEvents='auto';
   requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
  }else{
   toggle.focus({preventScroll:true});
