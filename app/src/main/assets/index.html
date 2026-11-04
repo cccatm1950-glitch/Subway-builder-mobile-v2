@@ -196,7 +196,11 @@ button:active {
  </div>
 </div>
 
-<div class="panel">
+<div class="panel" id="constructionPanel">
+ <button id="closePanelBtn" onclick="
+ document.getElementById('constructionPanel').style.display='none';
+ document.getElementById('openPanelBtn').style.display='block';
+ " style="position:absolute;top:7px;right:7px;width:30px;height:30px;padding:0;font-size:20px;">×</button>
  <h3>CONSTRUCTION</h3>
  <button id="stationBtn" class="active" onclick="setMode('station')">＋ Station</button>
  <button id="trackBtn" onclick="setMode('track')">〰 Build Track</button>
