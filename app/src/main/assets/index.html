@@ -173,6 +173,25 @@ button:active {
  <h3>CONSTRUCTION</h3>
  <button id="stationBtn" class="active" onclick="setMode('station')">＋ Station</button>
  <button id="trackBtn" onclick="setMode('track')">〰 Build Track</button>
+<h3>ADVANCED CONSTRUCTION</h3>
+
+<button id="singleTrackBtn" class="active" onclick="setTrackStyle('single')">
+Single Track
+</button>
+
+<button id="parallelTrackBtn" onclick="setTrackStyle('parallel')">
+Parallel Tracks
+</button>
+
+<h3>PLATFORM WIDTH</h3>
+
+<button onclick="setPlatformWidth('narrow')">Narrow</button>
+<button class="active" onclick="setPlatformWidth('default')">Default</button>
+<button onclick="setPlatformWidth('wide')">Wide</button>
+
+<h3>TRACK SHAPE</h3>
+
+<button id="curveBtn" onclick="toggleCurveMode()">〰 Curve Tool: Off</button>
  <button onclick="setMode('inspect')">ⓘ Inspect</button>
  <h3>EDIT</h3>
  <button id="undoBtn" onclick="undo()">↶ Undo</button>
