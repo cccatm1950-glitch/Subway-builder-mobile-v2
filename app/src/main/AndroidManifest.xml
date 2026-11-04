@@ -18,5 +18,7 @@
             </intent-filter>
 
         </activity>
-    </application>
+    <application
+        android:icon="@drawable/subway_builder_logo"
+        android:roundIcon="@drawable/subway_builder_logo"
 </manifest>
