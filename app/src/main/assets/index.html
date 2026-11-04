@@ -345,16 +345,64 @@ function renderNetwork(){
   let b=stations[t.b];
   if(!a||!b)return;
 
-  L.polyline([
-   [a.lat,a.lng],
-   [b.lat,b.lng]
-  ],{
-   color:'#087f79',
-   weight:6,
-   opacity:1,
-   lineCap:'round'
-  }).addTo(window.networkLayer);
- });
+  let start=L.latLng(a.lat,a.lng);
+  let end=L.latLng(b.lat,b.lng);
+
+  let points=[];
+
+  if(t.curve){
+    let midLat=(start.lat+end.lat)/2;
+    let midLng=(start.lng+end.lng)/2;
+    let dx=end.lng-start.lng;
+    let dy=end.lat-start.lat;
+
+    let control=[
+      midLat-dx*0.25,
+      midLng+dy*0.25
+    ];
+
+    for(let i=0;i<=20;i++){
+      let p=i/20;
+      let q=1-p;
+
+      points.push([
+        q*q*start.lat+2*q*p*control[0]+p*p*end.lat,
+        q*q*start.lng+2*q*p*control[1]+p*p*end.lng
+      ]);
+    }
+  }else{
+    points=[[start.lat,start.lng],[end.lat,end.lng]];
+  }
+
+  function drawLine(offset){
+    let shifted=points.map((p,i)=>{
+      let prev=points[Math.max(0,i-1)];
+      let next=points[Math.min(points.length-1,i+1)];
+      let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
+      let dy=next[0]-prev[0];
+      let length=Math.sqrt(dx*dx+dy*dy)||1;
+
+      return [
+        p[0]+(dx/length)*offset/111320,
+        p[1]-(dy/length)*offset/(111320*Math.cos(p[0]*Math.PI/180))
+      ];
+    });
+
+    L.polyline(shifted,{
+      color:'#087f79',
+      weight:5,
+      opacity:1,
+      lineCap:'round'
+    }).addTo(window.networkLayer);
+  }
+
+  if(t.style==='parallel'){
+    drawLine(-5);
+    drawLine(5);
+  }else{
+    drawLine(0);
+  }
+});
 
  stations.forEach((s,i)=>{
   let marker=L.circleMarker([s.lat,s.lng],{
