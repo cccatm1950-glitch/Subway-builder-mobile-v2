@@ -409,15 +409,6 @@ function renderNetwork(){
   opacity:0.01
  }).addTo(window.networkLayer).on('click',function(e){
   L.DomEvent.stopPropagation(e);
-  function setWaypointElevation(trackIndex,waypointIndex,level){
- let track=tracks[trackIndex];
- if(!track||!track.waypoints[waypointIndex])return;
-
- track.waypoints[waypointIndex].elevation=level;
- saveHistory();
- renderNetwork();
- message('Waypoint elevation changed to '+level+' grade.');
-  }
   selectTrackForWaypoints(trackIndex);
  });
 }
