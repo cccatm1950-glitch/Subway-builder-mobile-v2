@@ -767,6 +767,8 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 #sb-touch-pointer.visible{opacity:1}
 #sb-touch-pointer span{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#eafffb;transform:translate(-50%,-50%);box-shadow:0 0 8px #5fffe2}
 #sb-touch-pointer.pressed{transform:translate(-50%,-50%) scale(.72);background:rgba(81,255,226,.22)}
+.sb-pointer-click{position:fixed;z-index:4999;width:20px;height:20px;border:2px solid rgba(119,255,229,.9);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:sb-pointer-ripple .38s ease-out forwards}
+@keyframes sb-pointer-ripple{to{width:54px;height:54px;opacity:0;box-shadow:0 0 24px rgba(69,255,220,.5)}}
 #sb-pointer-toggle{flex:0 0 auto;width:32px;height:32px;min-height:32px;padding:0;margin:0 6px 0 0;border-radius:50%!important;font-size:16px;display:grid;place-items:center}
 #sb-city-stat{margin-left:3px}
 #sb-dashboard-dialog{margin-left:3px}
@@ -1548,11 +1550,15 @@ function setTouchPointerEnabled(enabled){
  document.body.classList.toggle('sb-touch-pointer-enabled',sbTouchPointerEnabled);
  const button=document.getElementById('sb-pointer-toggle');
  if(button){button.classList.toggle('active',sbTouchPointerEnabled);button.setAttribute('aria-pressed',String(sbTouchPointerEnabled));button.title=sbTouchPointerEnabled?'Switch to normal touch controls':'Enable touch pointer';button.setAttribute('aria-label',button.title);}
+ const pointer=document.getElementById('sb-touch-pointer');
+ if(pointer){pointer.classList.toggle('visible',sbTouchPointerEnabled);if(!sbTouchPointerEnabled)pointer.classList.remove('pressed');}
 }
 function toggleTouchPointer(){setTouchPointerEnabled(!sbTouchPointerEnabled);message(sbTouchPointerEnabled?'Touch pointer enabled. Tap or drag with the pointer; turn it off for normal touch controls.':'Normal touch controls enabled.');}
 function moveTouchPointer(x,y,visible=true){
  const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
  pointer.style.left=x+'px';pointer.style.top=y+'px';pointer.classList.toggle('visible',!!visible);
+ const play=document.getElementById('sb-play-button');
+ if(play){const r=play.getBoundingClientRect();play.classList.toggle('sb-pointer-hover',x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom&&visible);}
 }
 (function installTouchPointer(){
  const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
@@ -1560,6 +1566,7 @@ function moveTouchPointer(x,y,visible=true){
  document.addEventListener('pointerdown',e=>{if(sbTouchPointerEnabled||document.getElementById('startMenu')?.style.display!=='none'){moveTouchPointer(e.clientX,e.clientY,true);pointer.classList.add('pressed');}});
  document.addEventListener('pointerup',()=>pointer.classList.remove('pressed'));
  document.addEventListener('pointercancel',()=>pointer.classList.remove('pressed'));
+ document.addEventListener('click',e=>{if(!sbTouchPointerEnabled&&document.getElementById('startMenu')?.style.display==='none')return;const ripple=document.createElement('i');ripple.className='sb-pointer-click';ripple.style.left=e.clientX+'px';ripple.style.top=e.clientY+'px';document.body.appendChild(ripple);setTimeout(()=>ripple.remove(),420);});
  document.addEventListener('touchmove',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
  document.addEventListener('touchstart',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
  document.addEventListener('touchend',()=>{if(sbTouchPointerEnabled)pointer.classList.remove('pressed');});
