@@ -475,6 +475,30 @@ button:active{transform:scale(.96)}
 .leaflet-bottom.leaflet-right{bottom:10px!important}
 @media(max-width:560px){.start-card{width:min(90vw,360px);padding:24px 19px}.topbar{gap:6px}.brand{font-size:14px}.stats{gap:7px}.stat{font-size:10px}#trashModeBtn{width:31px;height:31px;min-height:31px;flex-basis:31px}#sb-3d-toggle{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}}
 
+
+/* Nov 2026 interaction and edge-control refinement */
+#sb-loading .logo{width:min(48vw,190px);max-width:190px}
+#sb-loading .train{font-size:clamp(48px,14vw,76px)}
+#sb-loading .brand{font-size:clamp(16px,4.5vw,22px)}
+#startMenu{padding:5px!important;overflow-y:auto;align-items:center;justify-content:center}
+.start-card{box-sizing:border-box;width:min(92vw,360px);max-height:calc(100dvh - 10px);overflow-y:auto;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:clamp(5px,1.1vh,10px);padding:clamp(10px,2.2vh,20px) clamp(14px,4vw,24px)}
+.start-card img{width:48px;height:48px;align-self:center;margin:0 auto 2px}
+.start-card h1{font-size:clamp(17px,4.8vw,22px);margin:2px 0}
+.start-card p{font-size:10px;margin:2px 0 clamp(4px,1vh,9px)}
+.start-card button{flex:0 1 auto;min-height:clamp(38px,7.2vh,52px);height:auto;margin:0;padding:0 14px}
+.topbar{position:absolute!important;left:5px!important;right:5px!important;top:5px!important;min-height:58px;padding:8px 10px!important}
+.topbar .stats{margin-right:0!important}
+#sb-dashboard-dialog{position:static!important;display:none;width:auto!important;max-width:none!important;transform:none!important;margin:0!important;padding:7px 12px!important;border-radius:15px!important;text-align:center!important;font-size:11px!important;line-height:1.35;pointer-events:none;box-shadow:none!important}
+#sb-dashboard-dialog.open{display:block!important}
+#sb-dashboard-info{display:none!important}
+#sb-action-dock{position:fixed;z-index:900;right:9px;bottom:9px;display:flex;flex-direction:column;align-items:center;gap:7px;padding:7px;border-radius:24px;background:rgba(15,25,40,.46);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);box-shadow:0 10px 32px rgba(0,0,0,.2)}
+#sb-action-dock button{width:43px!important;height:43px!important;min-height:43px!important;flex:0 0 43px!important;margin:0!important;padding:0!important;border-radius:50%!important;font-size:18px!important;display:flex;align-items:center;justify-content:center}
+#sb-action-dock .trash-dock-btn{background:rgba(255,90,110,.18)!important;border-color:rgba(255,140,155,.4)!important;color:#ff9aa8!important}
+#sb-action-dock button:disabled{opacity:.3!important}
+#message{display:none!important}
+.leaflet-control-attribution,.leaflet-control-zoom,.maplibregl-ctrl-bottom-right,.maplibregl-ctrl-top-right{display:none!important}
+@media(max-height:520px){#startMenu{align-items:flex-start}.start-card{margin:5px auto;gap:4px;padding:8px 14px}.start-card img{width:38px;height:38px}.start-card button{min-height:34px}.start-card p{margin:0 0 3px}}
+
 </style>
 </head>
 <body>
@@ -510,9 +534,9 @@ button:active{transform:scale(.96)}
   <p>DESIGN • BUILD • CONNECT</p>
 
   <button class="start-primary" onclick="closeStartMenu()"><span class="menu-icon">⌖</span><span class="menu-label">Start Building</span><span class="menu-chevron">›</span></button>
-  <button onclick="message('Welcome back to Subway Builder!')"><span class="menu-icon">⌁</span><span class="menu-label">Continue</span><span class="menu-chevron">›</span></button>
-  <button onclick="message('Settings coming soon.')"><span class="menu-icon">⚙</span><span class="menu-label">Settings</span><span class="menu-chevron">›</span></button>
-  <button onclick="message('Subway Builder Mobile')"><span class="menu-icon">ⓘ</span><span class="menu-label">About</span><span class="menu-chevron">›</span></button>
+  <button onclick="message('Welcome back to Subway Builder!');closeStartMenu()"><span class="menu-icon">⌁</span><span class="menu-label">Continue</span><span class="menu-chevron">›</span></button>
+  <button onclick="message('Settings coming soon.');closeStartMenu()"><span class="menu-icon">⚙</span><span class="menu-label">Settings</span><span class="menu-chevron">›</span></button>
+  <button onclick="message('Subway Builder Mobile');closeStartMenu()"><span class="menu-icon">ⓘ</span><span class="menu-label">About</span><span class="menu-chevron">›</span></button>
  </div>
 </div>
  
@@ -549,15 +573,14 @@ button:active{transform:scale(.96)}
      ======================================================== -->
 
 <div class="topbar">
- <div class="brand"><span>▣ SUBWAY BUILDER</span><button id="trashModeBtn" type="button" onclick="activateDeleteMode()" aria-label="Delete an individual track or station" title="Delete">⌫</button></div>
+ <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
  <div class="stats">
   <div class="stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
   <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
  </div>
- <button id="sb-dashboard-info" type="button" aria-label="Construction help" title="Help" onclick="toggleDashboardDialog()">i</button>
+ <div id="sb-dashboard-dialog" role="status" aria-live="polite">Tap the map to build your first station.</div>
 </div>
-<div id="sb-dashboard-dialog" role="dialog" aria-label="Subway Builder help"><button type="button" style="float:right" aria-label="Close help" onclick="toggleDashboardDialog(false)">×</button><strong>SUBWAY BUILDER</strong><p>Build stations, connect routes, adjust track settings, and run trains from the Construction panel.</p></div>
 
 <!-- ========================================================
      SECTION 08 — CONSTRUCTION PANEL
@@ -569,7 +592,6 @@ button:active{transform:scale(.96)}
   <button id="stationBtn" class="active" title="Place station" aria-label="Place station" onclick="setMode('station')">●</button>
   <button id="trackBtn" title="Connect stations" aria-label="Connect stations" onclick="setMode('track')">↗</button>
   <button id="waypointBtn" title="Shape route" aria-label="Shape route" onclick="setMode('waypoint')">⌁</button>
-  <button id="deleteBtn" title="Remove" aria-label="Remove" onclick="setMode('delete')">⌫</button>
   <button title="Inspect network" aria-label="Inspect network" onclick="setMode('inspect')">i</button>
  </details>
  <details class="tool-group"><summary>TRACK Track settings</summary>
@@ -588,10 +610,6 @@ button:active{transform:scale(.96)}
   <button title="Island platform" aria-label="Island platform" onclick="setPlatformType('island')">▰</button>
   <button title="Side platforms" aria-label="Side platforms" onclick="setPlatformType('side')">▰</button>
  </details>
- <details class="tool-group"><summary>↶ Edit history</summary>
-  <button id="undoBtn" title="Undo" aria-label="Undo" onclick="undo()">↶</button>
-  <button id="redoBtn" title="Redo" aria-label="Redo" onclick="redo()">↷</button>
- </details>
  <details class="tool-group"><summary>2D Map appearance</summary>
   <button id="themeToggleBtn" type="button" title="Map theme" aria-label="Map theme">◐</button>
   <div id="mapMenu" style="display:none;padding:8px"><button title="Dark map" aria-label="Dark map" onclick="setMapTheme('dark')">◐</button><button title="Light map" aria-label="Light map" onclick="setMapTheme('light')">☼</button></div>
@@ -607,13 +625,13 @@ button:active{transform:scale(.96)}
      ======================================================== -->
 
 <button id="sb-panel-toggle" type="button" aria-label="Expand build tools" title="Expand build tools" onclick="toggleToolsPanel(true)">›</button>
-<div id="message">Tap the map to build your first station.</div>
+<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
 
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-const map=L.map('map',{zoomControl:false}).setView([37.7749,-122.4194],13);
+const map=L.map('map',{zoomControl:false,attributionControl:false}).setView([37.7749,-122.4194],13);
 
 /* =========================================================
    SECTION 10 — MAP INITIALIZATION
@@ -663,7 +681,7 @@ function toggleMapMenu(){
 document.getElementById('themeToggleBtn').addEventListener('click',toggleMapMenu);
 setMapTheme(currentTheme);
 
-L.control.zoom({position:'bottomright'}).addTo(map);
+/* Default map zoom and attribution controls are intentionally hidden. */
 
 /* =========================================================
    SECTION 11 — GAME STATE AND SETTINGS
@@ -703,9 +721,23 @@ let platformCrowdMarkers=[];
 let history=[];
 let historyIndex=0;
 
+let sbMessageTimer=null;
+let sbPressedButton='';
 function message(t){
- document.getElementById('message').textContent=t;
+ const box=document.getElementById('sb-dashboard-dialog');
+ if(!box)return;
+ const prefix=sbPressedButton?'Pressed: '+sbPressedButton+' · ':'';
+ sbPressedButton='';
+ box.textContent=prefix+t;
+ box.classList.add('open');
+ clearTimeout(sbMessageTimer);
+ sbMessageTimer=setTimeout(()=>box.classList.remove('open'),5000);
 }
+document.addEventListener('click',function(event){
+ const button=event.target.closest('button');
+ if(!button||button.id==='sb-panel-toggle')return;
+ sbPressedButton=button.getAttribute('aria-label')||button.title||button.textContent.trim()||'Control';
+},true);
 
 /* =========================================================
    SECTION 12 — SAVE HISTORY / UNDO / REDO
@@ -1188,7 +1220,7 @@ function setStationElevation(level){
    SECTION 16 — SELECTION AND EDITING
    ========================================================= */
 
-function toggleDashboardDialog(open){const dialog=document.getElementById("sb-dashboard-dialog");dialog.classList.toggle("open",open===undefined?!dialog.classList.contains("open"):!!open);}
+function toggleDashboardDialog(open){const dialog=document.getElementById("sb-dashboard-dialog");if(open===false){dialog.classList.remove("open");clearTimeout(sbMessageTimer);}else message("Build stations, connect routes, adjust track settings, and run trains.");}
 function toggleToolsPanel(open){const panel=document.getElementById('constructionPanel');const toggle=document.getElementById('sb-panel-toggle');panel.classList.toggle('sb-collapsed',!open);toggle.style.display=open?'none':'flex';toggle.setAttribute('aria-label',open?'Collapse build tools':'Expand build tools');}
 function resetSelection(){
  selected=null;
@@ -1502,9 +1534,9 @@ window.toggle3DCityView=function(){
     style:'https://tiles.openfreemap.org/styles/liberty',
     center:[c.lng,c.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
     pitch:58,bearing:-18,maxPitch:70,antialias:true,
-    attributionControl:true
+    attributionControl:false
    });
-   sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
+   /* MapLibre zoom controls hidden to keep the lower-right edge clear. */
    sb3dMap.on('load',()=>{
     sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
     const layers=sb3dMap.getStyle().layers||[];
