@@ -396,7 +396,35 @@ function setMode(newMode){
  if(mode==='track')message('Tap one station, then another station to connect them ($150).');
  if(mode==='inspect')message('Tap a station to inspect it.');
 }
+function setTrackStyle(style){
+ trackStyle=style;
 
+ document.getElementById('singleTrackBtn').classList.toggle('active',style==='single');
+ document.getElementById('parallelTrackBtn').classList.toggle('active',style==='parallel');
+
+ message(style==='parallel'?'Parallel track mode selected.':'Single track mode selected.');
+}
+
+function setPlatformWidth(width){
+ platformWidth=width;
+
+ document.querySelectorAll('[onclick^="setPlatformWidth"]').forEach(btn=>{
+  btn.classList.toggle('active',btn.textContent.trim().toLowerCase()===width);
+ });
+
+ message('Platform width: '+width+'.');
+}
+
+function toggleCurveMode(){
+ curveMode=!curveMode;
+
+ document.getElementById('curveBtn').textContent=
+  '〰 Curve Tool: '+(curveMode?'On':'Off');
+
+ document.getElementById('curveBtn').classList.toggle('active',curveMode);
+
+ message(curveMode?'Curve tool enabled.':'Curve tool disabled.');
+}
 function resetSelection(){
  selected=null;
  renderNetwork();
