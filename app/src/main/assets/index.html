@@ -780,6 +780,29 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
 .sb-station-marker{filter:drop-shadow(0 0 5px rgba(110,245,255,.8))}
 @media(prefers-reduced-motion:reduce){#sb-play-button,#sb-touch-pointer{transition:none!important}}
 
+
+/* PR#22 — reliable construction controls and matching glass wrench tab */
+#constructionPanel{z-index:820!important;isolation:isolate;pointer-events:auto!important}
+#constructionPanel.sb-collapsed{visibility:hidden!important;pointer-events:none!important}
+#constructionPanel:not(.sb-collapsed){visibility:visible!important;pointer-events:auto!important}
+#constructionPanel .panel-heading,#constructionPanel details,#constructionPanel summary,#constructionPanel button{pointer-events:auto!important}
+#constructionPanel .tool-group summary{display:block;position:relative;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#constructionPanel .tool-group summary:focus-visible{outline:2px solid rgba(120,255,231,.8);outline-offset:2px}
+#constructionPanel .tool-group[open],#constructionPanel .tool-group.is-open{border-color:rgba(120,255,231,.56)!important;box-shadow:0 0 0 1px rgba(120,255,231,.15),0 0 22px rgba(40,228,201,.14)!important}
+#constructionPanel .tool-group>button{position:relative;z-index:1;min-height:40px!important;cursor:pointer;touch-action:manipulation;pointer-events:auto!important}
+#constructionPanel .tool-group>button.active{color:#f1fffc!important;background:linear-gradient(135deg,rgba(31,210,184,.34),rgba(72,137,173,.23))!important;border:1px solid rgba(132,255,231,.78)!important;box-shadow:0 0 0 1px rgba(132,255,231,.18),0 0 16px rgba(55,235,207,.28)!important}
+#constructionPanel .tool-group>button:active{transform:scale(.97)!important}
+#constructionPanel .tool-group>button:disabled{opacity:.42;cursor:not-allowed}
+#constructionPanel .panel-heading{pointer-events:auto!important}
+#constructionPanel #closePanelBtn{background:rgba(220,240,255,.10)!important;border:1px solid rgba(220,245,255,.24)!important;color:#effaff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 14px rgba(0,0,0,.16)!important}
+#sb-panel-toggle{display:flex;position:fixed!important;z-index:900!important;right:12px!important;top:92px!important;width:50px!important;height:50px!important;min-height:50px!important;padding:0!important;align-items:center!important;justify-content:center!important;border-radius:17px!important;border:1px solid rgba(224,245,255,.28)!important;background:linear-gradient(145deg,rgba(239,249,255,.22),rgba(125,166,197,.10))!important;color:#effaff!important;backdrop-filter:blur(24px) saturate(165%)!important;-webkit-backdrop-filter:blur(24px) saturate(165%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 8px 26px rgba(0,0,0,.25),0 0 20px rgba(85,218,210,.12)!important;cursor:pointer;touch-action:manipulation;transition:transform .18s ease,box-shadow .18s ease,background .18s ease!important}
+#sb-panel-toggle[hidden]{display:none!important}
+#sb-panel-toggle svg{width:25px!important;height:25px!important;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(123,255,231,.5))}
+#sb-panel-toggle:hover,#sb-panel-toggle:focus-visible{transform:translateY(-1px) scale(1.04)!important;background:linear-gradient(145deg,rgba(80,226,205,.30),rgba(117,170,207,.18))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 10px 30px rgba(0,0,0,.28),0 0 24px rgba(75,241,216,.3)!important;outline:none}
+#sb-panel-toggle:active{transform:scale(.95)!important}
+#constructionPanel.sb-collapsed{transform:translateX(calc(100% + 8px))!important;opacity:0!important}
+@media(max-width:560px){#sb-panel-toggle{top:84px!important;right:10px!important;width:48px!important;height:48px!important;min-height:48px!important}}
+
 </style>
 </head>
 <body>
@@ -865,7 +888,7 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
      ======================================================== -->
 
 <div class="panel" id="constructionPanel">
- <div class="panel-heading"><span class="panel-title">CONSTRUCTION</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button><button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">3D</button></div><button id="closePanelBtn" aria-label="Collapse tools" title="Collapse tools" onclick="toggleToolsPanel(false)">‹</button></div>
+ <div class="panel-heading"><span class="panel-title">CONSTRUCTION</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button><button id="sb-3d-toggle" type="button" onclick="toggle3DCityView()" aria-label="Switch to 3D city view" title="3D City">3D</button></div><button id="closePanelBtn" type="button" aria-label="Collapse tools" title="Collapse tools" aria-expanded="true" onclick="toggleToolsPanel(false)">×</button></div>
  <details class="tool-group"><summary>▣ Stations & track</summary>
   <button id="stationBtn" class="active" title="Place station" aria-label="Place station" onclick="setMode('station')">●</button>
   <button id="trackBtn" title="Connect stations" aria-label="Connect stations" onclick="setMode('track')">↗</button>
@@ -902,7 +925,7 @@ button:disabled{opacity:.3!important;filter:saturate(.4)}
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
 
-<button id="sb-panel-toggle" type="button" aria-label="Expand build tools" title="Expand build tools" onclick="toggleToolsPanel(true)">›</button>
+<button id="sb-panel-toggle" type="button" aria-label="Expand build tools" title="Expand build tools" aria-expanded="false" onclick="toggleToolsPanel(true)"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14.2 6.1a5.2 5.2 0 0 0-6.8 6.8L2.8 17.5a2.1 2.1 0 0 0 3 3l4.6-4.6a5.2 5.2 0 0 0 6.8-6.8l-3 3-3.2-3.2 3.2-2.8Z"/></svg></button>
 <div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
 
 
@@ -1571,7 +1594,61 @@ function moveTouchPointer(x,y,visible=true){
  document.addEventListener('touchstart',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
  document.addEventListener('touchend',()=>{if(sbTouchPointerEnabled)pointer.classList.remove('pressed');});
 })();
-function toggleToolsPanel(open){const panel=document.getElementById('constructionPanel');const toggle=document.getElementById('sb-panel-toggle');if(!panel||!toggle)return;panel.classList.toggle('sb-collapsed',!open);toggle.style.display=open?'none':'flex';toggle.setAttribute('aria-label',open?'Collapse build tools':'Expand build tools');toggle.setAttribute('title',open?'Collapse build tools':'Expand build tools');}
+function toggleToolsPanel(open){
+ const panel=document.getElementById('constructionPanel');
+ const toggle=document.getElementById('sb-panel-toggle');
+ const close=document.getElementById('closePanelBtn');
+ if(!panel||!toggle)return;
+ const expanded=!!open;
+ panel.classList.toggle('sb-collapsed',!expanded);
+ panel.setAttribute('aria-hidden',String(!expanded));
+ toggle.hidden=expanded;
+ toggle.style.display=expanded?'none':'flex';
+ toggle.setAttribute('aria-expanded',String(!expanded));
+ toggle.setAttribute('aria-label',expanded?'Construction tools collapsed':'Expand construction tools');
+ toggle.setAttribute('title',expanded?'Construction tools collapsed':'Expand construction tools');
+ if(close){close.setAttribute('aria-expanded',String(expanded));close.setAttribute('aria-label','Collapse construction tools');}
+ if(expanded){
+  panel.style.visibility='visible';
+  panel.style.pointerEvents='auto';
+  requestAnimationFrame(()=>{if(window.map)map.invalidateSize({pan:false});});
+  const summary=panel.querySelector('details.tool-group summary');
+  if(summary)summary.focus({preventScroll:true});
+ }else{
+  toggle.focus({preventScroll:true});
+ }
+}
+function bindConstructionPanelControls(){
+ const panel=document.getElementById('constructionPanel');
+ if(!panel)return;
+ const actions={
+  station:()=>setMode('station'),track:()=>setMode('track'),waypoint:()=>setMode('waypoint'),inspect:()=>setMode('inspect'),
+  singleTrack:()=>setTrackStyle('single'),parallelTrack:()=>setTrackStyle('parallel'),
+  curve:()=>toggleCurveMode(),tunnel:()=>toggleTunnelMode(),island:()=>setPlatformType('island'),side:()=>setPlatformType('side'),
+  theme:()=>toggleMapMenu(),run:()=>toggleSimulation(),clear:()=>resetSelection()
+ };
+ const byId={stationBtn:'station',trackBtn:'track',waypointBtn:'waypoint',inspectBtn:'inspect',singleTrackBtn:'singleTrack',parallelTrackBtn:'parallelTrack',curveBtn:'curve',tunnelModeBtn:'tunnel',themeToggleBtn:'theme',runBtn:'run',cancelBtn:'clear'};
+ Object.entries(byId).forEach(([id,action])=>{
+  const button=document.getElementById(id);if(!button)return;
+  button.onclick=event=>{event.preventDefault();event.stopPropagation();actions[action]();};
+ });
+ panel.querySelectorAll('[data-platform-width]').forEach(button=>{
+  button.onclick=event=>{event.preventDefault();event.stopPropagation();setPlatformWidth(button.dataset.platformWidth);};
+ });
+ panel.querySelectorAll('[data-platform-type]').forEach(button=>{
+  button.onclick=event=>{event.preventDefault();event.stopPropagation();setPlatformType(button.dataset.platformType);};
+ });
+ panel.querySelectorAll('details.tool-group').forEach(group=>{
+  const summary=group.querySelector('summary');if(!summary)return;
+  const update=()=>{summary.setAttribute('aria-expanded',String(group.open));group.classList.toggle('is-open',group.open);};
+  group.addEventListener('toggle',update);update();
+ });
+ const close=document.getElementById('closePanelBtn');
+ if(close)close.onclick=event=>{event.preventDefault();event.stopPropagation();toggleToolsPanel(false);};
+ const toggle=document.getElementById('sb-panel-toggle');
+ if(toggle)toggle.onclick=event=>{event.preventDefault();event.stopPropagation();toggleToolsPanel(true);};
+ toggleToolsPanel(!panel.classList.contains('sb-collapsed'));
+}
 function resetSelection(){
  selected=null;
  renderNetwork();
@@ -1826,6 +1903,7 @@ function toggleSimulation(){
  simulation=setInterval(createTrain,4200);
 }
 
+bindConstructionPanelControls();
 history.push(snapshot());
 updateUI();
 renderNetwork();
