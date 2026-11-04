@@ -712,6 +712,25 @@ function selectTrackForWaypoints(trackIndex){
  message('Track selected. Tap the map to add a waypoint.');
 }
 function handleStationClick(index){
+  if(mode==='delete'){
+  let name=stations[index].name;
+
+  tracks=tracks.filter(t=>t.a!==index&&t.b!==index);
+
+  tracks.forEach(t=>{
+   if(t.a>index)t.a--;
+   if(t.b>index)t.b--;
+  });
+
+  stations.splice(index,1);
+  selected=null;
+  selectedTrackIndex=null;
+
+  saveHistory();
+  renderNetwork();
+  message(name+' and its connected tracks deleted.');
+  return;
+ }
  if(mode==='track'){
   if(selected===null){
    selected=index;
