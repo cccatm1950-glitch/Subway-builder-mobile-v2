@@ -45,10 +45,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - device: Pixel_2
+          - device: pixel_2
             resolution: 720x1280
             density: 320
-          - device: Pixel_7
+          - device: pixel_2
             resolution: 1080x2400
             density: 440
 
