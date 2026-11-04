@@ -796,17 +796,48 @@ if(mode==='delete'){
   let py=dx/len;
   let cos=Math.cos(s.lat*Math.PI/180);
 
-  L.polyline([
-    [s.lat-py*halfWidth/111320,
-     s.lng-px*halfWidth/(111320*cos)],
-    [s.lat+py*halfWidth/111320,
-     s.lng+px*halfWidth/(111320*cos)]
-  ],{
-    color:'#dce5ed',
-    weight:8,
-    opacity:0.9,
-    lineCap:'round'
-  }).addTo(window.networkLayer);
+    let platformHalfWidth=platformWidth==='narrow'?3:
+                        platformWidth==='wide'?7.5:5;
+
+  function drawPlatform(acrossOffset){
+    let centerEast=px*acrossOffset;
+    let centerNorth=py*acrossOffset;
+    let halfLength=45;
+    let corners=[];
+
+    for(let along of [-1,1]){
+      for(let across of [-1,1]){
+        let east=centerEast+(dx/len)*halfLength*along
+                         +px*platformHalfWidth*across;
+        let north=centerNorth+(dy/len)*halfLength*along
+                             +py*platformHalfWidth*across;
+
+        corners.push([
+          s.lat+north/111320,
+          s.lng+east/(111320*cos)
+        ]);
+      }
+    }
+
+    L.polygon([
+      corners[0],
+      corners[1],
+      corners[3],
+      corners[2]
+    ],{
+      color:'#71869c',
+      weight:2,
+      fillColor:'#dce5ed',
+      fillOpacity:0.95
+    }).addTo(window.networkLayer);
+  }
+
+  if((s.platformType||'island')==='side'){
+    drawPlatform(-(platformHalfWidth+4));
+    drawPlatform(platformHalfWidth+4);
+  }else{
+    drawPlatform(0);
+  }
   let marker=L.marker([s.lat,s.lng],{
  draggable:true,
  icon:L.divIcon({
