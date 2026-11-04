@@ -1699,59 +1699,86 @@ function toggleToolsPanel(open){
   toggle.focus({preventScroll:true});
  }
 }
+function syncConstructionControls(){
+ const states={
+  stationBtn:mode==='station',trackBtn:mode==='track',waypointBtn:mode==='waypoint',inspectBtn:mode==='inspect',
+  singleTrackBtn:trackStyle==='single',parallelTrackBtn:trackStyle==='parallel',
+  curveBtn:curveMode,tunnelModeBtn:tunnelMode,runBtn:running,
+  sb3dToggle:!!document.getElementById('sb-3d-map')?.classList.contains('active')
+ };
+ Object.entries(states).forEach(([id,active])=>{
+  const button=document.getElementById(id);
+  if(!button)return;
+  button.classList.toggle('active',active);
+  button.setAttribute('aria-pressed',String(active));
+ });
+ document.querySelectorAll('[data-platform-width]').forEach(button=>{
+  const active=button.dataset.platformWidth===platformWidth;
+  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+ });
+ document.querySelectorAll('[data-platform-type]').forEach(button=>{
+  const active=button.dataset.platformType===platformType;
+  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+ });
+ const themeButton=document.getElementById('themeToggleBtn');
+ const themeMenu=document.getElementById('mapMenu');
+ if(themeButton&&themeMenu)themeButton.setAttribute('aria-expanded',String(themeMenu.style.display!=='none'));
+}
 function bindConstructionPanelControls(){
  const panel=document.getElementById('constructionPanel');
- if(!panel||panel.dataset.controlsBound==='true')return;
- panel.dataset.controlsBound='true';
- const actions={
-  'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
-  'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),
-  'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
-  'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
-  'theme-menu':()=>{toggleMapMenu();const b=document.getElementById('themeToggleBtn');if(b)b.setAttribute('aria-expanded',String(document.getElementById('mapMenu').style.display!=='none'));},
-  'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
-  'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
-  'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
-  'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
-  'toggle-3d':()=>toggle3DCityView()
- };
- panel.addEventListener('click',event=>{
-  const button=event.target.closest('button[data-panel-action]');
-  if(!button||!panel.contains(button))return;
-  event.preventDefault();event.stopPropagation();
-  const action=button.dataset.panelAction;
-  if(action==='platform-width'){setPlatformWidth(button.dataset.platformWidth);return;}
-  if(action==='platform-type'){setPlatformType(button.dataset.platformType);return;}
-  if(typeof actions[action]==='function')actions[action]();
- });
- panel.querySelectorAll('details.tool-group').forEach(group=>{
-  const summary=group.querySelector('summary');if(!summary)return;
-  const update=()=>{summary.setAttribute('aria-expanded',String(group.open));group.classList.toggle('is-open',group.open);};
-  // Own the disclosure toggle explicitly: this avoids relying on the browser's
-  // native summary activation when the panel is being scrolled/tapped on mobile.
-  summary.addEventListener('click',event=>{
-   event.preventDefault();
-   group.open=!group.open;
-   update();
-  });
-  summary.addEventListener('keydown',event=>{
-   if(event.key!=='Enter'&&event.key!==' ')return;
-   event.preventDefault();
-   group.open=!group.open;
-   update();
-  });
-  group.addEventListener('toggle',update);update();
- });
  const toggle=document.getElementById('sb-panel-toggle');
- if(toggle&&!toggle.dataset.controlsBound){
+ if(!panel)return;
+ // Bind the menu toggle independently from the panel controls so a panel
+ // re-bind or an already-bound panel can never leave the hamburger inert.
+ if(toggle&&toggle.dataset.controlsBound!=='true'){
   toggle.dataset.controlsBound='true';
   toggle.addEventListener('click',event=>{
-   event.preventDefault();
-   event.stopPropagation();
-   toggleToolsPanel();
+   event.preventDefault();event.stopPropagation();toggleToolsPanel();
+  });
+ }
+ if(panel.dataset.controlsBound!=='true'){
+  panel.dataset.controlsBound='true';
+  const actions={
+   'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
+   'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),
+   'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
+   'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
+   'theme-menu':()=>toggleMapMenu(),
+   'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
+   'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
+   'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
+   'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
+   'toggle-3d':()=>window.toggle3DCityView()
+  };
+  panel.addEventListener('click',async event=>{
+   const button=event.target.closest('button[data-panel-action]');
+   if(!button||!panel.contains(button))return;
+   const action=button.dataset.panelAction;
+   event.preventDefault();event.stopPropagation();
+   try{
+    if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
+    else if(action==='platform-type')setPlatformType(button.dataset.platformType);
+    else if(typeof actions[action]==='function')await actions[action]();
+    else{console.warn('Unwired construction action:',action);message('This construction tool is not connected yet.');}
+    syncConstructionControls();
+   }catch(error){
+    console.error('Construction tool action failed:',action,error);
+    message('Could not run '+(button.getAttribute('aria-label')||button.title||'that tool')+'. Please try again.');
+   }
+  });
+  panel.querySelectorAll('details.tool-group').forEach(group=>{
+   const summary=group.querySelector('summary');if(!summary)return;
+   const update=()=>{summary.setAttribute('aria-expanded',String(group.open));group.classList.toggle('is-open',group.open);};
+   summary.addEventListener('click',event=>{event.preventDefault();group.open=!group.open;update();});
+   summary.addEventListener('keydown',event=>{
+    if(event.key!=='Enter'&&event.key!==' ')return;
+    event.preventDefault();group.open=!group.open;update();
+   });
+   group.addEventListener('toggle',update);update();
   });
  }
  toggleToolsPanel(false);
+ syncConstructionControls();
 }
 function resetSelection(){
  selected=null;
