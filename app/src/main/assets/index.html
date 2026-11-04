@@ -440,8 +440,12 @@ function renderNetwork(){
       ]);
     }
   }else{
-    points=[[start.lat,start.lng],[end.lat,end.lng]];
-  }
+  points=[
+   [start.lat,start.lng],
+   ...(t.waypoints||[]).map(w=>[w.lat,w.lng]),
+   [end.lat,end.lng]
+  ];
+}
 
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
