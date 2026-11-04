@@ -405,6 +405,19 @@ function renderNetwork(){
   let end=L.latLng(b.lat,b.lng);
 
   let points=[];
+  if(t.waypoints){
+ t.waypoints.forEach((w,waypointIndex)=>{
+  L.circleMarker([w.lat,w.lng],{
+   radius:7,
+   color:'#ffffff',
+   weight:2,
+   fillColor:'#f0a52b',
+   fillOpacity:1
+  }).addTo(window.networkLayer).bindTooltip(
+   'Waypoint '+(waypointIndex+1)
+  );
+ });
+}
 
   if(t.curve){
     let midLat=(start.lat+end.lat)/2;
