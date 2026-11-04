@@ -396,44 +396,51 @@ button:active {
  document.getElementById('constructionPanel').style.display='none';
  document.getElementById('openPanelBtn').style.display='block';
  " style="position:absolute;top:7px;right:7px;width:30px;height:30px;padding:0;font-size:20px;">×</button>
- <h3>CONSTRUCTION</h3>
+ <details class="tool-group" open>
+ <summary>🚇 CONSTRUCTION</summary>
  <button id="stationBtn" class="active" onclick="setMode('station')">＋ Station</button>
  <button id="trackBtn" onclick="setMode('track')">〰 Build Track</button>
- <button id="waypointBtn" onclick="setMode('waypoint')">📍 Add Waypoints</button>
+ <button id="waypointBtn" onclick="setMode('waypoint')">📍 Waypoints</button>
  <button id="deleteBtn" onclick="setMode('delete')">🗑 Delete</button>
-<h3>ADVANCED CONSTRUCTION</h3>
-
-<button id="singleTrackBtn" class="active" onclick="setTrackStyle('single')">
-Single Track
-</button>
-
-<button id="parallelTrackBtn" onclick="setTrackStyle('parallel')">
-Parallel Tracks
-</button>
-
-<h3>PLATFORM WIDTH</h3>
-
-<button onclick="setPlatformWidth('narrow')">Narrow</button>
-<button class="active" onclick="setPlatformWidth('default')">Default</button>
-<button onclick="setPlatformWidth('wide')">Wide</button>
-
-<h3>TRACK SHAPE</h3>
-
-<button id="curveBtn" onclick="toggleCurveMode()">〰 Curve Tool: Off</button>
  <button onclick="setMode('inspect')">ⓘ Inspect</button>
- <h3>EDIT</h3>
+</details>
+
+<details class="tool-group">
+ <summary>🛠 TRACK OPTIONS</summary>
+ <button id="singleTrackBtn" class="active" onclick="setTrackStyle('single')">Single Track</button>
+ <button id="parallelTrackBtn" onclick="setTrackStyle('parallel')">Parallel Tracks</button>
+ <button onclick="setPlatformWidth('narrow')">Narrow Width</button>
+ <button class="active" onclick="setPlatformWidth('default')">Default Width</button>
+ <button onclick="setPlatformWidth('wide')">Wide Width</button>
+ <button id="curveBtn" onclick="toggleCurveMode()">〰 Curve Tool: Off</button>
+</details>
+
+<details class="tool-group">
+ <summary>🏗 STATION DESIGN</summary>
+ <button onclick="setPlatformType('island')">▰ Island Platform</button>
+ <button onclick="setPlatformType('side')">▰ Side Platforms</button>
+</details>
+
+<details class="tool-group">
+ <summary>↶ EDIT</summary>
  <button id="undoBtn" onclick="undo()">↶ Undo</button>
  <button id="redoBtn" onclick="redo()">↷ Redo</button>
- <h3>MAP APPEARANCE</h3>
-<button id="themeToggleBtn" type="button">🌙 Map Theme</button>
-<div id="mapMenu" style="display:none;background:#24364d;padding:9px;border-radius:9px;margin-bottom:10px">
+</details>
+
+<details class="tool-group">
+ <summary>🗺 MAP APPEARANCE</summary>
+ <button id="themeToggleBtn" type="button">🌙 Map Theme</button>
+ <div id="mapMenu" style="display:none;padding:8px">
   <button onclick="setMapTheme('light')">☀️ Light Map</button>
   <button onclick="setMapTheme('dark')">🌙 Dark Map</button>
-</div>
- <h3>NETWORK</h3>
- <div id="stationCount" style="font-size:12px;margin:5px 0 10px">Stations: 0</div>
- <div id="trackCount" style="font-size:12px;margin:5px 0">Track: 0 sections</div>
-</div>
+ </div>
+</details>
+
+<details class="tool-group">
+ <summary>📊 NETWORK</summary>
+ <div id="stationCount">Stations: 0</div>
+ <div id="trackCount">Track: 0 sections</div>
+</details>
 
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
