@@ -309,10 +309,24 @@ function saveHistory(){
 
 function restoreSnapshot(data){
  money=data.money;
+
  stations=data.stations.map((s,i)=>({
-  lat:s.lat,lng:s.lng,
-  name:'Station '+(i+1)
+  lat:s.lat,
+  lng:s.lng,
+  name:s.name||'Station '+(i+1)
  }));
+
+ tracks=data.tracks.map(t=>({
+  a:t.a,
+  b:t.b,
+  style:t.style||'single',
+  curve:!!t.curve
+ }));
+
+ selected=null;
+ renderNetwork();
+ updateUI();
+}
  tracks=data.tracks.map(t=>({a:t.a,b:t.b}));
  selected=null;
  renderNetwork();
