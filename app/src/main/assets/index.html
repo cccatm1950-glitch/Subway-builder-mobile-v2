@@ -442,7 +442,20 @@ if(t.waypoints){
  t.waypoints.forEach((w,waypointIndex)=>{
   let symbol=w.elevation==='below'?'🚇':
            w.elevation==='above'?'⬆':'●';
-
+if(mode==='delete'){
+  L.circleMarker([w.lat,w.lng],{
+    radius:16,
+    color:'#e74c3c',
+    weight:3,
+    fillOpacity:0.15
+  }).addTo(window.networkLayer).on('click',function(e){
+    L.DomEvent.stopPropagation(e);
+    t.waypoints.splice(waypointIndex,1);
+    saveHistory();
+    renderNetwork();
+    message('Waypoint deleted.');
+  });
+}
   L.marker([w.lat,w.lng],{
    icon:L.divIcon({
     className:'',
