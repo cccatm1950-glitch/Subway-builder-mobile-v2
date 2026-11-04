@@ -20,7 +20,7 @@ const panelActions = [...html.matchAll(/data-panel-action="([^"]+)"/g)]
   .map((match) => match[1]);
 const actionBlockStart = html.indexOf('const actions={');
 assert.notEqual(actionBlockStart, -1, 'Construction panel action map must exist');
-const actionBlockEnd = html.indexOf('\\n  };', actionBlockStart);
+const actionBlockEnd = html.indexOf('\n  };', actionBlockStart);
 assert.notEqual(actionBlockEnd, -1, 'Construction panel action map must close');
 const actionBlock = html.slice(actionBlockStart, actionBlockEnd);
 const mappedActions = [...actionBlock.matchAll(/'([^']+)'\s*:/g)]
