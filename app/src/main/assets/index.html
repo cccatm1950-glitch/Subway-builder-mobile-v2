@@ -327,12 +327,7 @@ function restoreSnapshot(data){
  renderNetwork();
  updateUI();
 }
- tracks=data.tracks.map(t=>({a:t.a,b:t.b}));
- selected=null;
- renderNetwork();
- updateUI();
-}
-
+ 
 function undo(){
  if(historyIndex<=0){
   message('Nothing to undo.');
