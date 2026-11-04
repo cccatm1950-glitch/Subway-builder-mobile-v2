@@ -491,13 +491,14 @@ if(t.waypoints){
  t.waypoints&&t.waypoints.length
  )?t.waypoints[0].elevation:'at';
 
-L.polyline(shifted,{
+  L.polyline(shifted,{
  color:'#087f79',
  weight:5,
  opacity:1,
  lineCap:'round',
  dashArray:elevation==='at'?null:'10 8'
-}).addTo(window.networkLayer);  
+}).addTo(window.networkLayer);
+}  
 
   if(t.style==='parallel'){
     drawLine(-5);
