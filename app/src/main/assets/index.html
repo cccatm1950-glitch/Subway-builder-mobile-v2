@@ -144,7 +144,7 @@ const map=L.map('map').setView([37.7749,-122.4194],13);
 const lightTiles = L.tileLayer(
  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
  {
-  maxZoom:19,
+  maxZoom:25,
   attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
  }
 );
@@ -152,7 +152,7 @@ const lightTiles = L.tileLayer(
 const darkTiles = L.tileLayer(
  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
  {
-  maxZoom:19,
+  maxZoom:25,
   className:'dark-map-tiles',
   attribution:'&copy; OpenStreetMap contributors'
  }
@@ -468,6 +468,19 @@ function toggleSimulation(){
 history.push(snapshot());
 updateUI();
 renderNetwork();
+window.addEventListener('load', function () {
+  const splash = document.getElementById('sb-loading');
+  if (!splash) return;
+
+  setTimeout(function () {
+    splash.style.transition = 'opacity 0.5s ease';
+    splash.style.opacity = '0';
+
+    setTimeout(function () {
+      splash.remove();
+    }, 550);
+  }, 1200);
+});
 </script>
 </body>
 </html>
