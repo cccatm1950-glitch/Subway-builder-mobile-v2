@@ -430,31 +430,42 @@ function renderNetwork(){
 }
 
   if(t.curve){
-    let midLat=(start.lat+end.lat)/2;
-    let midLng=(start.lng+end.lng)/2;
-    let dx=end.lng-start.lng;
-    let dy=end.lat-start.lat;
+ let route=[
+  [start.lat,start.lng],
+  ...(t.waypoints||[]).map(w=>[w.lat,w.lng]),
+  [end.lat,end.lng]
+ ];
 
-    let control=[
-      midLat-dx*0.25,
-      midLng+dy*0.25
-    ];
+ for(let segment=0;segment<route.length-1;segment++){
+  let p1=route[segment];
+  let p2=route[segment+1];
 
-    for(let i=0;i<=20;i++){
-      let p=i/20;
-      let q=1-p;
+  let dx=p2[1]-p1[1];
+  let dy=p2[0]-p1[0];
 
-      points.push([
-        q*q*start.lat+2*q*p*control[0]+p*p*end.lat,
-        q*q*start.lng+2*q*p*control[1]+p*p*end.lng
-      ]);
-    }
-  }else{
-  points=[
-   [start.lat,start.lng],
-   ...(t.waypoints||[]).map(w=>[w.lat,w.lng]),
-   [end.lat,end.lng]
+  let control=[
+   (p1[0]+p2[0])/2-dx*0.25,
+   (p1[1]+p2[1])/2+dy*0.25
   ];
+
+  for(let i=0;i<=10;i++){
+   if(segment>0&&i===0)continue;
+
+   let p=i/10;
+   let q=1-p;
+
+   points.push([
+    q*q*p1[0]+2*q*p*control[0]+p*p*p2[0],
+    q*q*p1[1]+2*q*p*control[1]+p*p*p2[1]
+   ]);
+  }
+ }
+}else{
+ points=[
+  [start.lat,start.lng],
+  ...(t.waypoints||[]).map(w=>[w.lat,w.lng]),
+  [end.lat,end.lng]
+ ];
 }
 
   function drawLine(offset){
