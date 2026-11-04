@@ -870,19 +870,23 @@ function toggleSimulation(){
 history.push(snapshot());
 updateUI();
 renderNetwork();
-window.addEventListener('load', function () {
-  const splash = document.getElementById('sb-loading');
-  if (!splash) return;
+function hideSplash(){
+  const splash=document.getElementById('sb-loading');
+  if(!splash)return;
 
-  setTimeout(function () {
-    splash.style.transition = 'opacity 0.5s ease';
-    splash.style.opacity = '0';
+  splash.style.transition='opacity 0.5s ease';
+  splash.style.opacity='0';
 
-    setTimeout(function () {
-      splash.remove();
-    }, 550);
-  }, 1200);
+  setTimeout(function(){
+    splash.remove();
+  },550);
+}
+
+window.addEventListener('load',function(){
+  setTimeout(hideSplash,1200);
 });
+
+setTimeout(hideSplash,5000);
 </script>
 </body>
 </html>
