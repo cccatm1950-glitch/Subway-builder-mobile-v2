@@ -417,6 +417,28 @@ button:active{transform:scale(.96)}
 #stationContextMenu{border-radius:24px!important}
 #sb-3d-map .maplibregl-ctrl-group{border-radius:18px!important;overflow:hidden}
 @media(max-width:560px){#constructionPanel{top:72px!important;width:min(86vw,310px)!important;max-height:calc(100dvh - 82px)!important}#sb-panel-toggle{top:78px;width:38px;height:48px;min-height:48px}.bottom{right:9px!important;bottom:10px!important}.bottom button{width:43px!important;height:43px!important;min-height:43px!important}}
+
+#constructionPanel{width:min(310px,86vw)!important;right:0!important;left:auto!important;border-radius:26px 0 0 26px!important;background:rgba(13,24,40,.52)!important;border:1px solid rgba(255,255,255,.2)!important;border-right:0!important;backdrop-filter:blur(30px) saturate(175%)!important;-webkit-backdrop-filter:blur(30px) saturate(175%)!important}
+#constructionPanel .panel-heading{display:flex;align-items:center;gap:8px}
+#constructionPanel .panel-title{font-size:11px;letter-spacing:2px;color:#f4f8ff}
+#constructionPanel .tool-group{background:rgba(255,255,255,.035)!important;border:1px solid rgba(255,255,255,.13)!important;border-radius:18px!important;margin:8px 0!important;overflow:hidden}
+#constructionPanel .tool-group summary{padding:13px 14px!important;text-align:left!important;color:#f3f7ff!important;font-size:11px!important;letter-spacing:1px!important}
+#constructionPanel .tool-group summary:after{color:#a9c8e6}
+#constructionPanel .tool-group>button,#constructionPanel #mapMenu button{display:flex!important;align-items:center;justify-content:center;width:46px!important;height:46px!important;min-height:46px!important;padding:0!important;margin:7px auto!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;border:1px solid rgba(255,255,255,.22)!important;color:#f7fbff!important;font-size:19px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.13)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#constructionPanel .tool-group>button.active{background:rgba(66,210,185,.22)!important;border-color:rgba(125,255,228,.5)!important}
+#constructionPanel .tool-group[open]{padding-bottom:8px}
+#sb-panel-toggle{border-radius:20px 0 0 20px!important;background:rgba(14,25,42,.5)!important;backdrop-filter:blur(22px)!important}
+#message{top:76px!important;bottom:auto!important;left:50%!important;transform:translateX(-50%)!important;z-index:720!important;max-width:min(72vw,560px)!important;width:max-content!important;text-align:center!important;border-radius:22px!important;background:rgba(12,24,40,.58)!important;border:1px solid rgba(255,255,255,.2)!important;backdrop-filter:blur(24px) saturate(170%)!important;-webkit-backdrop-filter:blur(24px) saturate(170%)!important;padding:10px 18px!important;pointer-events:none}
+.topbar{position:relative!important;justify-content:space-between!important}
+.topbar .stats{margin-left:auto;margin-right:44px}
+#sb-dashboard-info{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:36px;height:36px;min-height:36px;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.09)!important;border:1px solid rgba(255,255,255,.23)!important;color:#f5f9ff!important;font-size:16px!important;display:flex;align-items:center;justify-content:center}
+#sb-dashboard-dialog{position:absolute;z-index:730;top:76px;left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));padding:16px 18px;border-radius:24px;background:rgba(11,23,39,.76);border:1px solid rgba(255,255,255,.22);box-shadow:0 14px 40px #0006;backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);color:#f4f8ff;text-align:center;display:none}
+#sb-dashboard-dialog.open{display:block}
+#sb-dashboard-dialog button{width:32px;height:32px;min-height:32px;border-radius:50%;padding:0}
+#sb-3d-map{background:linear-gradient(145deg,#15283b,#263f55)!important}
+#sb-3d-map canvas{outline:none}
+#sb-3d-map .maplibregl-ctrl-group{border-radius:18px!important;overflow:hidden;background:rgba(10,22,38,.72)!important;border:1px solid rgba(255,255,255,.2)!important;backdrop-filter:blur(18px)}
+@media(max-width:560px){#constructionPanel{width:min(86vw,310px)!important}#message{top:76px!important;max-width:calc(100vw - 100px)!important}#sb-dashboard-info{right:8px;width:34px;height:34px;min-height:34px}.topbar .stats{margin-right:40px}}
 </style>
 </head>
 <body>
@@ -503,44 +525,46 @@ button:active{transform:scale(.96)}
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
   <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
  </div>
+ <button id="sb-dashboard-info" type="button" aria-label="Construction help" title="Help" onclick="toggleDashboardDialog()">i</button>
 </div>
+<div id="sb-dashboard-dialog" role="dialog" aria-label="Subway Builder help"><button type="button" style="float:right" aria-label="Close help" onclick="toggleDashboardDialog(false)">×</button><strong>SUBWAY BUILDER</strong><p>Build stations, connect routes, adjust track settings, and run trains from the Construction panel.</p></div>
 
 <!-- ========================================================
      SECTION 08 — CONSTRUCTION PANEL
      ======================================================== -->
 
 <div class="panel" id="constructionPanel">
- <div class="panel-heading"><span class="panel-title">BUILD TOOLS</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button></div><button id="closePanelBtn" aria-label="Collapse tools" title="Collapse tools" onclick="toggleToolsPanel(false)">‹</button></div>
+ <div class="panel-heading"><span class="panel-title">CONSTRUCTION</span><div id="sb-zoom-controls" aria-label="Map zoom controls"><button type="button" onclick="map.zoomIn()" aria-label="Zoom in" title="Zoom in">+</button><button type="button" onclick="map.zoomOut()" aria-label="Zoom out" title="Zoom out">−</button></div><button id="closePanelBtn" aria-label="Collapse tools" title="Collapse tools" onclick="toggleToolsPanel(false)">‹</button></div>
  <details class="tool-group"><summary>▣ Stations & track</summary>
-  <button id="stationBtn" class="active" onclick="setMode('station')">+ Place station</button>
-  <button id="trackBtn" onclick="setMode('track')">∿ Connect stations</button>
-  <button id="waypointBtn" onclick="setMode('waypoint')">WAYPOINT Shape route</button>
-  <button id="deleteBtn" onclick="setMode('delete')">⌫ Remove</button>
-  <button onclick="setMode('inspect')">i Inspect network</button>
+  <button id="stationBtn" class="active" title="Place station" aria-label="Place station" onclick="setMode('station')">●</button>
+  <button id="trackBtn" title="Connect stations" aria-label="Connect stations" onclick="setMode('track')">↗</button>
+  <button id="waypointBtn" title="Shape route" aria-label="Shape route" onclick="setMode('waypoint')">⌁</button>
+  <button id="deleteBtn" title="Remove" aria-label="Remove" onclick="setMode('delete')">⌫</button>
+  <button title="Inspect network" aria-label="Inspect network" onclick="setMode('inspect')">i</button>
  </details>
  <details class="tool-group"><summary>TRACK Track settings</summary>
-  <button id="singleTrackBtn" class="active" onclick="setTrackStyle('single')">Single track</button>
-  <button id="parallelTrackBtn" onclick="setTrackStyle('parallel')">Parallel tracks</button>
-  <button onclick="setPlatformWidth('narrow')">Narrow platforms</button>
-  <button class="active" onclick="setPlatformWidth('default')">Standard platforms</button>
-  <button onclick="setPlatformWidth('wide')">Wide platforms</button>
-  <button id="curveBtn" onclick="toggleCurveMode()">∿ Curve tool: Off</button>
+  <button id="singleTrackBtn" class="active" title="Single track" aria-label="Single track" onclick="setTrackStyle('single')">—</button>
+  <button id="parallelTrackBtn" title="Parallel tracks" aria-label="Parallel tracks" onclick="setTrackStyle('parallel')">Ⅱ</button>
+  <button title="Narrow platforms" aria-label="Narrow platforms" onclick="setPlatformWidth('narrow')">N</button>
+  <button class="active" title="Standard platforms" aria-label="Standard platforms" onclick="setPlatformWidth('default')">S</button>
+  <button title="Wide platforms" aria-label="Wide platforms" onclick="setPlatformWidth('wide')">W</button>
+  <button id="curveBtn" title="Curve tool" aria-label="Curve tool" onclick="toggleCurveMode()">∿</button>
  </details>
  <details class="tool-group"><summary>▣ Tunnels & elevation</summary>
-  <button id="tunnelModeBtn" onclick="toggleTunnelMode()">Tunnel construction: Off</button>
+  <button id="tunnelModeBtn" title="Tunnel construction" aria-label="Tunnel construction" onclick="toggleTunnelMode()">▱</button>
   <p class="panel-hint">Enable before connecting stations to route new track underground.</p>
  </details>
  <details class="tool-group"><summary>STATION Station design</summary>
-  <button onclick="setPlatformType('island')">▰ Island platform</button>
-  <button onclick="setPlatformType('side')">▰ Side platforms</button>
+  <button title="Island platform" aria-label="Island platform" onclick="setPlatformType('island')">▰</button>
+  <button title="Side platforms" aria-label="Side platforms" onclick="setPlatformType('side')">▰</button>
  </details>
  <details class="tool-group"><summary>↶ Edit history</summary>
-  <button id="undoBtn" onclick="undo()">↶ Undo</button>
-  <button id="redoBtn" onclick="redo()">↷ Redo</button>
+  <button id="undoBtn" title="Undo" aria-label="Undo" onclick="undo()">↶</button>
+  <button id="redoBtn" title="Redo" aria-label="Redo" onclick="redo()">↷</button>
  </details>
  <details class="tool-group"><summary>2D Map appearance</summary>
-  <button id="themeToggleBtn" type="button"> Map theme</button>
-  <div id="mapMenu" style="display:none;padding:8px"><button onclick="setMapTheme('dark')"> Dark map</button><button onclick="setMapTheme('light')"> Light map</button></div>
+  <button id="themeToggleBtn" type="button" title="Map theme" aria-label="Map theme">◐</button>
+  <div id="mapMenu" style="display:none;padding:8px"><button title="Dark map" aria-label="Dark map" onclick="setMapTheme('dark')">◐</button><button title="Light map" aria-label="Light map" onclick="setMapTheme('light')">☼</button></div>
  </details>
  <details class="tool-group"><summary> Network status</summary>
   <div id="stationCount" class="network-stat">Stations: 0</div><div id="trackCount" class="network-stat">Track: 0 sections</div>
@@ -1133,6 +1157,7 @@ function setStationElevation(level){
    SECTION 16 — SELECTION AND EDITING
    ========================================================= */
 
+function toggleDashboardDialog(open){const dialog=document.getElementById("sb-dashboard-dialog");dialog.classList.toggle("open",open===undefined?!dialog.classList.contains("open"):!!open);}
 function toggleToolsPanel(open){const panel=document.getElementById('constructionPanel');const toggle=document.getElementById('sb-panel-toggle');panel.classList.toggle('sb-collapsed',!open);toggle.style.display=open?'none':'flex';toggle.setAttribute('aria-label',open?'Collapse build tools':'Expand build tools');}
 function resetSelection(){
  selected=null;
@@ -1439,7 +1464,7 @@ window.toggle3DCityView=function(){
    const c=map.getCenter();
    sb3dMap=new maplibregl.Map({
     container:'sb-3d-map',
-    style:'https://tiles.openfreemap.org/styles/dark',
+    style:'https://tiles.openfreemap.org/styles/liberty',
     center:[c.lng,c.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
     pitch:58,bearing:-18,maxPitch:70,antialias:true,
     attributionControl:true
@@ -1473,7 +1498,7 @@ window.toggle3DCityView=function(){
      paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
     sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',
      paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-    sb3dReady=true;sb3dRefresh();
+    sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
    });
    sb3dMap.on('error',e=>console.warn('3D city map:',e.error||e));
   }else{
@@ -1482,7 +1507,7 @@ window.toggle3DCityView=function(){
    sb3dMap.resize();
    sb3dRefresh();
   }
-  requestAnimationFrame(()=>{if(sb3dMap)sb3dMap.resize();});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dMap.triggerRepaint();}}));
   message('3D city preview — switch to 2D Build to edit your network.');
  }else{
   host.classList.remove('active');
