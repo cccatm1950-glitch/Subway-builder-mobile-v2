@@ -1704,7 +1704,7 @@ function syncConstructionControls(){
   stationBtn:mode==='station',trackBtn:mode==='track',waypointBtn:mode==='waypoint',inspectBtn:mode==='inspect',
   singleTrackBtn:trackStyle==='single',parallelTrackBtn:trackStyle==='parallel',
   curveBtn:curveMode,tunnelModeBtn:tunnelMode,runBtn:running,
-  sb3dToggle:!!document.getElementById('sb-3d-map')?.classList.contains('active')
+  'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')
  };
  Object.entries(states).forEach(([id,active])=>{
   const button=document.getElementById(id);
