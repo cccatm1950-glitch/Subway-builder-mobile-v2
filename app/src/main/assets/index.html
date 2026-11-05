@@ -1148,6 +1148,29 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 @media(max-width:560px){#sb-top-dock{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;min-height:60px!important;padding:7px 9px!important;gap:8px!important;border-radius:25px!important}#sb-top-dock .brand{font-size:clamp(9px,2.6vw,12px)!important;letter-spacing:.6px!important}#sb-top-dock .stats{gap:clamp(4px,1.5vw,8px)!important}#sb-top-dock .stat{font-size:7px!important;letter-spacing:.35px!important}#sb-top-dock .stat strong{font-size:clamp(9px,2.4vw,11px)!important}#sb-top-dock #sb-pointer-toggle{flex-basis:34px!important;width:34px!important;height:34px!important;min-height:34px!important}#sb-panel-toggle.menu-hamburger{top:calc(max(7px,env(safe-area-inset-top,0px)) + 9px)!important;left:clamp(145px,24vw,230px)!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}#sb-construction-menu[open]>#constructionPanel{left:max(7px,env(safe-area-inset-left,0px))!important;top:calc(env(safe-area-inset-top,0px) + 76px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 145px)!important;width:min(290px,calc(100vw - 82px))!important;border-radius:22px!important}}
 @media(max-height:520px){#sb-construction-menu[open]>#constructionPanel{bottom:calc(env(safe-area-inset-bottom,0px) + 132px)!important}}
 
+
+/* Construction drawer control: fixed circular wrench button, independent of the status dock. */
+#sb-panel-toggle.menu-hamburger{
+ box-sizing:border-box!important;display:flex!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ aspect-ratio:1/1!important;border-radius:50%!important;
+ padding:0!important;margin:0!important;overflow:hidden!important;
+ background:rgba(32,105,190,.42)!important;
+ border:1.5px solid rgba(112,183,255,.88)!important;
+ color:#eaf5ff!important;
+ box-shadow:0 0 0 1px rgba(77,157,255,.18),0 4px 16px rgba(0,0,0,.22)!important;
+ backdrop-filter:blur(16px) saturate(160%)!important;
+ -webkit-backdrop-filter:blur(16px) saturate(160%)!important;
+ transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+}
+#sb-panel-toggle.menu-hamburger svg{display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important}
+#sb-panel-toggle.menu-hamburger:active{transform:scale(.92)!important;background:rgba(32,105,190,.42)!important;border-color:#a8d4ff!important;box-shadow:0 0 0 4px rgba(65,145,255,.2),0 0 20px rgba(65,145,255,.4)!important}
+#sb-construction-menu[open]>#sb-panel-toggle.menu-hamburger{background:rgba(32,105,190,.42)!important;border-color:rgba(112,183,255,.88)!important;box-shadow:0 0 0 3px rgba(65,145,255,.18),0 0 18px rgba(65,145,255,.3)!important}
+@media(max-width:560px){
+ #sb-panel-toggle.menu-hamburger{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;flex-basis:44px!important;border-radius:50%!important}
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1219,7 +1242,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  <div id="sb-dashboard-dialog" role="status" aria-live="polite">Tap the map to build your first station.</div>
 </div>
 <details id="sb-construction-menu" class="sb-menu-shell">
- <summary id="sb-panel-toggle" class="menu-hamburger" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false" onclick="event.preventDefault();toggleToolsPanel();"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary>
+ <summary id="sb-panel-toggle" class="menu-hamburger" aria-controls="constructionPanel" aria-label="Open construction drawer" title="Construction drawer" aria-expanded="false" onclick="event.preventDefault();toggleToolsPanel();"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3.5 17.5a2.1 2.1 0 0 0 3 3l4.8-4.8a5 5 0 0 0 6.4-6.4l-3 3-3.5-3.5 3.5-3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
 
 <!-- ========================================================
      SECTION 08 — CONSTRUCTION PANEL
