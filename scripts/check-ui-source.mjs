@@ -20,8 +20,8 @@ const panelActions = [...html.matchAll(/data-panel-action="([^"]+)"/g)]
   .map((match) => match[1]);
 const actionBlockStart = html.indexOf('const actions={');
 assert.notEqual(actionBlockStart, -1, 'Construction panel action map must exist');
-const actionBlockEnd = html.indexOf("panel.addEventListener('click'", actionBlockStart);
-assert.notEqual(actionBlockEnd, -1, 'Construction panel click handler must follow the action map');
+const actionBlockEnd = html.indexOf("panel.querySelectorAll('button[data-panel-action]')", actionBlockStart);
+assert.notEqual(actionBlockEnd, -1, 'Construction panel button binding must follow the action map');
 const actionBlock = html.slice(actionBlockStart, actionBlockEnd);
 const mappedActions = [...actionBlock.matchAll(/'([^']+)'\s*:/g)]
   .map((match) => match[1]);
