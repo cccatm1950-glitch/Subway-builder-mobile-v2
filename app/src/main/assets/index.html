@@ -2080,7 +2080,7 @@ let passengers=0;
 let stations=[];
 let tracks=[];
 var selected=null;
-let selectedTrackIndex=null;
+var selectedTrackIndex=null;
 let stationMenuTimer=null;
 let stationMenuIndex=null;
 var running=false;
@@ -2092,7 +2092,7 @@ var history=[];
 var historyIndex=0;
 
 let sbMessageTimer=null;
-let sbPressedButton='';
+var sbPressedButton='';
 function message(t){
  const box=document.getElementById('sb-dashboard-dialog');
  if(!box)return;
