@@ -1177,6 +1177,95 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  #sb-panel-toggle.menu-hamburger{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;flex-basis:44px!important;border-radius:50%!important}
 }
 
+
+/* Compact, touch-first HUD scaling inspired by Subway Builder's denser construction UI. */
+:root{
+ --sb-touch-target:44px;
+ --sb-drawer-width:clamp(258px,28vw,340px);
+ --sb-dock-height:64px;
+}
+#sb-top-dock{
+ min-height:60px!important;height:60px!important;
+ padding:7px 12px!important;border-radius:22px!important;
+}
+#sb-top-dock .brand{font-size:clamp(10px,1.05vw,14px)!important;letter-spacing:.9px!important}
+#sb-top-dock .stats{gap:clamp(7px,1.15vw,14px)!important}
+#sb-top-dock .stat{font-size:8px!important}
+#sb-top-dock .stat strong{font-size:clamp(10px,1vw,13px)!important}
+#sb-top-dock #sb-pointer-toggle{width:40px!important;height:40px!important;min-height:40px!important;flex-basis:40px!important}
+#sb-panel-toggle.menu-hamburger{top:calc(max(7px,env(safe-area-inset-top,0px)) + 8px)!important}
+#sb-construction-menu[open]>#constructionPanel{
+ width:min(var(--sb-drawer-width),calc(100vw - 76px))!important;
+ top:calc(env(safe-area-inset-top,0px) + 76px)!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + var(--sb-dock-height) + 18px)!important;
+ max-height:none!important;padding:10px!important;
+ border-radius:18px!important;
+}
+#constructionPanel .panel-heading{
+ min-height:44px!important;padding:7px 9px!important;gap:8px!important;
+}
+#constructionPanel .panel-title{font-size:clamp(12px,1.05vw,14px)!important;letter-spacing:1px!important}
+#constructionPanel .tool-group{margin:6px 0!important;border-radius:11px!important}
+#constructionPanel .tool-group summary{
+ min-height:38px!important;padding:9px 10px!important;
+ font-size:clamp(10px,.95vw,12px)!important;letter-spacing:.35px!important;
+}
+#constructionPanel .tool-grid{gap:7px!important;padding:8px!important}
+#constructionPanel .tool-grid button,
+#constructionPanel button[data-panel-action],
+#constructionPanel #sb-zoom-controls button{
+ min-height:var(--sb-touch-target)!important;height:var(--sb-touch-target)!important;
+ padding:5px 8px!important;font-size:clamp(13px,1vw,15px)!important;
+ border-radius:10px!important;touch-action:manipulation!important;
+}
+#constructionPanel .panel-hint,
+#constructionPanel .network-stat{font-size:11px!important;line-height:1.35!important}
+#sb-action-dock{
+ position:fixed!important;left:10px!important;right:10px!important;
+ bottom:max(8px,env(safe-area-inset-bottom,0px))!important;
+ width:auto!important;height:var(--sb-dock-height)!important;min-height:var(--sb-dock-height)!important;
+ max-height:var(--sb-dock-height)!important;box-sizing:border-box!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;gap:8px!important;padding:6px 8px!important;
+ border-radius:20px!important;overflow:hidden!important;
+}
+#sb-action-dock button{
+ width:var(--sb-touch-target)!important;height:var(--sb-touch-target)!important;
+ min-width:var(--sb-touch-target)!important;min-height:var(--sb-touch-target)!important;
+ flex:0 0 var(--sb-touch-target)!important;border-radius:12px!important;font-size:18px!important;
+}
+@media(max-width:700px){
+ :root{--sb-drawer-width: min(286px,calc(100vw - 76px));--sb-dock-height:60px}
+ #sb-top-dock{left:6px!important;right:6px!important;min-height:56px!important;height:56px!important;padding:6px 8px!important;gap:6px!important;border-radius:20px!important}
+ #sb-top-dock .brand{font-size:clamp(9px,2.2vw,11px)!important;letter-spacing:.35px!important}
+ #sb-top-dock .stats{gap:clamp(3px,1vw,7px)!important}
+ #sb-top-dock .stat{font-size:7px!important;letter-spacing:.2px!important}
+ #sb-top-dock .stat strong{font-size:clamp(9px,2vw,11px)!important}
+ #sb-top-dock #sb-pointer-toggle{width:36px!important;height:36px!important;min-height:36px!important;flex-basis:36px!important}
+ #sb-panel-toggle.menu-hamburger{top:calc(max(6px,env(safe-area-inset-top,0px)) + 6px)!important}
+ #sb-construction-menu[open]>#constructionPanel{
+  left:max(7px,env(safe-area-inset-left,0px))!important;
+  top:calc(env(safe-area-inset-top,0px) + 68px)!important;
+  bottom:calc(env(safe-area-inset-bottom,0px) + var(--sb-dock-height) + 16px)!important;
+  padding:8px!important;
+ }
+ #constructionPanel .tool-group{margin:5px 0!important}
+ #constructionPanel .tool-group summary{min-height:36px!important;padding:8px!important}
+ #constructionPanel .tool-grid{gap:6px!important;padding:7px!important}
+ #constructionPanel .tool-grid button,
+ #constructionPanel button[data-panel-action],
+ #constructionPanel #sb-zoom-controls button{min-height:44px!important;height:44px!important}
+ #sb-action-dock{left:7px!important;right:7px!important;bottom:max(6px,env(safe-area-inset-bottom,0px))!important;border-radius:17px!important}
+}
+@media(max-height:520px){
+ :root{--sb-dock-height:54px}
+ #sb-top-dock{height:50px!important;min-height:50px!important}
+ #sb-construction-menu[open]>#constructionPanel{top:60px!important;bottom:calc(env(safe-area-inset-bottom,0px) + var(--sb-dock-height) + 12px)!important}
+ #constructionPanel .tool-grid button,
+ #constructionPanel button[data-panel-action],
+ #constructionPanel #sb-zoom-controls button{min-height:40px!important;height:40px!important}
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
