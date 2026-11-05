@@ -1936,7 +1936,7 @@ function restoreSnapshot(data){
  passengers=Number.isFinite(data.passengers)?data.passengers:0;
  if(['default','narrow','wide'].includes(data.platformWidth))platformWidth=data.platformWidth;
  if(['island','side'].includes(data.platformType))platformType=data.platformType;
- if(['station','track','waypoint','delete','inspect'].includes(data.mode))mode=data.mode;
+ if(['station','track','waypoint','delete','inspect','curve'].includes(data.mode))mode=data.mode;
  if(['single','parallel'].includes(data.trackStyle))trackStyle=data.trackStyle;
  curveMode=!!data.curveMode;tunnelMode=!!data.tunnelMode;
  stations=data.stations.map((s,i)=>({
@@ -3153,9 +3153,16 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   let best=null,bestDistance=Infinity;
   tracks.forEach((t,i)=>{
    const a=stations[t.a],b=stations[t.b];if(!a||!b)return;
-   const line=L.polyline([[a.lat,a.lng],...(t.waypoints||[]).map(w=>[w.lat,w.lng]),[b.lat,b.lng]]);
-   const d=map.distance(e.latlng,line.getClosestLatLng?line.getClosestLatLng(e.latlng):L.latLng((a.lat+b.lat)/2,(a.lng+b.lng)/2));
-   if(d<bestDistance){bestDistance=d;best=i;}
+   const route=[L.latLng(a.lat,a.lng),...(t.waypoints||[]).map(w=>L.latLng(w.lat,w.lng)),L.latLng(b.lat,b.lng)];
+   const target=map.latLngToLayerPoint(e.latlng);
+   for(let j=0;j<route.length-1;j++){
+    const p=map.latLngToLayerPoint(route[j]),q=map.latLngToLayerPoint(route[j+1]);
+    const dx=q.x-p.x,dy=q.y-p.y,len=dx*dx+dy*dy||1;
+    const fraction=Math.max(0,Math.min(1,((target.x-p.x)*dx+(target.y-p.y)*dy)/len));
+    const nearest=L.point(p.x+fraction*dx,p.y+fraction*dy);
+    const distance=map.distance(e.latlng,map.layerPointToLatLng(nearest));
+    if(distance<bestDistance){bestDistance=distance;best=i;}
+   }
   });
   if(best===null||bestDistance>500){message('Tap closer to an existing track to curve it.');return;}
   const track=tracks[best];track.waypoints=track.waypoints||[];
