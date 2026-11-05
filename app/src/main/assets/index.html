@@ -3657,51 +3657,6 @@ window.refreshSubway3D=sb3dRefresh;
 
 
 <script>
-/* Right-edge glass grip resizes the construction shell without capturing panel scrolling. */
-(function(){
- const panel=document.getElementById('constructionPanel');
- const grip=panel&&panel.querySelector('.sb-panel-resize-handle');
- if(!panel||!grip||grip.dataset.bound==='true')return;
- grip.dataset.bound='true';
- let pointerId=null,startX=0,startWidth=0;
- const limits=()=>({min:220,max:Math.min(Math.round(window.innerWidth*.86),420)});
- grip.addEventListener('pointerdown',e=>{
-  if(e.button!==undefined&&e.button!==0)return;
-  pointerId=e.pointerId;startX=e.clientX;startWidth=panel.getBoundingClientRect().width;
-  panel.classList.add('is-resizing');
-  grip.setPointerCapture(pointerId);
-  e.preventDefault();e.stopPropagation();
- });
- grip.addEventListener('pointermove',e=>{
-  if(pointerId===null||e.pointerId!==pointerId)return;
-  const {min,max}=limits();
-  const width=Math.max(min,Math.min(max,startWidth+(e.clientX-startX)));
-  panel.style.width=width+'px';
-  panel.style.maxWidth='calc(100vw - 20px)';
- });
- const finish=e=>{
-  if(pointerId===null||(e&&e.pointerId!==pointerId))return;
-  pointerId=null;panel.classList.remove('is-resizing');
- };
- grip.addEventListener('pointerup',finish);
- grip.addEventListener('pointercancel',finish);
- grip.addEventListener('lostpointercapture',finish);
- grip.addEventListener('keydown',e=>{
-  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
-  e.preventDefault();
-  const {min,max}=limits(),current=panel.getBoundingClientRect().width;
-  const delta=e.key==='ArrowRight'?16:-16;
-  panel.style.width=Math.max(min,Math.min(max,current+delta))+'px';
- });
- window.addEventListener('resize',()=>{
-  const {max}=limits();
-  if(panel.style.width)panel.style.width=Math.min(parseFloat(panel.style.width)||max,max)+'px';
- });
-})();
-</script>
-
-
-<script>
 /* Shared press feedback and hold affordance for in-game tool buttons. */
 (function(){
  const selector='#sb-action-dock button,#constructionPanel button,.tool-group button,.bottom button,#sb-3d-toggle,#sb-zoom-controls button,#stationContextMenu button';
