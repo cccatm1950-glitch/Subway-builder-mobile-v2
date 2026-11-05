@@ -1956,7 +1956,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
   <summary>BUILD TOOLS</summary>
   <div class="tool-grid">
    <button type="button" data-panel-action="mode-station" aria-label="Add station" title="Add station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-5 8 5v12M8 20v-7h8v7M2 20h20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="8" r="1.5" fill="currentColor"/></svg></button>
-   <button type="button" data-panel-action="draw-track" aria-label="Add track" title="Press and drag to draw track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18M20 3v18M2 6h20M2 11h20M2 16h20M2 21h20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1" opacity=".55"/></svg></button>
+   <button type="button" data-panel-action="draw-track" aria-label="Add track" title="Tap two existing stations to connect them"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18M20 3v18M2 6h20M2 11h20M2 16h20M2 21h20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1" opacity=".55"/></svg></button>
    <button type="button" data-panel-action="curve-track" aria-label="Curve track" title="Tap a track to add a curve point"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19C7 19 7 5 13 5h8M17 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
@@ -2256,9 +2256,9 @@ function renderNetwork(){
   [b.lat,b.lng]
  ],{
   pane:'sbInteractionPane',
-  color:mode==='delete'?'#e74c3c':'#f0a52b',
-  weight:mode==='delete'?24:26,
-  opacity:mode==='delete'?0.28:0.24,
+  color:mode==='delete'?'#e74c3c':(selectedTrackIndex===trackIndex?'#45e6ff':'#f0a52b'),
+  weight:mode==='delete'?24:(selectedTrackIndex===trackIndex?30:26),
+  opacity:mode==='delete'?0.28:(selectedTrackIndex===trackIndex?0.72:0.24),
   interactive:true,
   bubblingMouseEvents:false,
   lineCap:'round',
@@ -2535,6 +2535,7 @@ function updateUI(){
 function setMode(newMode){
  mode=newMode;
  selected=null;
+  if(mode!=='waypoint')selectedTrackIndex=null;
  const constructionPanel=document.getElementById('constructionPanel');
  if(constructionPanel){
   const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':null;
@@ -2556,8 +2557,9 @@ function setMode(newMode){
  if(trashDock)trashDock.classList.toggle('active',mode==='delete');
 
  renderNetwork();
+  syncConstructionControls();
 
- if(mode==='station')message('Tap the map to place a station ($500).');
+  if(mode==='station')message('Tap the map to place a station ($500).');
  if(mode==='track')message('Tap one station, then another station to connect them ($150).');
  if(mode==='waypoint')message('Tap a track to select it for waypoint editing.');
  if(mode==='inspect')message('Tap a station to inspect it.');
@@ -2827,9 +2829,11 @@ function activateDeleteMode(){
  message('Waypoint elevation changed to '+level+' grade.');
  }
 function selectTrackForWaypoints(trackIndex){
- selectedTrackIndex=trackIndex;
- message('Track selected. Tap the map to add a waypoint.');
-}
+  if(mode!=='waypoint'||!tracks[trackIndex])return;
+  selectedTrackIndex=trackIndex;
+  renderNetwork();
+  message('Track selected. Tap the map to add a waypoint.');
+ }
 function handleStationClick(index){
   if(mode==='delete'){
   let name=stations[index].name;
