@@ -1575,69 +1575,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  <nav id="constructionPanel" class="panel" aria-label="Construction tools" aria-hidden="true">
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
-  <div id="sb-zoom-controls" aria-label="Map controls">
-   <button type="button" data-panel-action="zoom-in" aria-label="Zoom in" title="Zoom in">+</button>
-   <button type="button" data-panel-action="zoom-out" aria-label="Zoom out" title="Zoom out">−</button>
-   <button id="sb-3d-toggle" type="button" data-panel-action="toggle-3d" aria-label="Switch to 3D city view" title="3D City">3D</button>
-  </div>
- 
  </div>
- <details class="tool-group" open>
-  <summary>▣ Stations &amp; track</summary>
-  <div class="tool-grid" role="group" aria-label="Construction mode">
-   <button id="stationBtn" class="active" type="button" data-panel-action="mode-station" title="Place station" aria-label="Place station" aria-pressed="true">●</button>
-   <button id="trackBtn" type="button" data-panel-action="mode-track" title="Connect stations" aria-label="Connect stations" aria-pressed="false">↗</button>
-   <button id="waypointBtn" type="button" data-panel-action="mode-waypoint" title="Shape route" aria-label="Shape route" aria-pressed="false">⌁</button>
-   <button id="inspectBtn" type="button" data-panel-action="mode-inspect" title="Inspect network" aria-label="Inspect network" aria-pressed="false">i</button>
-  </div>
- </details>
- <details class="tool-group">
-  <summary>TRACK Track settings</summary>
-  <div class="tool-grid" role="group" aria-label="Track settings">
-   <button id="singleTrackBtn" class="active" type="button" data-panel-action="track-single" title="Single track" aria-label="Single track" aria-pressed="true">—</button>
-   <button id="parallelTrackBtn" type="button" data-panel-action="track-parallel" title="Parallel tracks" aria-label="Parallel tracks" aria-pressed="false">Ⅱ</button>
-   <button type="button" data-platform-width="narrow" data-panel-action="platform-width" title="Narrow platforms" aria-label="Narrow platforms" aria-pressed="false">N</button>
-   <button class="active" type="button" data-platform-width="default" data-panel-action="platform-width" title="Standard platforms" aria-label="Standard platforms" aria-pressed="true">S</button>
-   <button type="button" data-platform-width="wide" data-panel-action="platform-width" title="Wide platforms" aria-label="Wide platforms" aria-pressed="false">W</button>
-   <button id="curveBtn" type="button" data-panel-action="curve" title="Curve tool" aria-label="Curve tool" aria-pressed="false">∿</button>
-  </div>
- </details>
- <details class="tool-group">
-  <summary>▣ Tunnels &amp; elevation</summary>
-  <div class="tool-grid" role="group" aria-label="Tunnel settings">
-   <button id="tunnelModeBtn" type="button" data-panel-action="tunnel" title="Tunnel construction" aria-label="Tunnel construction" aria-pressed="false">▱</button>
-  </div>
-  <p class="panel-hint">Enable before connecting stations to route new track underground.</p>
- </details>
- <details class="tool-group">
-  <summary>STATION Station design</summary>
-  <div class="tool-grid" role="group" aria-label="Station design">
-   <button type="button" data-platform-type="island" data-panel-action="platform-type" title="Island platform" aria-label="Island platform" aria-pressed="true">▰</button>
-   <button type="button" data-platform-type="side" data-panel-action="platform-type" title="Side platforms" aria-label="Side platforms" aria-pressed="false">▰</button>
-  </div>
- </details>
- <details class="tool-group">
-  <summary>2D Map appearance</summary>
-  <div class="tool-grid" role="group" aria-label="Map appearance">
-   <button id="themeToggleBtn" type="button" data-panel-action="theme-menu" title="Map theme" aria-label="Map theme" aria-expanded="false">◐</button>
-  </div>
-  <div id="mapMenu" class="tool-grid sb-map-menu" style="display:none" aria-label="Map theme choices">
-   <button type="button" data-panel-action="theme-dark" title="Dark map" aria-label="Dark map">◐</button>
-   <button type="button" data-panel-action="theme-light" title="Light map" aria-label="Light map">☼</button>
-  </div>
- </details>
- <details class="tool-group">
-  <summary>Train simulation</summary>
-  <div class="tool-grid" role="group" aria-label="Train simulation">
-   <button id="runBtn" type="button" data-panel-action="simulation" aria-label="Run trains" title="Run trains">▶</button>
-   <button id="cancelBtn" type="button" data-panel-action="clear-selection" aria-label="Clear selection" title="Clear selection">×</button>
-  </div>
- </details>
- <details class="tool-group">
-  <summary>Network status</summary>
-  <div id="stationCount" class="network-stat">Stations: 0</div>
-  <div id="trackCount" class="network-stat">Track: 0 sections</div>
- </details>
 </nav>
 </details>
 
