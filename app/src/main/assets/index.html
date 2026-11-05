@@ -1715,9 +1715,24 @@ function toggleToolsPanel(open){
  if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
 }
 function syncConstructionControls(){
+ // Exclusive choices are synchronized from the live app state, not from
+ // whatever classes happened to be present in the HTML when the drawer opened.
+ const exclusiveGroups=[
+  {selector:'[data-panel-action^="mode-"]',value:mode,prefix:'mode-'},
+  {selector:'[data-panel-action^="track-"]',value:trackStyle,prefix:'track-'},
+  {selector:'[data-platform-width]',value:platformWidth,attribute:'platformWidth'},
+  {selector:'[data-platform-type]',value:platformType,attribute:'platformType'}
+ ];
+ exclusiveGroups.forEach(group=>{
+  document.querySelectorAll(group.selector).forEach(button=>{
+   const selected=group.attribute
+    ?button.dataset[group.attribute]===group.value
+    :button.dataset.panelAction===group.prefix+group.value;
+   button.classList.toggle('active',selected);
+   button.setAttribute('aria-pressed',String(selected));
+  });
+ });
  const states={
-  stationBtn:mode==='station',trackBtn:mode==='track',waypointBtn:mode==='waypoint',inspectBtn:mode==='inspect',
-  singleTrackBtn:trackStyle==='single',parallelTrackBtn:trackStyle==='parallel',
   curveBtn:curveMode,tunnelModeBtn:tunnelMode,runBtn:running,
   'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')
  };
@@ -1726,14 +1741,6 @@ function syncConstructionControls(){
   if(!button)return;
   button.classList.toggle('active',active);
   button.setAttribute('aria-pressed',String(active));
- });
- document.querySelectorAll('[data-platform-width]').forEach(button=>{
-  const active=button.dataset.platformWidth===platformWidth;
-  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
- });
- document.querySelectorAll('[data-platform-type]').forEach(button=>{
-  const active=button.dataset.platformType===platformType;
-  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
  });
  const themeButton=document.getElementById('themeToggleBtn');
  const themeMenu=document.getElementById('mapMenu');
