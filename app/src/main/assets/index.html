@@ -1495,6 +1495,37 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  }
 }
 
+
+/* Unified full-width glass action dock: edit actions left, construction on the far right. */
+#sb-action-dock{
+ position:fixed!important;z-index:1600!important;
+ left:12px!important;right:12px!important;bottom:max(10px,env(safe-area-inset-bottom,0px))!important;
+ width:auto!important;min-height:62px!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+ gap:10px!important;padding:8px 12px!important;margin:0!important;
+ border-radius:24px!important;background:rgba(15,25,40,.46)!important;
+ border:1px solid rgba(255,255,255,.22)!important;
+ backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.2)!important;
+}
+#sb-action-dock button{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;flex:0 0 46px!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;font-size:22px!important;line-height:1!important;
+}
+#sb-action-dock button svg{display:block!important;width:25px!important;height:25px!important;flex:0 0 25px!important;pointer-events:none}
+#sb-action-dock #constructionDockBtn{margin-left:auto!important;color:#e8f7ff!important;background:rgba(65,111,135,.32)!important;border-color:rgba(205,232,245,.34)!important}
+#sb-action-dock #constructionDockBtn.active{background:rgba(55,130,170,.42)!important;border-color:rgba(145,215,245,.62)!important;box-shadow:0 0 0 1px rgba(125,200,235,.16),0 0 15px rgba(65,155,205,.2)!important}
+#sb-action-dock .trash-dock-btn{color:#ff9aa8!important;background:rgba(255,90,110,.18)!important;border-color:rgba(255,140,155,.4)!important}
+#sb-action-dock button:disabled{opacity:.3!important}
+#sb-construction-menu>summary#sb-panel-toggle{display:none!important}
+@media(max-width:700px){
+ #sb-action-dock{left:8px!important;right:8px!important;bottom:max(8px,env(safe-area-inset-bottom,0px))!important;min-height:58px!important;gap:7px!important;padding:7px 9px!important;border-radius:20px!important}
+ #sb-action-dock button{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;flex-basis:44px!important}
+ #sb-action-dock button svg{width:24px!important;height:24px!important;flex-basis:24px!important}
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1644,7 +1675,12 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
-<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
+<div id="sb-action-dock" role="toolbar" aria-label="Edit actions">
+ <button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+ <button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 14 5-5-5-5m5 5H10a6 6 0 0 0 0 12h2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+ <button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" aria-pressed="false" title="Delete"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-9 0 1 13h10l1-13M10 11v5m4-5v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+ <button id="constructionDockBtn" type="button" title="Construction tools" aria-label="Open construction tools" aria-controls="constructionPanel" aria-pressed="false" onclick="event.stopPropagation();toggleToolsPanel()"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3.5 17.5a2.1 2.1 0 0 0 3 3l4.8-4.8a5 5 0 0 0 6.4-6.4l-3 3-3.5-3.5 3.5-3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</div>
 
 
 
@@ -2173,7 +2209,7 @@ function setMode(newMode){
 
 
  const trashDock=document.getElementById('trashModeBtn');
- if(trashDock)trashDock.classList.toggle('active',mode==='delete');
+ if(trashDock){trashDock.classList.toggle('active',mode==='delete');trashDock.setAttribute('aria-pressed',String(mode==='delete'));}
 
  renderNetwork();
 
@@ -2335,6 +2371,8 @@ function toggleToolsPanel(open){
  toggle.setAttribute('aria-label','Construction menu');
  toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
  panel.setAttribute('aria-hidden',String(!expanded));
+ const dockToggle=document.getElementById('constructionDockBtn');
+ if(dockToggle){dockToggle.classList.toggle('active',expanded);dockToggle.setAttribute('aria-pressed',String(expanded));dockToggle.setAttribute('aria-label',expanded?'Close construction tools':'Open construction tools');dockToggle.setAttribute('title',expanded?'Close construction tools':'Construction tools');}
  if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
 }
 function syncConstructionControls(){
