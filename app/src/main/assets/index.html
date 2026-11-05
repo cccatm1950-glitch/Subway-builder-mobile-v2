@@ -1780,6 +1780,63 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 #constructionPanel .tool-grid .sb-tool-slot-empty{display:block!important;border:1px dashed rgba(205,229,250,.12)!important;background:rgba(255,255,255,.01)!important;pointer-events:none!important}
 #constructionPanel .tool-grid button.active,#constructionPanel .tool-grid button[aria-pressed='true']{background:rgba(32,196,169,.38)!important;border:1px solid rgba(116,255,226,.95)!important;box-shadow:0 0 0 2px rgba(53,231,208,.2),0 0 16px rgba(53,231,208,.32),inset 0 0 9px rgba(53,231,208,.16)!important;color:#fff!important}
 #constructionPanel .tool-grid button:active{transform:scale(.92)!important}
+
+/* PR #58 — persistent tool state, reliable touch feedback, and cartographic polish. */
+#constructionPanel button[data-panel-action].active,
+#constructionPanel button[data-panel-action][aria-pressed="true"],
+#constructionPanel button[data-platform-width][aria-pressed="true"],
+#constructionPanel button[data-platform-type][aria-pressed="true"]{
+ background:linear-gradient(145deg,rgba(37,194,171,.42),rgba(20,117,135,.36))!important;
+ border:1px solid rgba(129,255,229,.94)!important;
+ color:#fff!important;
+ box-shadow:0 0 0 2px rgba(71,237,210,.22),0 0 13px rgba(49,226,202,.48),0 0 25px rgba(49,226,202,.22),inset 0 0 12px rgba(91,255,226,.17)!important;
+ filter:none!important;opacity:1!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,42,68,.38)!important;
+ border:1px solid rgba(255,112,132,.98)!important;
+ box-shadow:0 0 0 2px rgba(255,75,95,.25),0 0 13px rgba(255,45,70,.78),0 0 25px rgba(255,45,70,.48),inset 0 0 12px rgba(255,45,70,.25)!important;
+ color:#fff!important;
+}
+#constructionPanel button[data-panel-action],
+#constructionPanel button[data-platform-width],
+#constructionPanel button[data-platform-type],
+#sb-action-dock button{
+ -webkit-tap-highlight-color:transparent!important;
+ touch-action:manipulation!important;
+ user-select:none!important;
+}
+#constructionPanel button.sb-neon-pressed,
+#sb-action-dock button.sb-neon-pressed{
+ transform:scale(.91)!important;
+ filter:brightness(1.45) saturate(1.4)!important;
+ box-shadow:0 0 0 2px var(--sb-neon,rgba(86,226,255,.92)),0 0 15px var(--sb-neon,rgba(86,226,255,.92)),0 0 28px color-mix(in srgb,var(--sb-neon,rgba(86,226,255,.92)) 55%,transparent)!important;
+}
+#map .leaflet-tile-pane{z-index:200}
+#map .leaflet-overlay-pane{z-index:410}
+#map .leaflet-marker-pane{z-index:650}
+#map .leaflet-tooltip-pane{z-index:700}
+#map .leaflet-popup-pane{z-index:710}
+#map .leaflet-marker-pane .leaflet-marker-icon{overflow:visible!important;opacity:1!important;visibility:visible!important}
+#map .leaflet-marker-pane .sb-station-marker{
+ display:block!important;width:22px!important;height:22px!important;opacity:1!important;visibility:visible!important;
+ background:radial-gradient(circle at 35% 30%,#d9fff7 0 9%,#22cbb0 22%,#087f79 68%,#04534f 100%)!important;
+ border:3px solid #fff!important;border-radius:50%!important;
+ box-shadow:0 2px 8px rgba(0,0,0,.85),0 0 0 4px rgba(58,232,202,.42),0 0 19px rgba(38,220,190,.82)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected{
+ background:#ffc857!important;border-color:#fff!important;
+ box-shadow:0 0 0 5px rgba(255,190,69,.48),0 0 0 10px rgba(255,190,69,.2),0 0 22px rgba(255,190,69,.95)!important;
+}
+#map .leaflet-marker-pane .sb-placement-preview{
+ display:block!important;border-radius:50%!important;background:rgba(75,245,220,.22)!important;
+ border:3px solid #65ffe4!important;box-shadow:0 0 0 6px rgba(65,235,210,.16),0 0 22px rgba(65,235,210,.9)!important;
+ animation:sb-map-marker-pulse 1.25s ease-in-out infinite alternate;
+}
+@keyframes sb-map-marker-pulse{from{transform:scale(.82);opacity:.72}to{transform:scale(1.18);opacity:1}}
+.leaflet-control-attribution{background:rgba(255,255,255,.78)!important;color:#26384a!important;border-radius:8px 0 0 0;padding:2px 5px!important}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1909,19 +1966,19 @@ map.createPane('sbInteractionPane');map.getPane('sbInteractionPane').style.zInde
    ========================================================= */
 
 const lightTiles = L.tileLayer(
- 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+ 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
  {
-  maxZoom:19,
-  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+  maxZoom:20,subdomains:'abcd',
+  attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
  }
 );
 
 const darkTiles = L.tileLayer(
- 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+ 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
  {
-  maxZoom:19,
-  className:'dark-map-tiles',
-  attribution:'&copy; OpenStreetMap contributors'
+  maxZoom:20,subdomains:'abcd',
+  className:'',
+  attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
  }
 );
 
@@ -2850,7 +2907,7 @@ map.on('mouseout',function(){if(stationPlacementPreview){map.removeLayer(station
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
  const now=Date.now();
- if(now-lastTouchPlacementAt<450)return;
+ if(now-lastTouchPlacementAt<80)return;
  lastTouchPlacementAt=now;
  if(mode==='station'){
   if(money<500){
@@ -2899,12 +2956,7 @@ else if(mode==='delete'){
  }
 }
 map.on('click',function(e){handleMapPlacement(e.latlng);});
-map.getContainer().addEventListener('pointerup',function(event){
- if(event.pointerType!=='touch')return;
- if(event.target.closest('.leaflet-marker-icon,.leaflet-interactive,.leaflet-control'))return;
- const point=map.mouseEventToContainerPoint(event);
- handleMapPlacement(map.containerPointToLatLng(point));
-},{passive:true});
+/* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
    SECTION 18 — TRAIN SIMULATION
@@ -3713,12 +3765,7 @@ else if(mode==='delete'){
  }
 }
 map.on('click',function(e){handleMapPlacement(e.latlng);});
-map.getContainer().addEventListener('pointerup',function(event){
- if(event.pointerType!=='touch')return;
- if(event.target.closest('.leaflet-marker-icon,.leaflet-interactive,.leaflet-control'))return;
- const point=map.mouseEventToContainerPoint(event);
- handleMapPlacement(map.containerPointToLatLng(point));
-},{passive:true});
+/* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
    SECTION 18 — TRAIN SIMULATION
@@ -3971,42 +4018,48 @@ window.refreshSubway3D=sb3dRefresh;
 
 
 <script>
-/* Shared press feedback and hold affordance for in-game tool buttons. */
+/* PR #58 — one press lifecycle per control; keep long-press suppression local to that press. */
 (function(){
  const selector='#sb-action-dock button,#constructionPanel button,.tool-group button,.bottom button,#sb-3d-toggle,#sb-zoom-controls button,#stationContextMenu button';
- let holdTimer=null,activeButton=null,shell=null,longPressed=false,releaseTimer=null;
- const clearShell=()=>{if(shell){shell.remove();shell=null;}};
- const finish=()=>{
+ let holdTimer=null,activeButton=null,shell=null,longPressedButton=null,releaseTimer=null;
+ let suppressClickFor=null;
+ function clearShell(){if(shell){shell.remove();shell=null;}}
+ function release(){
   if(holdTimer!==null){clearTimeout(holdTimer);holdTimer=null;}
   if(activeButton){
-   const releasedButton=activeButton;
-   releasedButton.classList.remove('sb-neon-pressed');
-   releasedButton.classList.add('sb-neon-release');
+   const button=activeButton;
+   button.classList.remove('sb-neon-pressed');
+   button.classList.add('sb-neon-release');
    if(releaseTimer!==null)clearTimeout(releaseTimer);
-   releaseTimer=setTimeout(()=>{releasedButton.classList.remove('sb-neon-release');releaseTimer=null;},420);
+   releaseTimer=setTimeout(()=>{button.classList.remove('sb-neon-release');releaseTimer=null;},360);
   }
   clearShell();activeButton=null;
- };
+ }
  document.addEventListener('pointerdown',event=>{
   const button=event.target.closest(selector);
-  if(!button||button.disabled||event.button!==undefined&&event.button!==0)return;
-  finish();activeButton=button;longPressed=false;button.classList.add('sb-neon-pressed');
+  if(!button||button.disabled||(event.button!==undefined&&event.button!==0))return;
+  release();suppressClickFor=null;longPressedButton=null;activeButton=button;
+  button.classList.add('sb-neon-pressed');
   holdTimer=setTimeout(()=>{
-   if(!activeButton)return;longPressed=true;
-   const rect=button.getBoundingClientRect(),scale=Math.max(.8,Math.min(1.8,Math.max(rect.width,rect.height)/42));
+   if(activeButton!==button)return;
+   longPressedButton=button;suppressClickFor=button;
+   const rect=button.getBoundingClientRect();
    shell=document.createElement('span');shell.className='sb-long-press-shell'+(button.id==='trashModeBtn'?' sb-shell-delete':'');
    shell.setAttribute('aria-hidden','true');
    shell.style.width=Math.max(44,rect.width*1.42)+'px';shell.style.height=Math.max(44,rect.height*1.42)+'px';
    shell.style.left=(rect.left+rect.width/2)+'px';shell.style.top=(rect.top+rect.height/2)+'px';
-   shell.style.transform='translate(-50%,-50%) scale('+scale+')';document.body.appendChild(shell);
-   button.classList.add('sb-neon-pressed');
+   document.body.appendChild(shell);
   },540);
  },{passive:true});
- document.addEventListener('pointerup',finish,{passive:true});
- document.addEventListener('pointercancel',finish,{passive:true});
- document.addEventListener('visibilitychange',()=>{if(document.hidden)finish();});
+ document.addEventListener('pointerup',release,{passive:true});
+ document.addEventListener('pointercancel',()=>{release();suppressClickFor=null;longPressedButton=null;},{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){release();suppressClickFor=null;longPressedButton=null;}});
  document.addEventListener('click',event=>{
-  if(longPressed&&event.target.closest(selector)){event.preventDefault();event.stopImmediatePropagation();longPressed=false;}
+  const button=event.target.closest(selector);
+  if(button&&suppressClickFor===button){
+   event.preventDefault();event.stopImmediatePropagation();
+   suppressClickFor=null;longPressedButton=null;
+  }
  },true);
 })();
 </script>
