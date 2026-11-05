@@ -1662,6 +1662,23 @@ button{width:46px!important;height:46px!important;min-width:46px!important;min-h
 #sb-game-menu.open{pointer-events:auto}
 #sb-game-menu-card{pointer-events:auto}
 
+
+/* PR #53 — matched dock glass, red delete state, and compact construction controls. */
+.topbar{background:rgba(15,25,40,.42)!important;border:1px solid rgba(255,255,255,.22)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{font-size:24px!important;line-height:1!important;letter-spacing:-2px!important;padding:0 0 3px!important}
+#sb-action-dock #trashModeBtn{--sb-neon:rgba(255,48,72,.99)!important}
+#sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{--sb-neon:rgba(255,48,72,.99)!important;background:rgba(255,42,68,.22)!important;border-color:rgba(255,105,125,.72)!important;box-shadow:0 0 0 1px rgba(255,75,95,.45),0 0 10px rgba(255,45,70,.35)!important}
+#sb-action-dock #trashModeBtn.sb-neon-pressed,#sb-action-dock #trashModeBtn.sb-neon-release{--sb-neon:rgba(255,48,72,.99)!important;background:rgba(255,42,68,.34)!important;border-color:rgba(255,105,125,.92)!important;box-shadow:0 0 0 1px rgba(255,75,95,.75),0 0 13px rgba(255,45,70,.72),0 0 22px rgba(255,45,70,.42),inset 0 0 12px rgba(255,45,70,.24)!important}
+#sb-action-dock #trashModeBtn.active:not(.sb-neon-pressed):not(.sb-neon-release){box-shadow:0 0 0 1px rgba(255,75,95,.35),0 0 8px rgba(255,45,70,.25)!important}
+#sb-action-dock #undoBtn svg,#sb-action-dock #redoBtn svg{width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important}
+#constructionPanel .tool-group .tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;justify-items:center!important;align-items:center!important}
+#constructionPanel .tool-grid button{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;padding:8px!important;display:grid!important;place-items:center!important}
+#constructionPanel .tool-grid button svg{width:27px!important;height:27px!important;max-width:27px!important;max-height:27px!important;display:block!important;margin:auto!important}
+#constructionPanel .tool-grid button.active{--sb-neon:rgba(86,226,255,.92);background:rgba(65,190,170,.22)!important;border-color:rgba(120,255,225,.55)!important}
+#constructionPanel .tool-grid button[data-panel-action="draw-track"] svg{transform:rotate(-45deg) scale(.92)}
+#sb-track-draw-preview{pointer-events:none;filter:drop-shadow(0 0 5px rgba(90,225,255,.8))}
+#map.sb-track-drawing{cursor:crosshair;touch-action:none}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1743,7 +1760,14 @@ button{width:46px!important;height:46px!important;min-width:46px!important;min-h
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
  </div>
- 
+ <details class="tool-group" open>
+  <summary>BUILD TOOLS</summary>
+  <div class="tool-grid">
+   <button type="button" data-panel-action="mode-station" aria-label="Add station" title="Add station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-5 8 5v12M8 20v-7h8v7M2 20h20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="8" r="1.5" fill="currentColor"/></svg></button>
+   <button type="button" data-panel-action="draw-track" aria-label="Add track" title="Press and drag to draw track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18M20 3v18M2 6h20M2 11h20M2 16h20M2 21h20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1" opacity=".55"/></svg></button>
+   <button type="button" data-panel-action="curve-track" aria-label="Curve track" title="Tap a track to add a curve point"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19C7 19 7 5 13 5h8M17 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+ </details>
 </nav>
 </details>
 
@@ -1912,7 +1936,7 @@ function restoreSnapshot(data){
  passengers=Number.isFinite(data.passengers)?data.passengers:0;
  if(['default','narrow','wide'].includes(data.platformWidth))platformWidth=data.platformWidth;
  if(['island','side'].includes(data.platformType))platformType=data.platformType;
- if(['station','track','waypoint','delete','inspect'].includes(data.mode))mode=data.mode;
+ if(['station','track','waypoint','delete','inspect','curve'].includes(data.mode))mode=data.mode;
  if(['single','parallel'].includes(data.trackStyle))trackStyle=data.trackStyle;
  curveMode=!!data.curveMode;tunnelMode=!!data.tunnelMode;
  stations=data.stations.map((s,i)=>({
@@ -2528,7 +2552,7 @@ function bindConstructionPanelControls(){
   panel.dataset.controlsBound='true';
   const actions={
    'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
-   'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),
+   'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),'draw-track':()=>setMode('track'),'curve-track':()=>setMode('curve'),
    'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
    'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
    'theme-menu':()=>toggleMapMenu(),
@@ -3052,7 +3076,103 @@ document.getElementById('sb-game-menu-toggle')?.addEventListener('click',functio
  event.preventDefault();event.stopPropagation();openInGameMenu();
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMenuOpen)closeInGameMenu();});
-</script>\n</body>
+</script>\n
+<script>
+/* PR #53 — mutually exclusive construction/delete tools and drag-to-draw track placement. */
+(function(){
+ const panel=document.getElementById('constructionPanel');
+ if(!panel)return;
+ const toolButtons=panel.querySelectorAll('[data-panel-action]');
+ toolButtons.forEach(button=>{
+  if(button.dataset.actionBound==='true')return;
+  button.dataset.actionBound='true';
+  button.addEventListener('click',event=>{
+   event.preventDefault();event.stopPropagation();
+   const action=button.dataset.panelAction;
+   if(action==='mode-station'){curveMode=false;setMode('station');}
+   else if(action==='draw-track'){curveMode=false;setMode('track');message('Press and drag across the map to lay a track. Release to place it.');}
+   else if(action==='curve-track'){setMode('curve');message('Tap a nearby track to add a curve point.');}
+   panel.querySelectorAll('.tool-grid button').forEach(b=>{const active=b===button;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+  });
+ });
+ const dockDelete=document.getElementById('trashModeBtn');
+ if(dockDelete){
+  const syncDelete=()=>{
+   const active=mode==='delete';
+   dockDelete.classList.toggle('active',active);
+   dockDelete.setAttribute('aria-pressed',String(active));
+   panel.querySelectorAll('.tool-grid button').forEach(b=>{if(b.dataset.panelAction!=='curve-track')b.classList.remove('active');});
+  };
+  const observer=new MutationObserver(syncDelete);
+  observer.observe(dockDelete,{attributes:true,attributeFilter:['class','aria-pressed']});
+ }
+ const mapHost=document.getElementById('map');
+ let drawing=false,preview=null,points=[],startPoint=null,dragWasEnabled=true;
+ const pointFromEvent=e=>{
+  const rect=mapHost.getBoundingClientRect();
+  return map.containerPointToLatLng(L.point(e.clientX-rect.left,e.clientY-rect.top));
+ };
+ const clearPreview=()=>{if(preview){map.removeLayer(preview);preview=null;}};
+ mapHost.addEventListener('pointerdown',e=>{
+  if(mode!=='track'||e.target.closest('.leaflet-marker-icon,.leaflet-interactive,.leaflet-control')||document.getElementById('sb-3d-map')?.classList.contains('active'))return;
+  if(e.pointerType==='mouse'&&e.button!==0)return;
+  drawing=true;points=[pointFromEvent(e)];startPoint=points[0];
+  dragWasEnabled=map.dragging.enabled();if(dragWasEnabled)map.dragging.disable();
+  mapHost.classList.add('sb-track-drawing');
+  try{mapHost.setPointerCapture(e.pointerId);}catch(_){}
+  preview=L.polyline(points,{color:'#68e7ff',weight:7,opacity:.95,dashArray:'8 5',lineCap:'round',lineJoin:'round'}).addTo(map);
+  e.preventDefault();
+ },{passive:false});
+ mapHost.addEventListener('pointermove',e=>{
+  if(!drawing)return;
+  const p=pointFromEvent(e),last=points[points.length-1];
+  if(!last||map.distance(last,p)>4){points.push(p);if(preview)preview.setLatLngs(points);}
+  e.preventDefault();
+ },{passive:false});
+ const finishDraw=e=>{
+  if(!drawing)return;
+  drawing=false;mapHost.classList.remove('sb-track-drawing');
+  if(e&&e.clientX!==undefined){const p=pointFromEvent(e),last=points[points.length-1];if(!last||map.distance(last,p)>1)points.push(p);}
+  clearPreview();if(dragWasEnabled)map.dragging.enable();
+  if(points.length<2||map.distance(points[0],points[points.length-1])<12){points=[];message('Drag farther to place a track.');return;}
+  if(money<150){points=[];message('Not enough money to build track ($150).');return;}
+  const first=points[0],last=points[points.length-1];
+  const a=stations.length,b=stations.length+1;
+  stations.push({lat:first.lat,lng:first.lng,name:'Station '+(a+1),platformType:platformType});
+  stations.push({lat:last.lat,lng:last.lng,name:'Station '+(b+1),platformType:platformType});
+  money-=150;
+  tracks.push({a,b,style:trackStyle,curve:points.length>3||curveMode,elevation:tunnelMode?'below':'at',waypoints:points.slice(1,-1).map(p=>({lat:p.lat,lng:p.lng,elevation:'at'}))});
+  points=[];selected=null;saveHistory();renderNetwork();updateUI();
+  message('Track placed — drag again to add another section.');
+ };
+ mapHost.addEventListener('pointerup',finishDraw,{passive:true});
+ mapHost.addEventListener('pointercancel',finishDraw,{passive:true});
+ mapHost.addEventListener('lostpointercapture',()=>{if(drawing)finishDraw(null);});
+ map.on('click',e=>{
+  if(mode!=='curve')return;
+  let best=null,bestDistance=Infinity;
+  tracks.forEach((t,i)=>{
+   const a=stations[t.a],b=stations[t.b];if(!a||!b)return;
+   const route=[L.latLng(a.lat,a.lng),...(t.waypoints||[]).map(w=>L.latLng(w.lat,w.lng)),L.latLng(b.lat,b.lng)];
+   const target=map.latLngToLayerPoint(e.latlng);
+   for(let j=0;j<route.length-1;j++){
+    const p=map.latLngToLayerPoint(route[j]),q=map.latLngToLayerPoint(route[j+1]);
+    const dx=q.x-p.x,dy=q.y-p.y,len=dx*dx+dy*dy||1;
+    const fraction=Math.max(0,Math.min(1,((target.x-p.x)*dx+(target.y-p.y)*dy)/len));
+    const nearest=L.point(p.x+fraction*dx,p.y+fraction*dy);
+    const distance=map.distance(e.latlng,map.layerPointToLatLng(nearest));
+    if(distance<bestDistance){bestDistance=distance;best=i;}
+   }
+  });
+  if(best===null||bestDistance>500){message('Tap closer to an existing track to curve it.');return;}
+  const track=tracks[best];track.waypoints=track.waypoints||[];
+  track.waypoints.push({lat:e.latlng.lat,lng:e.latlng.lng,elevation:'at'});track.curve=true;
+  saveHistory();renderNetwork();message('Track curvature updated.');
+ });
+})();
+</script>
+
+</body>
 </html>
 +money.toLocaleString();
  const passengersEl=document.getElementById('passengers');if(passengersEl)passengersEl.textContent=passengers.toLocaleString();
