@@ -1837,6 +1837,39 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 @keyframes sb-map-marker-pulse{from{transform:scale(.82);opacity:.72}to{transform:scale(1.18);opacity:1}}
 .leaflet-control-attribution{background:rgba(255,255,255,.78)!important;color:#26384a!important;border-radius:8px 0 0 0;padding:2px 5px!important}
 
+
+/* PR #59 — keyless OSM fallback and deterministic persistent tool states. */
+#map .leaflet-tile-pane .leaflet-layer{opacity:1!important}
+#map .leaflet-tile-pane img.leaflet-tile{visibility:visible!important;opacity:1!important}
+#map .leaflet-tile-pane .dark-map-tiles{
+ filter:invert(100%) hue-rotate(180deg) brightness(88%) contrast(88%) saturate(82%)!important;
+}
+#constructionPanel button.active,
+#constructionPanel button[aria-pressed="true"],
+#sb-action-dock button.active,
+#sb-action-dock button[aria-pressed="true"]{
+ transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease!important;
+}
+#constructionPanel button.active,
+#constructionPanel button[aria-pressed="true"]{
+ background:rgba(24,194,166,.42)!important;
+ border:1px solid rgba(128,255,229,.98)!important;
+ color:#fff!important;
+ box-shadow:0 0 0 2px rgba(72,245,215,.25),0 0 15px rgba(49,226,202,.6),0 0 28px rgba(49,226,202,.26),inset 0 0 13px rgba(91,255,226,.2)!important;
+ filter:brightness(1.12)!important;
+ animation:sb-tool-select-flash .24s ease-out;
+}
+#sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,42,68,.4)!important;border-color:rgba(255,112,132,.98)!important;
+ box-shadow:0 0 0 2px rgba(255,75,95,.28),0 0 14px rgba(255,45,70,.82),0 0 27px rgba(255,45,70,.5),inset 0 0 12px rgba(255,45,70,.25)!important;
+}
+@keyframes sb-tool-select-flash{0%{filter:brightness(1.8);transform:scale(.94)}100%{filter:brightness(1.12);transform:scale(1)}}
+#constructionPanel button.sb-neon-pressed,#sb-action-dock button.sb-neon-pressed{
+ transform:scale(.9)!important;filter:brightness(1.55) saturate(1.4)!important;
+ box-shadow:0 0 0 2px var(--sb-neon,rgba(86,226,255,.95)),0 0 16px var(--sb-neon,rgba(86,226,255,.95)),0 0 28px color-mix(in srgb,var(--sb-neon,rgba(86,226,255,.95)) 55%,transparent)!important;
+}
+#constructionPanel button.sb-neon-release,#sb-action-dock button.sb-neon-release{filter:brightness(1.25)!important}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1966,19 +1999,19 @@ map.createPane('sbInteractionPane');map.getPane('sbInteractionPane').style.zInde
    ========================================================= */
 
 const lightTiles = L.tileLayer(
- 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+ 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
  {
-  maxZoom:20,subdomains:'abcd',
-  attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
+  maxZoom:19,subdomains:'abc',
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
  }
 );
 
 const darkTiles = L.tileLayer(
- 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+ 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
  {
-  maxZoom:20,subdomains:'abcd',
-  className:'',
-  attribution:'&copy; OpenStreetMap contributors &copy; CARTO'
+  maxZoom:19,subdomains:'abc',
+  className:'dark-map-tiles',
+  attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>'
  }
 );
 
@@ -3488,35 +3521,40 @@ function toggleToolsPanel(open){
  if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
 }
 function syncConstructionControls(){
- // Exclusive choices are synchronized from the live app state, not from
- // whatever classes happened to be present in the HTML when the drawer opened.
- const exclusiveGroups=[
-  {selector:'[data-panel-action^="mode-"]',value:mode,prefix:'mode-'},
-  {selector:'[data-panel-action^="track-"]',value:trackStyle,prefix:'track-'},
-  {selector:'[data-platform-width]',value:platformWidth,attribute:'platformWidth'},
-  {selector:'[data-platform-type]',value:platformType,attribute:'platformType'}
- ];
- exclusiveGroups.forEach(group=>{
-  document.querySelectorAll(group.selector).forEach(button=>{
-   const selected=group.attribute
-    ?button.dataset[group.attribute]===group.value
-    :button.dataset.panelAction===group.prefix+group.value;
-   button.classList.toggle('active',selected);
-   button.setAttribute('aria-pressed',String(selected));
-  });
- });
- const states={
-  curveBtn:curveMode,tunnelModeBtn:tunnelMode,runBtn:running,
-  'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')
- };
- Object.entries(states).forEach(([id,active])=>{
-  const button=document.getElementById(id);
-  if(!button)return;
+ // One authoritative mapping keeps the highlighted tool aligned with live app state.
+ const selectedAction=mode==='station'?'mode-station':
+  mode==='track'?'draw-track':
+  mode==='curve'?'curve-track':
+  mode==='waypoint'?'mode-waypoint':
+  mode==='inspect'?'mode-inspect':null;
+ document.querySelectorAll('#constructionPanel [data-panel-action]').forEach(button=>{
+  const action=button.dataset.panelAction;
+  let active=action===selectedAction;
+  if(action==='track-single')active=trackStyle==='single';
+  if(action==='track-parallel')active=trackStyle==='parallel';
+  if(action==='curve')active=!!curveMode;
+  if(action==='tunnel')active=!!tunnelMode;
   button.classList.toggle('active',active);
   button.setAttribute('aria-pressed',String(active));
  });
- const themeButton=document.getElementById('themeToggleBtn');
- const themeMenu=document.getElementById('mapMenu');
+ document.querySelectorAll('[data-platform-width]').forEach(button=>{
+  const active=button.dataset.platformWidth===platformWidth;
+  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+ });
+ document.querySelectorAll('[data-platform-type]').forEach(button=>{
+  const active=button.dataset.platformType===platformType;
+  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+ });
+ const ids={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
+ document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(button=>{
+  const active=button.id===ids[mode];
+  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
+ });
+ const deleteButton=document.getElementById('trashModeBtn');
+ if(deleteButton){const active=mode==='delete';deleteButton.classList.toggle('active',active);deleteButton.setAttribute('aria-pressed',String(active));}
+ const states={curveBtn:!!curveMode,tunnelModeBtn:!!tunnelMode,runBtn:!!running,'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')};
+ Object.entries(states).forEach(([id,active])=>{const button=document.getElementById(id);if(button){button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}});
+ const themeButton=document.getElementById('themeToggleBtn'),themeMenu=document.getElementById('mapMenu');
  if(themeButton&&themeMenu)themeButton.setAttribute('aria-expanded',String(themeMenu.style.display!=='none'));
 }
 function bindConstructionPanelControls(){
