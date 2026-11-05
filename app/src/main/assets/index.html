@@ -874,6 +874,59 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-action-dock{z-index:1500!important;right:max(9px,env(safe-area-inset-right,0px))!important;bottom:max(9px,env(safe-area-inset-bottom,0px))!important;pointer-events:auto!important}
 #sb-construction-menu[open]>#constructionPanel{width:min(76vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 190px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 174px)!important;}
 @media(max-width:560px){#sb-construction-menu[open]>#constructionPanel{width:min(76vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 190px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 174px)!important;}}
+
+/* Final mobile layout: show the complete construction drawer and match the dashboard glass. */
+@media(max-width:560px){
+  #sb-construction-menu[open]>#constructionPanel{
+    position:fixed!important;
+    display:block!important;
+    left:10px!important;
+    right:auto!important;
+    top:calc(env(safe-area-inset-top,0px) + 136px)!important;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 116px)!important;
+    width:min(310px,86vw)!important;
+    height:auto!important;
+    max-height:none!important;
+    min-height:180px!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    box-sizing:border-box!important;
+    padding:12px!important;
+    transform:none!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    z-index:1300!important;
+    background:var(--ios-glass,rgba(15,25,40,.46))!important;
+    border:1px solid var(--ios-line,rgba(255,255,255,.22))!important;
+    border-radius:22px!important;
+    backdrop-filter:blur(26px) saturate(180%)!important;
+    -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+    box-shadow:0 10px 32px rgba(0,0,0,.2)!important;
+  }
+}
+#sb-action-dock{
+  background:var(--ios-glass,rgba(15,25,40,.46))!important;
+  border:1px solid var(--ios-line,rgba(255,255,255,.22))!important;
+  border-radius:22px!important;
+  backdrop-filter:blur(26px) saturate(180%)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+  box-shadow:0 10px 32px rgba(0,0,0,.2)!important;
+}
+#sb-action-dock button{
+  background:rgba(255,255,255,.09)!important;
+  border:1px solid rgba(255,255,255,.2)!important;
+  backdrop-filter:blur(16px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(160%)!important;
+}
+#sb-action-dock .trash-dock-btn,
+#sb-action-dock .trash-dock-btn:hover,
+#sb-action-dock .trash-dock-btn:focus-visible{
+  background:rgba(255,90,110,.18)!important;
+  border-color:rgba(255,140,155,.4)!important;
+  box-shadow:none!important;
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
