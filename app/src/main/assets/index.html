@@ -925,6 +925,27 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
   box-shadow:none!important;
 }
 
+/* Integrated top dock and left-aligned construction drawer. */
+.sb-menu-shell{position:static!important;display:block!important}
+.sb-menu-shell>.topbar{position:fixed!important;top: max(8px,env(safe-area-inset-top,0px))!important;left:10px!important;right:10px!important;min-height:64px!important;padding:8px 14px!important;gap:12px!important;border-radius:28px!important;display:flex!important;align-items:center!important;z-index:1450!important;overflow:visible!important}
+#sb-panel-toggle{position:relative!important;inset:auto!important;order:0!important;flex:0 0 44px!important;width:44px!important;height:44px!important;min-height:44px!important;padding:0!important;margin:0!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:16px!important;z-index:1451!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(255,255,255,.24)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 4px 14px rgba(0,0,0,.12)!important;backdrop-filter:blur(18px) saturate(170%)!important;-webkit-backdrop-filter:blur(18px) saturate(170%)!important;cursor:pointer}
+#sb-panel-toggle svg{width:22px!important;height:22px!important}
+.sb-menu-shell>.topbar .brand{order:-1;min-width:0;flex:1}
+.sb-menu-shell>.topbar .stats{order:1;flex:0 1 auto;justify-content:flex-end;min-width:0}
+#sb-construction-menu[open]>.topbar #sb-panel-toggle{background:rgba(65,190,170,.24)!important;border-color:rgba(120,255,225,.55)!important}
+#sb-construction-menu:not([open])>#constructionPanel{display:none!important}
+#sb-construction-menu[open]>#constructionPanel{position:fixed!important;display:block!important;left:max(10px,env(safe-area-inset-left,0px))!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 82px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)!important;width:min(310px,calc(100vw - 92px))!important;max-height:none!important;height:auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;box-sizing:border-box!important;border-radius:24px!important;border:1px solid var(--ios-line,rgba(255,255,255,.22))!important;background:var(--ios-glass,rgba(15,25,40,.46))!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important;z-index:1400!important;transform:none!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+#sb-action-dock{z-index:1500!important}
+@media(max-width:560px){
+ .sb-menu-shell>.topbar{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;min-height:60px!important;padding:7px 9px!important;gap:8px!important;border-radius:25px!important}
+ .sb-menu-shell>.topbar .brand{font-size:10px!important;letter-spacing:.6px!important}
+ .sb-menu-shell>.topbar .stats{gap:5px!important}
+ .sb-menu-shell>.topbar .stat{font-size:7px!important;letter-spacing:.5px!important}
+ .sb-menu-shell>.topbar .stat strong{font-size:10px!important}
+ #sb-panel-toggle{flex-basis:40px!important;width:40px!important;height:40px!important;min-height:40px!important;border-radius:14px!important}
+ #sb-construction-menu[open]>#constructionPanel{left:max(7px,env(safe-area-inset-left,0px))!important;top:calc(env(safe-area-inset-top,0px) + 76px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)!important;width:min(290px,calc(100vw - 82px))!important;border-radius:22px!important}
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -985,8 +1006,10 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
      SECTION 07 — TOP STATUS BAR
      ======================================================== -->
 
+<details id="sb-construction-menu" class="sb-menu-shell">
 <div class="topbar">
  <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
+ <summary id="sb-panel-toggle" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary>
  <div class="stats">
   <button id="sb-pointer-toggle" type="button" aria-pressed="false" title="Enable touch pointer" aria-label="Enable touch pointer" onclick="toggleTouchPointer()">⌖</button>
   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
@@ -1000,8 +1023,6 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
      SECTION 08 — CONSTRUCTION PANEL
      ======================================================== -->
 
-<details id="sb-construction-menu" class="sb-menu-shell">
- <summary id="sb-panel-toggle" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary>
  <nav id="constructionPanel" class="panel" aria-label="Construction tools" aria-hidden="true">
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
