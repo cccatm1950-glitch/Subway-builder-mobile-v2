@@ -1870,6 +1870,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 }
 #constructionPanel button.sb-neon-release,#sb-action-dock button.sb-neon-release{filter:brightness(1.25)!important}
 
+#sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,42,68,.42)!important;border:1px solid rgba(255,112,132,.98)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(255,75,95,.28),0 0 14px rgba(255,45,70,.82),0 0 27px rgba(255,45,70,.5),inset 0 0 12px rgba(255,45,70,.25)!important}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -2254,9 +2255,14 @@ function renderNetwork(){
   [a.lat,a.lng],
   [b.lat,b.lng]
  ],{
+  pane:'sbInteractionPane',
   color:mode==='delete'?'#e74c3c':'#f0a52b',
-  weight:16,
-  opacity:mode==='delete'?0.18:0.01
+  weight:mode==='delete'?24:26,
+  opacity:mode==='delete'?0.28:0.24,
+  interactive:true,
+  bubblingMouseEvents:false,
+  lineCap:'round',
+  lineJoin:'round'
  }).addTo(window.networkLayer).on('click',function(e){
   L.DomEvent.stopPropagation(e);
 
@@ -2712,36 +2718,25 @@ function toggleToolsPanel(open){
  if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
 }
 function syncConstructionControls(){
- // Exclusive choices are synchronized from the live app state, not from
- // whatever classes happened to be present in the HTML when the drawer opened.
- const exclusiveGroups=[
-  {selector:'[data-panel-action^="mode-"]',value:mode,prefix:'mode-'},
-  {selector:'[data-panel-action^="track-"]',value:trackStyle,prefix:'track-'},
-  {selector:'[data-platform-width]',value:platformWidth,attribute:'platformWidth'},
-  {selector:'[data-platform-type]',value:platformType,attribute:'platformType'}
- ];
- exclusiveGroups.forEach(group=>{
-  document.querySelectorAll(group.selector).forEach(button=>{
-   const selected=group.attribute
-    ?button.dataset[group.attribute]===group.value
-    :button.dataset.panelAction===group.prefix+group.value;
-   button.classList.toggle('active',selected);
-   button.setAttribute('aria-pressed',String(selected));
+  const selectedAction={station:'mode-station',track:'draw-track',curve:'curve-track',waypoint:'mode-waypoint',inspect:'mode-inspect'}[mode]||null;
+  document.querySelectorAll('#constructionPanel [data-panel-action]').forEach(button=>{
+   const action=button.dataset.panelAction;let active=action===selectedAction;
+   if(action==='track-single')active=trackStyle==='single';
+   if(action==='track-parallel')active=trackStyle==='parallel';
+   if(action==='curve')active=!!curveMode;
+   if(action==='tunnel')active=!!tunnelMode;
+   button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
   });
- });
- const states={
-  curveBtn:curveMode,tunnelModeBtn:tunnelMode,runBtn:running,
-  'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')
- };
- Object.entries(states).forEach(([id,active])=>{
-  const button=document.getElementById(id);
-  if(!button)return;
-  button.classList.toggle('active',active);
-  button.setAttribute('aria-pressed',String(active));
- });
- const themeButton=document.getElementById('themeToggleBtn');
- const themeMenu=document.getElementById('mapMenu');
- if(themeButton&&themeMenu)themeButton.setAttribute('aria-expanded',String(themeMenu.style.display!=='none'));
+  document.querySelectorAll('[data-platform-width]').forEach(button=>{const active=button.dataset.platformWidth===platformWidth;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+  document.querySelectorAll('[data-platform-type]').forEach(button=>{const active=button.dataset.platformType===platformType;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+  const ids={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
+  document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(button=>{const active=button.id===ids[mode];button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+  const deleteButton=document.getElementById('trashModeBtn');
+  if(deleteButton){const active=mode==='delete';deleteButton.classList.toggle('active',active);deleteButton.setAttribute('aria-pressed',String(active));}
+  const states={curveBtn:!!curveMode,tunnelModeBtn:!!tunnelMode,runBtn:!!running,'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')};
+  Object.entries(states).forEach(([id,active])=>{const button=document.getElementById(id);if(button){button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}});
+  const themeButton=document.getElementById('themeToggleBtn'),themeMenu=document.getElementById('mapMenu');
+  if(themeButton&&themeMenu)themeButton.setAttribute('aria-expanded',String(themeMenu.style.display!=='none'));
 }
 function bindConstructionPanelControls(){
  const panel=document.getElementById('constructionPanel');
@@ -3286,44 +3281,7 @@ document.getElementById('sb-game-menu-toggle')?.addEventListener('click',functio
 });
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMenuOpen)closeInGameMenu();});
 </script>\n
-<script>
-/* PR #57 — one authoritative construction tool action handler. */
-(function(){
- const panel=document.getElementById('constructionPanel');
- if(!panel)return;
- panel.querySelectorAll('button[data-panel-action]').forEach(button=>{
-  button.addEventListener('click',async event=>{
-   event.preventDefault();event.stopPropagation();
-   const action=button.dataset.panelAction;
-   try{
-    if(action==='mode-station'){curveMode=false;setMode('station');}
-    else if(action==='draw-track'){curveMode=false;setMode('track');message('Press and drag across the map to lay a track. Release to place it.');}
-    else if(action==='curve-track'){setMode('curve');message('Tap a nearby track to add a curve point.');}
-    else if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
-    else if(action==='platform-type')setPlatformType(button.dataset.platformType);
-    else if(action==='track-single')setTrackStyle('single');
-    else if(action==='track-parallel')setTrackStyle('parallel');
-    else if(action==='simulation')toggleSimulation();
-    else if(action==='clear-selection')resetSelection();
-    else if(action==='zoom-in')map.zoomIn();
-    else if(action==='zoom-out')map.zoomOut();
-    else if(action==='toggle-3d')window.toggle3DCityView();
-    else if(action==='theme-menu')toggleMapMenu();
-    else if(action==='theme-dark')setMapTheme('dark');
-    else if(action==='theme-light')setMapTheme('light');
-    else if(action==='curve')toggleCurveMode();
-    else if(action==='tunnel')toggleTunnelMode();
-    else {console.warn('Unwired construction action:',action);message('This tool is not connected yet.');}
-    syncConstructionControls();
-   }catch(error){console.error('Construction action failed:',action,error);message('Could not activate this tool.');}
-  });
- });
- const dockDelete=document.getElementById('trashModeBtn');
- if(dockDelete){
-  const sync=()=>{const active=mode==='delete';dockDelete.classList.toggle('active',active);dockDelete.setAttribute('aria-pressed',String(active));};
-  new MutationObserver(sync).observe(dockDelete,{attributes:true,attributeFilter:['class','aria-pressed']});
- }
-})();</script>
+
 
 </body>
 </html>
@@ -4056,49 +4014,29 @@ window.refreshSubway3D=sb3dRefresh;
 
 
 <script>
-/* PR #58 — one press lifecycle per control; keep long-press suppression local to that press. */
+/* Touch feedback for construction controls; delete uses persistent mode state only. */
 (function(){
- const selector='#sb-action-dock button,#constructionPanel button,.tool-group button,.bottom button,#sb-3d-toggle,#sb-zoom-controls button,#stationContextMenu button';
- let holdTimer=null,activeButton=null,shell=null,longPressedButton=null,releaseTimer=null;
- let suppressClickFor=null;
+ const selector='#constructionPanel button,.tool-group button,.bottom button:not(#trashModeBtn),#sb-3d-toggle,#sb-zoom-controls button,#stationContextMenu button';
+ let holdTimer=null,activeButton=null,shell=null,releaseTimer=null;
  function clearShell(){if(shell){shell.remove();shell=null;}}
  function release(){
   if(holdTimer!==null){clearTimeout(holdTimer);holdTimer=null;}
-  if(activeButton){
-   const button=activeButton;
-   button.classList.remove('sb-neon-pressed');
-   button.classList.add('sb-neon-release');
-   if(releaseTimer!==null)clearTimeout(releaseTimer);
-   releaseTimer=setTimeout(()=>{button.classList.remove('sb-neon-release');releaseTimer=null;},360);
-  }
+  if(activeButton){const button=activeButton;button.classList.remove('sb-neon-pressed');button.classList.add('sb-neon-release');if(releaseTimer!==null)clearTimeout(releaseTimer);releaseTimer=setTimeout(()=>{button.classList.remove('sb-neon-release');releaseTimer=null;},360);}
   clearShell();activeButton=null;
  }
  document.addEventListener('pointerdown',event=>{
   const button=event.target.closest(selector);
   if(!button||button.disabled||(event.button!==undefined&&event.button!==0))return;
-  release();suppressClickFor=null;longPressedButton=null;activeButton=button;
-  button.classList.add('sb-neon-pressed');
+  release();activeButton=button;button.classList.add('sb-neon-pressed');
   holdTimer=setTimeout(()=>{
    if(activeButton!==button)return;
-   longPressedButton=button;suppressClickFor=button;
-   const rect=button.getBoundingClientRect();
-   shell=document.createElement('span');shell.className='sb-long-press-shell'+(button.id==='trashModeBtn'?' sb-shell-delete':'');
-   shell.setAttribute('aria-hidden','true');
-   shell.style.width=Math.max(44,rect.width*1.42)+'px';shell.style.height=Math.max(44,rect.height*1.42)+'px';
-   shell.style.left=(rect.left+rect.width/2)+'px';shell.style.top=(rect.top+rect.height/2)+'px';
-   document.body.appendChild(shell);
+   const rect=button.getBoundingClientRect();shell=document.createElement('span');shell.className='sb-long-press-shell';shell.setAttribute('aria-hidden','true');
+   shell.style.width=Math.max(44,rect.width*1.42)+'px';shell.style.height=Math.max(44,rect.height*1.42)+'px';shell.style.left=(rect.left+rect.width/2)+'px';shell.style.top=(rect.top+rect.height/2)+'px';document.body.appendChild(shell);
   },540);
  },{passive:true});
  document.addEventListener('pointerup',release,{passive:true});
- document.addEventListener('pointercancel',()=>{release();suppressClickFor=null;longPressedButton=null;},{passive:true});
- document.addEventListener('visibilitychange',()=>{if(document.hidden){release();suppressClickFor=null;longPressedButton=null;}});
- document.addEventListener('click',event=>{
-  const button=event.target.closest(selector);
-  if(button&&suppressClickFor===button){
-   event.preventDefault();event.stopImmediatePropagation();
-   suppressClickFor=null;longPressedButton=null;
-  }
- },true);
+ document.addEventListener('pointercancel',release,{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});
 })();
 </script>
 </body>
