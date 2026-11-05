@@ -2680,7 +2680,7 @@ marker.on('mousedown touchstart',function(e){
 marker.on('mouseup touchend touchcancel mouseout',function(){
  clearTimeout(stationMenuTimer);
 });
-marker.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(stationMenuTimer);stationHoldTriggered=true;showStationMenu(i);});
+marker.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(stationMenuTimer);if(mode==='delete'){stationHoldTriggered=false;return;}stationHoldTriggered=true;showStationMenu(i);});
 marker.on('click',function(e){
  L.DomEvent.stopPropagation(e);
  /* Delete is a one-tap action: never let the station long-press/context menu consume it. */
@@ -3602,11 +3602,11 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   if(!el)return 'none';
   const id=el.id?'#'+el.id:'';
   const action=el.dataset&&el.dataset.panelAction?'['+el.dataset.panelAction+']':'';
-  const cls=typeof el.className==='string'?'.'+el.className.trim().replace(/\\s+/g,'.').slice(0,55):'';
+  const cls=typeof el.className==='string'?'.'+el.className.trim().replace(/\s+/g,'.').slice(0,55):'';
   return el.tagName.toLowerCase()+id+action+cls;
  }
  function refresh(){
-  if(hud)hud.textContent='WEBVIEW TOUCH TRACE\\n'+lines.join('\\n');
+  if(hud)hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
   const button=document.getElementById('sb-touch-trace-toggle');
   if(button){button.textContent=enabled?'Hide touch trace':'Show touch trace';button.setAttribute('aria-pressed',String(enabled));}
  }
