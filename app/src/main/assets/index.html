@@ -1613,6 +1613,21 @@ button:where(:active){transform:scale(.94);filter:brightness(1.18);box-shadow:in
 button:disabled,button[aria-disabled="true"]{cursor:not-allowed;filter:saturate(.55);transition:opacity .18s ease,filter .18s ease}
 @media(hover:none){button:where(:hover){filter:none;box-shadow:initial}}
 @media(prefers-reduced-motion:reduce){button{transition:none!important}button:where(:active){transform:none}}
+
+/* Universal neon interaction language for every in-game tool button. */
+button{position:relative;isolation:isolate;transition:transform .16s ease,filter .2s ease,box-shadow .22s ease,border-color .22s ease,background-color .22s ease!important;}
+button:not(:disabled){--sb-neon:rgba(86,226,255,.92);}
+button:not(:disabled):hover{filter:brightness(1.16) saturate(1.18);box-shadow:0 0 0 1px color-mix(in srgb,var(--sb-neon) 55%,transparent),0 0 13px color-mix(in srgb,var(--sb-neon) 45%,transparent),inset 0 0 9px color-mix(in srgb,var(--sb-neon) 16%,transparent);}
+button:not(:disabled):focus-visible{outline:2px solid var(--sb-neon)!important;outline-offset:3px;box-shadow:0 0 16px color-mix(in srgb,var(--sb-neon) 65%,transparent)!important;}
+button:not(:disabled).sb-neon-pressed{transform:scale(.93);filter:brightness(1.35) saturate(1.35);box-shadow:0 0 0 1px var(--sb-neon),0 0 9px var(--sb-neon),0 0 22px color-mix(in srgb,var(--sb-neon) 68%,transparent),inset 0 0 12px color-mix(in srgb,var(--sb-neon) 35%,transparent)!important;}
+#trashModeBtn,#sb-action-dock .trash-dock-btn{--sb-neon:rgba(255,70,94,.98)!important;}
+#trashModeBtn:hover,#sb-action-dock .trash-dock-btn:hover{background:rgba(255,48,74,.3)!important;border-color:rgba(255,92,112,.95)!important;box-shadow:0 0 0 1px rgba(255,75,95,.8),0 0 15px rgba(255,55,80,.72),inset 0 0 12px rgba(255,55,80,.3)!important;}
+#trashModeBtn.sb-neon-pressed,#sb-action-dock .trash-dock-btn.sb-neon-pressed{background:rgba(255,35,65,.42)!important;--sb-neon:rgba(255,55,78,.98)!important;}
+.sb-long-press-shell{position:fixed;z-index:1800;pointer-events:none;border:1px solid rgba(105,232,255,.72);border-radius:50%;background:rgba(76,205,255,.035);box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 17px rgba(73,218,255,.38),inset 0 0 18px rgba(73,218,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transform:translate(-50%,-50%) scale(.88);opacity:0;animation:sb-shell-in .14s ease-out forwards;}
+.sb-long-press-shell.sb-shell-delete{border-color:rgba(255,90,112,.9);box-shadow:0 0 0 1px rgba(255,90,112,.25),0 0 18px rgba(255,55,80,.5),inset 0 0 16px rgba(255,55,80,.16);}
+@keyframes sb-shell-in{to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@media(hover:none){button:not(:disabled):hover{filter:none;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){button,.sb-long-press-shell{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -2210,8 +2225,13 @@ marker.on('dragend',function(){
    ========================================================= */
 
 function updateUI(){
- const moneyEl=document.getElementById('money');if(moneyEl)moneyEl.textContent='
-
+ const moneyEl=document.getElementById('money');if(moneyEl)moneyEl.textContent='$'+money.toLocaleString();
+ const passengersEl=document.getElementById('passengers');if(passengersEl)passengersEl.textContent=passengers.toLocaleString();
+ const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
+ const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
+ const undoEl=document.getElementById('undoBtn');if(undoEl)undoEl.disabled=historyIndex<=0;
+ const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=history.length-1;
+}
 function setMode(newMode){
  mode=newMode;
  selected=null;
@@ -3732,5 +3752,45 @@ window.refreshSubway3D=sb3dRefresh;
 })();
 </script>
 
+
+<script>
+/* Shared press feedback and hold affordance for in-game tool buttons. */
+(function(){
+ const selector='#sb-action-dock button,#constructionPanel button,.tool-group button,.bottom button,#sb-3d-toggle,#sb-zoom-controls button,#stationContextMenu button';
+ let holdTimer=null,activeButton=null,shell=null,longPressed=false,releaseTimer=null;
+ const clearShell=()=>{if(shell){shell.remove();shell=null;}};
+ const finish=()=>{
+  if(holdTimer!==null){clearTimeout(holdTimer);holdTimer=null;}
+  if(activeButton){
+   activeButton.classList.remove('sb-neon-pressed');
+   activeButton.classList.add('sb-neon-release');
+   if(releaseTimer!==null)clearTimeout(releaseTimer);
+   releaseTimer=setTimeout(()=>{activeButton&&activeButton.classList.remove('sb-neon-release');releaseTimer=null;},420);
+  }
+  clearShell();activeButton=null;
+ };
+ document.addEventListener('pointerdown',event=>{
+  const button=event.target.closest(selector);
+  if(!button||button.disabled||event.button!==undefined&&event.button!==0)return;
+  finish();activeButton=button;longPressed=false;button.classList.add('sb-neon-pressed');
+  holdTimer=setTimeout(()=>{
+   if(!activeButton)return;longPressed=true;
+   const rect=button.getBoundingClientRect(),scale=Math.max(.8,Math.min(1.8,Math.max(rect.width,rect.height)/42));
+   shell=document.createElement('span');shell.className='sb-long-press-shell'+(button.id==='trashModeBtn'?' sb-shell-delete':'');
+   shell.setAttribute('aria-hidden','true');
+   shell.style.width=Math.max(44,rect.width*1.42)+'px';shell.style.height=Math.max(44,rect.height*1.42)+'px';
+   shell.style.left=(rect.left+rect.width/2)+'px';shell.style.top=(rect.top+rect.height/2)+'px';
+   shell.style.transform='translate(-50%,-50%) scale('+scale+')';document.body.appendChild(shell);
+   button.classList.add('sb-neon-pressed');
+  },540);
+ },{passive:true});
+ document.addEventListener('pointerup',finish,{passive:true});
+ document.addEventListener('pointercancel',finish,{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)finish();});
+ document.addEventListener('click',event=>{
+  if(longPressed&&event.target.closest(selector)){event.preventDefault();event.stopImmediatePropagation();longPressed=false;}
+ },true);
+})();
+</script>
 </body>
 </html>
