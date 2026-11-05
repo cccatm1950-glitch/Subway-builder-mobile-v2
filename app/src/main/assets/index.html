@@ -1537,35 +1537,6 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  -webkit-overflow-scrolling:touch!important;
  scrollbar-gutter:stable;
 }
-#constructionPanel .sb-panel-resize-handle{
- position:absolute!important;z-index:20!important;
- top:50%!important;right:0!important;transform:translateY(-50%)!important;
- width:18px!important;height:76px!important;
- display:flex!important;align-items:center!important;justify-content:center!important;
- border:1px solid rgba(220,240,255,.22)!important;
- border-right:0!important;border-radius:14px 0 0 14px!important;
- background:linear-gradient(180deg,rgba(225,244,255,.16),rgba(120,165,195,.10))!important;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 3px 12px rgba(0,0,0,.14)!important;
- backdrop-filter:blur(22px) saturate(170%)!important;
- -webkit-backdrop-filter:blur(22px) saturate(170%)!important;
- cursor:ew-resize!important;touch-action:none!important;
- user-select:none!important;-webkit-user-select:none!important;
-}
-#constructionPanel .sb-panel-resize-handle:before{
- content:"";display:block;width:3px;height:34px;border-radius:4px;
- background:rgba(235,247,255,.72);
- box-shadow:-4px 0 0 rgba(235,247,255,.35),4px 0 0 rgba(235,247,255,.35);
-}
-#constructionPanel .sb-panel-resize-handle:focus-visible{
- outline:2px solid rgba(120,255,231,.85)!important;outline-offset:2px!important;
-}
-#constructionPanel.is-resizing{transition:none!important;user-select:none!important}
-#constructionPanel.is-resizing *{user-select:none!important}
-@media(max-width:560px){
- #constructionPanel{bottom:calc(64px + env(safe-area-inset-bottom,0px))!important}
- #constructionPanel .sb-panel-resize-handle{width:20px!important;height:70px!important}
-}
-
 /* Unified bottom glass action rail: history left, construction + delete right. */
 #sb-action-dock{position:fixed!important;z-index:900!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;width:auto!important;box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:7px 61px 7px 8px!important;border-radius:25px!important;background:rgba(15,25,40,.42)!important;border:1px solid rgba(255,255,255,.22)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
 #sb-action-dock button{width:43px!important;height:43px!important;min-height:43px!important;flex:0 0 43px!important;margin:0!important;padding:0!important;border-radius:50%!important;font-size:18px!important;display:flex!important;align-items:center!important;justify-content:center!important}
@@ -1629,6 +1600,24 @@ button:not(:disabled).sb-neon-pressed{transform:scale(.93);filter:brightness(1.3
 @keyframes sb-shell-in{to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @media(hover:none){button:not(:disabled):hover{filter:none;box-shadow:none}}
 @media(prefers-reduced-motion:reduce){button,.sb-long-press-shell{transition:none!important;animation:none!important}}
+
+/* Construction drawer now shares the top/bottom dock glass shell; keep responsive sizing, no drag grip. */
+#constructionPanel{
+ width:min(86vw,310px)!important;
+ max-width:calc(100vw - 18px)!important;
+ border:1px solid rgba(255,255,255,.22)!important;
+ border-radius:25px!important;
+ background:rgba(15,25,40,.42)!important;
+ color:#f3f8ff!important;
+ backdrop-filter:blur(26px) saturate(180%)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.1)!important;
+ transform-origin:top right;
+}
+#constructionPanel .panel-heading{border-radius:24px 24px 0 0!important;background:transparent!important;border-bottom:1px solid rgba(255,255,255,.12)!important;}
+#constructionPanel .panel-heading .panel-title{color:#f3f8ff!important;}
+#constructionPanel .sb-panel-resize-handle{display:none!important;}
+@media(max-width:560px){#constructionPanel{width:min(86vw,310px)!important;}}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1710,7 +1699,7 @@ button:not(:disabled).sb-neon-pressed{transform:scale(.93);filter:brightness(1.3
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
  </div>
- <div class="sb-panel-resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize construction panel" tabindex="0" title="Drag to resize panel"></div>
+ 
 </nav>
 </details>
 
@@ -2944,49 +2933,7 @@ window.refreshSubway3D=sb3dRefresh;
 </script>
 
 
-<script>
-/* Right-edge glass grip resizes the construction shell without capturing panel scrolling. */
-(function(){
- const panel=document.getElementById('constructionPanel');
- const grip=panel&&panel.querySelector('.sb-panel-resize-handle');
- if(!panel||!grip||grip.dataset.bound==='true')return;
- grip.dataset.bound='true';
- let pointerId=null,startX=0,startWidth=0;
- const limits=()=>({min:220,max:Math.min(Math.round(window.innerWidth*.86),420)});
- grip.addEventListener('pointerdown',e=>{
-  if(e.button!==undefined&&e.button!==0)return;
-  pointerId=e.pointerId;startX=e.clientX;startWidth=panel.getBoundingClientRect().width;
-  panel.classList.add('is-resizing');
-  grip.setPointerCapture(pointerId);
-  e.preventDefault();e.stopPropagation();
- });
- grip.addEventListener('pointermove',e=>{
-  if(pointerId===null||e.pointerId!==pointerId)return;
-  const {min,max}=limits();
-  const width=Math.max(min,Math.min(max,startWidth+(e.clientX-startX)));
-  panel.style.width=width+'px';
-  panel.style.maxWidth='calc(100vw - 20px)';
- });
- const finish=e=>{
-  if(pointerId===null||(e&&e.pointerId!==pointerId))return;
-  pointerId=null;panel.classList.remove('is-resizing');
- };
- grip.addEventListener('pointerup',finish);
- grip.addEventListener('pointercancel',finish);
- grip.addEventListener('lostpointercapture',finish);
- grip.addEventListener('keydown',e=>{
-  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
-  e.preventDefault();
-  const {min,max}=limits(),current=panel.getBoundingClientRect().width;
-  const delta=e.key==='ArrowRight'?16:-16;
-  panel.style.width=Math.max(min,Math.min(max,current+delta))+'px';
- });
- window.addEventListener('resize',()=>{
-  const {max}=limits();
-  if(panel.style.width)panel.style.width=Math.min(parseFloat(panel.style.width)||max,max)+'px';
- });
-})();
-</script>
+
 
 </body>
 </html>
