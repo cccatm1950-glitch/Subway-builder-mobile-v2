@@ -1149,24 +1149,30 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 @media(max-height:520px){#sb-construction-menu[open]>#constructionPanel{bottom:calc(env(safe-area-inset-bottom,0px) + 132px)!important}}
 
 
-/* Construction drawer control: fixed circular wrench button, independent of the status dock. */
+/* Construction drawer control: circular wrench with steady translucent glass and a gentle blue neon pulse. */
+@keyframes sb-wrench-neon-pulse{
+ 0%,100%{border-color:rgba(105,175,255,.62);box-shadow:0 0 0 1px rgba(65,145,255,.12),0 0 7px rgba(55,135,255,.16),0 4px 16px rgba(0,0,0,.2)}
+ 50%{border-color:rgba(125,195,255,.96);box-shadow:0 0 0 2px rgba(65,145,255,.2),0 0 15px rgba(55,135,255,.42),0 0 24px rgba(55,135,255,.16),0 4px 16px rgba(0,0,0,.2)}
+}
 #sb-panel-toggle.menu-hamburger{
  box-sizing:border-box!important;display:flex!important;flex:0 0 46px!important;
  width:46px!important;min-width:46px!important;max-width:46px!important;
  height:46px!important;min-height:46px!important;max-height:46px!important;
  aspect-ratio:1/1!important;border-radius:50%!important;
  padding:0!important;margin:0!important;overflow:hidden!important;
- background:rgba(32,105,190,.42)!important;
- border:1.5px solid rgba(112,183,255,.88)!important;
+ background:rgba(30,48,68,.30)!important;
+ border:1.5px solid rgba(105,175,255,.72)!important;
  color:#eaf5ff!important;
- box-shadow:0 0 0 1px rgba(77,157,255,.18),0 4px 16px rgba(0,0,0,.22)!important;
- backdrop-filter:blur(16px) saturate(160%)!important;
- -webkit-backdrop-filter:blur(16px) saturate(160%)!important;
- transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+ box-shadow:0 0 0 1px rgba(65,145,255,.14),0 0 9px rgba(55,135,255,.2),0 4px 16px rgba(0,0,0,.2)!important;
+ backdrop-filter:blur(20px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(20px) saturate(170%)!important;
+ animation:sb-wrench-neon-pulse 3.2s ease-in-out infinite!important;
+ transition:transform .16s ease!important;
 }
 #sb-panel-toggle.menu-hamburger svg{display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important}
-#sb-panel-toggle.menu-hamburger:active{transform:scale(.92)!important;background:rgba(32,105,190,.42)!important;border-color:#a8d4ff!important;box-shadow:0 0 0 4px rgba(65,145,255,.2),0 0 20px rgba(65,145,255,.4)!important}
-#sb-construction-menu[open]>#sb-panel-toggle.menu-hamburger{background:rgba(32,105,190,.42)!important;border-color:rgba(112,183,255,.88)!important;box-shadow:0 0 0 3px rgba(65,145,255,.18),0 0 18px rgba(65,145,255,.3)!important}
+#sb-panel-toggle.menu-hamburger:active{transform:scale(.92)!important;background:rgba(30,48,68,.30)!important}
+#sb-construction-menu[open]>#sb-panel-toggle.menu-hamburger{background:rgba(30,48,68,.30)!important}
+@media(prefers-reduced-motion:reduce){#sb-panel-toggle.menu-hamburger{animation:none!important;border-color:rgba(105,175,255,.9)!important;box-shadow:0 0 0 1px rgba(65,145,255,.2),0 0 12px rgba(55,135,255,.28),0 4px 16px rgba(0,0,0,.2)!important}}
 @media(max-width:560px){
  #sb-panel-toggle.menu-hamburger{width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;flex-basis:44px!important;border-radius:50%!important}
 }
