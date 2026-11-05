@@ -1871,6 +1871,15 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 #constructionPanel button.sb-neon-release,#sb-action-dock button.sb-neon-release{filter:brightness(1.25)!important}
 
 #sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,42,68,.42)!important;border:1px solid rgba(255,112,132,.98)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(255,75,95,.28),0 0 14px rgba(255,45,70,.82),0 0 27px rgba(255,45,70,.5),inset 0 0 12px rgba(255,45,70,.25)!important}
+
+/* PR #61 follow-up: force persistent Delete-mode state to remain visible. */
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,45,72,.38)!important;
+ border:2px solid rgba(255,92,112,.98)!important;
+ color:#fff!important;
+ box-shadow:0 0 0 2px rgba(255,55,82,.2),0 0 18px rgba(255,35,68,.72),inset 0 0 12px rgba(255,60,82,.28)!important;
+}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -2049,7 +2058,7 @@ setMapTheme(currentTheme);
    SECTION 11 — GAME STATE AND SETTINGS
    ========================================================= */
 
-let mode='station';
+var mode='station';
 let trackStyle='single';
 let platformWidth='default';
 let platformType='island';
@@ -2074,13 +2083,13 @@ let selected=null;
 let selectedTrackIndex=null;
 let stationMenuTimer=null;
 let stationMenuIndex=null;
-let running=false;
+var running=false;
 let simulation=null;
 let trainMarkers=[];
 let trainMovementTimers=[];
 let platformCrowdMarkers=[];
 let history=[];
-let historyIndex=0;
+var historyIndex=0;
 
 let sbMessageTimer=null;
 let sbPressedButton='';
@@ -3313,5 +3322,116 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});
 })();
 </script>
+
+<script>
+/* Android WebView control bridge.
+   Remember the pressed control on pointer/touch down because some WebViews
+   retarget pointerup to the document/map. Activate on release and suppress
+   the synthetic click that follows. Native click remains a final fallback. */
+(function(){
+ const selector='#sb-game-menu-toggle,#sb-panel-toggle,#trashModeBtn,#undoBtn,#redoBtn,#constructionPanel button[data-panel-action]';
+ let pressed=null,lastHandled=null,lastAt=0;
+ function findButton(target){return target&&target.closest?target.closest(selector):null;}
+ function activate(button){
+  if(!button||button.disabled)return false;
+  try{
+   if(button.id==='sb-game-menu-toggle'){openInGameMenu();return true;}
+   if(button.id==='sb-panel-toggle'){toggleToolsPanel();return true;}
+   if(button.id==='trashModeBtn'){activateDeleteMode();syncConstructionControls();return true;}
+   if(button.id==='undoBtn'){undo();return true;}
+   if(button.id==='redoBtn'){redo();return true;}
+   const action=button.dataset.panelAction;
+   const actions={
+    'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
+    'draw-track':()=>setMode('track'),'curve-track':()=>setMode('curve'),
+    'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),
+    'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
+    'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
+    'theme-menu':()=>toggleMapMenu(),
+    'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
+    'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
+    'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
+    'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
+    'toggle-3d':()=>window.toggle3DCityView()
+   };
+   if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
+   else if(action==='platform-type')setPlatformType(button.dataset.platformType);
+   else if(typeof actions[action]==='function')actions[action]();
+   else return false;
+   syncConstructionControls();
+   return true;
+  }catch(error){console.error('Control activation failed',button.id||button.dataset.panelAction,error);return false;}
+ }
+ function activateOnce(button,event){
+  if(!button)return;
+  if(lastHandled===button&&Date.now()-lastAt<850)return;
+  if(activate(button)){
+   lastHandled=button;lastAt=Date.now();
+   if(event){event.preventDefault();event.stopPropagation();}
+  }
+ }
+ document.addEventListener('pointerdown',e=>{pressed=findButton(e.target);},{capture:true,passive:true});
+ document.addEventListener('touchstart',e=>{pressed=findButton(e.target);},{capture:true,passive:true});
+ document.addEventListener('pointerup',e=>{const b=findButton(e.target)||pressed;activateOnce(b,e);pressed=null;},{capture:true});
+ document.addEventListener('touchend',e=>{const b=findButton(e.target)||pressed;activateOnce(b,e);pressed=null;},{capture:true});
+ document.addEventListener('pointercancel',()=>{pressed=null;},{capture:true,passive:true});
+ document.addEventListener('touchcancel',()=>{pressed=null;},{capture:true,passive:true});
+ document.addEventListener('click',e=>{
+  const b=findButton(e.target);
+  if(!b)return;
+  if(lastHandled===b&&Date.now()-lastAt<850){
+   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+   lastHandled=null;lastAt=0;return;
+  }
+  // Some Android WebViews deliver click but no usable pointer/touch release.
+  activateOnce(b,e);
+ },{capture:true});
+})();
+</script>
+
+<script>
+(function(){
+ if(!new URLSearchParams(location.search).has('sbdebug'))return;
+ const hud=document.createElement('aside');
+ hud.style.cssText='position:fixed;z-index:99999;left:7px;bottom:7px;width:min(72vw,390px);max-height:34vh;overflow:hidden;padding:8px 10px;border:1px solid #7debd5;border-radius:12px;background:rgba(2,10,20,.92);color:#dff;font:10px/1.35 monospace;pointer-events:none;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 3px 18px #000a';
+ hud.textContent='WEBVIEW TOUCH TRACE · waiting for input';
+ document.body.appendChild(hud);
+ const lines=[];
+ function label(el){
+  if(!el)return 'none';
+  const id=el.id?'#'+el.id:'';
+  const action=el.dataset&&el.dataset.panelAction?'['+el.dataset.panelAction+']':'';
+  const cls=typeof el.className==='string'?'.'+el.className.trim().replace(/\s+/g,'.').slice(0,55):'';
+  return el.tagName.toLowerCase()+id+action+cls;
+ }
+ function add(type,e){
+  const t=e&&e.target;
+  const touch=e&&e.changedTouches&&e.changedTouches[0];
+  const x=e&&Number.isFinite(e.clientX)?e.clientX:(touch?touch.clientX:null);
+  const y=e&&Number.isFinite(e.clientY)?e.clientY:(touch?touch.clientY:null);
+  const hit=x!==null&&y!==null?document.elementFromPoint(x,y):null;
+  lines.unshift(type+' target='+label(t)+' hit='+label(hit)+' mode='+String(window.mode||'n/a')+(x!==null?' @'+Math.round(x)+','+Math.round(y):''));
+  lines.splice(9);
+  hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
+ }
+ ['pointerdown','pointerup','pointercancel','touchstart','touchend','touchcancel','click'].forEach(type=>{
+  window.addEventListener(type,e=>add(type,e),{capture:true,passive:true});
+ });
+ window.addEventListener('error',e=>{
+  lines.unshift('JS ERROR '+(e.message||'unknown')+' '+(e.filename||'')+':'+(e.lineno||''));
+  lines.splice(9);hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
+ });
+ window.addEventListener('unhandledrejection',e=>{
+  lines.unshift('PROMISE ERROR '+String(e.reason&&e.reason.message||e.reason));
+  lines.splice(9);hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
+ });
+ const originalError=console.error;
+ console.error=function(){
+  try{lines.unshift('CONSOLE ERROR '+Array.from(arguments).map(x=>String(x&&x.message||x)).join(' ').slice(0,180));lines.splice(9);hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');}catch(_){}
+  originalError.apply(console,arguments);
+ };
+})();
+</script>
+
 </body>
 </html>
