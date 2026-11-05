@@ -1895,10 +1895,11 @@ const SB_GAME_SAVE_KEY='sbGameSaveV1';
 function persistGameState(){
  try{
   const center=map.getCenter();
+  const historyStart=Math.max(0,history.length-40);
   const payload={
    version:1,savedAt:Date.now(),game:snapshot(),
    viewport:{lat:center.lat,lng:center.lng,zoom:map.getZoom()},
-   history:history.slice(-40),historyIndex:Math.min(historyIndex,39)
+   history:history.slice(historyStart),historyIndex:Math.max(0,historyIndex-historyStart)
   };
   localStorage.setItem(SB_GAME_SAVE_KEY,JSON.stringify(payload));
  }catch(error){console.warn('Game autosave unavailable:',error);}
