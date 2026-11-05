@@ -876,8 +876,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 @media(max-width:560px){#sb-construction-menu[open]>#constructionPanel{width:min(76vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 190px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 174px)!important;}}
 
 /* Final mobile layout: show the complete construction drawer and match the dashboard glass. */
-@media(max-width:560px){
-  #sb-construction-menu[open]>#constructionPanel{
+#sb-construction-menu[open]>#constructionPanel{
     position:fixed!important;
     display:block!important;
     left:10px!important;
@@ -903,7 +902,6 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
     backdrop-filter:blur(26px) saturate(180%)!important;
     -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
     box-shadow:0 10px 32px rgba(0,0,0,.2)!important;
-  }
 }
 #sb-action-dock{
   background:var(--ios-glass,rgba(15,25,40,.46))!important;
