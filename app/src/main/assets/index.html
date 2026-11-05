@@ -1537,35 +1537,94 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  -webkit-overflow-scrolling:touch!important;
  scrollbar-gutter:stable;
 }
-#constructionPanel .sb-panel-resize-handle{
- position:absolute!important;z-index:20!important;
- top:50%!important;right:0!important;transform:translateY(-50%)!important;
- width:18px!important;height:76px!important;
- display:flex!important;align-items:center!important;justify-content:center!important;
- border:1px solid rgba(220,240,255,.22)!important;
- border-right:0!important;border-radius:14px 0 0 14px!important;
- background:linear-gradient(180deg,rgba(225,244,255,.16),rgba(120,165,195,.10))!important;
- box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 3px 12px rgba(0,0,0,.14)!important;
- backdrop-filter:blur(22px) saturate(170%)!important;
- -webkit-backdrop-filter:blur(22px) saturate(170%)!important;
- cursor:ew-resize!important;touch-action:none!important;
- user-select:none!important;-webkit-user-select:none!important;
-}
-#constructionPanel .sb-panel-resize-handle:before{
- content:"";display:block;width:3px;height:34px;border-radius:4px;
- background:rgba(235,247,255,.72);
- box-shadow:-4px 0 0 rgba(235,247,255,.35),4px 0 0 rgba(235,247,255,.35);
-}
-#constructionPanel .sb-panel-resize-handle:focus-visible{
- outline:2px solid rgba(120,255,231,.85)!important;outline-offset:2px!important;
-}
-#constructionPanel.is-resizing{transition:none!important;user-select:none!important}
-#constructionPanel.is-resizing *{user-select:none!important}
-@media(max-width:560px){
- #constructionPanel{bottom:calc(64px + env(safe-area-inset-bottom,0px))!important}
- #constructionPanel .sb-panel-resize-handle{width:20px!important;height:70px!important}
-}
+/* Unified bottom glass action rail: history left, construction + delete right. */
+#sb-action-dock{position:fixed!important;z-index:900!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;width:auto!important;box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:7px 61px 7px 8px!important;border-radius:25px!important;background:rgba(15,25,40,.42)!important;border:1px solid rgba(255,255,255,.22)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
+#sb-action-dock button{width:43px!important;height:43px!important;min-height:43px!important;flex:0 0 43px!important;margin:0!important;padding:0!important;border-radius:50%!important;font-size:18px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#sb-action-dock #trashModeBtn{margin-left:auto!important;background:rgba(255,90,110,.18)!important;border-color:rgba(255,140,155,.4)!important;color:#ff9aa8!important}
+#sb-construction-menu{position:static!important}
+#sb-panel-toggle{display:flex!important;position:fixed!important;z-index:905!important;right:18px!important;left:auto!important;top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 16px)!important;width:43px!important;height:43px!important;min-height:43px!important;padding:0!important;align-items:center!important;justify-content:center!important;border-radius:50%!important;border:1px solid rgba(255,255,255,.28)!important;background:rgba(120,190,225,.17)!important;color:#eaf7ff!important;backdrop-filter:blur(18px) saturate(180%)!important;-webkit-backdrop-filter:blur(18px) saturate(180%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 5px 18px rgba(0,0,0,.18)!important}
+#sb-construction-menu[open]>#sb-panel-toggle{background:rgba(80,226,205,.28)!important;border-color:rgba(132,255,231,.65)!important}
+@media(max-width:380px){#sb-action-dock{left:6px!important;right:6px!important;gap:6px!important;padding-left:6px!important}#sb-action-dock button,#sb-panel-toggle{width:40px!important;height:40px!important;min-height:40px!important;flex-basis:40px!important}}
 
+/* PR#49 — split bottom glass dock: history left, construction/delete right */
+#sb-action-dock{
+ position:fixed!important;z-index:1600!important;left:12px!important;right:12px!important;
+ bottom:max(8px,env(safe-area-inset-bottom,0px))!important;top:auto!important;
+ box-sizing:border-box!important;width:auto!important;min-height:60px!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;gap:9px!important;padding:7px 60px 7px 9px!important;
+ border-radius:22px!important;border:1px solid rgba(220,240,255,.22)!important;
+ background:rgba(12,25,42,.42)!important;backdrop-filter:blur(26px) saturate(180%)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 9px 30px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+#sb-action-dock::after{content:"";position:absolute;right:57px;top:11px;bottom:11px;width:1px;background:rgba(220,240,255,.22);pointer-events:none}
+#sb-action-dock button{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;max-height:44px!important;flex:0 0 44px!important;border-radius:50%!important;border:1px solid rgba(220,240,255,.28)!important;background:rgba(150,205,235,.14)!important;color:#eff9ff!important;backdrop-filter:blur(18px) saturate(180%)!important;-webkit-backdrop-filter:blur(18px) saturate(180%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 4px 14px rgba(0,0,0,.16)!important}
+#sb-action-dock #trashModeBtn{margin-left:auto!important;background:rgba(255,90,110,.17)!important;border-color:rgba(255,150,165,.4)!important;color:#ffb0ba!important}
+#sb-construction-menu>summary#sb-panel-toggle{position:fixed!important;left:auto!important;right:21px!important;top:auto!important;bottom:calc(max(8px,env(safe-area-inset-bottom,0px)) + 8px)!important;z-index:1602!important;width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;border-radius:50%!important;margin:0!important}
+#sb-construction-menu>summary#sb-panel-toggle svg{width:22px!important;height:22px!important}
+@media(max-width:380px){#sb-action-dock{left:7px!important;right:7px!important;min-height:54px!important;padding:6px 53px 6px 7px!important;gap:7px!important}#sb-action-dock button,#sb-construction-menu>summary#sb-panel-toggle{width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;min-height:40px!important;max-height:40px!important;flex-basis:40px!important}#sb-action-dock::after{right:49px}#sb-construction-menu>summary#sb-panel-toggle{right:14px!important;bottom:calc(max(8px,env(safe-area-inset-bottom,0px)) + 7px)!important}}
+
+/* PR#49 — consistent icon fit, alignment, and button feedback across the app */
+button{
+ box-sizing:border-box;align-items:center;justify-content:center;text-align:center;
+ vertical-align:middle;transform-origin:center center;
+ -webkit-tap-highlight-color:transparent;
+ transition:transform .16s ease,filter .18s ease,box-shadow .18s ease,border-color .18s ease,background-color .18s ease,color .18s ease;
+}
+button svg,button img,button .icon,button i,button [class*="icon"]{
+ display:inline-block;box-sizing:border-box;max-width:1.35em;max-height:1.35em;
+ width:1.15em;height:1.15em;object-fit:contain;vertical-align:middle;
+ flex:0 0 auto;margin-inline:auto;line-height:1;
+}
+button svg{overflow:visible}
+button:where(:hover){filter:brightness(1.12);box-shadow:0 0 0 1px rgba(190,225,255,.16),0 4px 14px rgba(0,0,0,.14)}
+button:where(:focus-visible){outline:2px solid rgba(135,210,255,.9);outline-offset:3px;filter:brightness(1.12)}
+button:where(:active){transform:scale(.94);filter:brightness(1.18);box-shadow:inset 0 1px 5px rgba(0,0,0,.2),0 0 0 1px rgba(190,225,255,.22)}
+button:disabled,button[aria-disabled="true"]{cursor:not-allowed;filter:saturate(.55);transition:opacity .18s ease,filter .18s ease}
+@media(hover:none){button:where(:hover){filter:none;box-shadow:initial}}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}button:where(:active){transform:none}}
+
+/* Universal neon interaction language for every in-game tool button. */
+button{position:relative;isolation:isolate;transition:transform .16s ease,filter .2s ease,box-shadow .22s ease,border-color .22s ease,background-color .22s ease!important;}
+button:not(:disabled){--sb-neon:rgba(86,226,255,.92);}
+button:not(:disabled):hover{filter:brightness(1.16) saturate(1.18);box-shadow:0 0 0 1px color-mix(in srgb,var(--sb-neon) 55%,transparent),0 0 13px color-mix(in srgb,var(--sb-neon) 45%,transparent),inset 0 0 9px color-mix(in srgb,var(--sb-neon) 16%,transparent);}
+button:not(:disabled):focus-visible{outline:2px solid var(--sb-neon)!important;outline-offset:3px;box-shadow:0 0 16px color-mix(in srgb,var(--sb-neon) 65%,transparent)!important;}
+button:not(:disabled).sb-neon-release{filter:brightness(1.22);box-shadow:0 0 0 1px color-mix(in srgb,var(--sb-neon) 70%,transparent),0 0 13px color-mix(in srgb,var(--sb-neon) 48%,transparent)!important;}
+button:not(:disabled).sb-neon-pressed{transform:scale(.93);filter:brightness(1.35) saturate(1.35);box-shadow:0 0 0 1px var(--sb-neon),0 0 9px var(--sb-neon),0 0 22px color-mix(in srgb,var(--sb-neon) 68%,transparent),inset 0 0 12px color-mix(in srgb,var(--sb-neon) 35%,transparent)!important;}
+#trashModeBtn,#sb-action-dock .trash-dock-btn{--sb-neon:rgba(255,70,94,.98)!important;}
+#trashModeBtn:hover,#sb-action-dock .trash-dock-btn:hover{background:rgba(255,48,74,.3)!important;border-color:rgba(255,92,112,.95)!important;box-shadow:0 0 0 1px rgba(255,75,95,.8),0 0 15px rgba(255,55,80,.72),inset 0 0 12px rgba(255,55,80,.3)!important;}
+#trashModeBtn.sb-neon-pressed,#sb-action-dock .trash-dock-btn.sb-neon-pressed{background:rgba(255,35,65,.42)!important;--sb-neon:rgba(255,55,78,.98)!important;}
+.sb-long-press-shell{position:fixed;z-index:1800;pointer-events:none;border:1px solid rgba(105,232,255,.72);border-radius:50%;background:rgba(76,205,255,.035);box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 17px rgba(73,218,255,.38),inset 0 0 18px rgba(73,218,255,.14);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);transform:translate(-50%,-50%) scale(.88);opacity:0;animation:sb-shell-in .14s ease-out forwards;}
+.sb-long-press-shell.sb-shell-delete{border-color:rgba(255,90,112,.9);box-shadow:0 0 0 1px rgba(255,90,112,.25),0 0 18px rgba(255,55,80,.5),inset 0 0 16px rgba(255,55,80,.16);}
+@keyframes sb-shell-in{to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@media(hover:none){button:not(:disabled):hover{filter:none;box-shadow:none}}
+@media(prefers-reduced-motion:reduce){button,.sb-long-press-shell{transition:none!important;animation:none!important}}
+
+/* Construction drawer now shares the top/bottom dock glass shell; keep responsive sizing, no drag grip. */
+#constructionPanel{
+ width:min(86vw,310px)!important;
+ max-width:calc(100vw - 18px)!important;
+ border:1px solid rgba(255,255,255,.22)!important;
+ border-radius:25px!important;
+ background:rgba(15,25,40,.42)!important;
+ color:#f3f8ff!important;
+ backdrop-filter:blur(26px) saturate(180%)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.1)!important;
+ transform-origin:top right;
+}
+#constructionPanel .panel-heading{border-radius:24px 24px 0 0!important;background:transparent!important;border-bottom:1px solid rgba(255,255,255,.12)!important;}
+#constructionPanel .panel-heading .panel-title{color:#f3f8ff!important;}
+@media(max-width:560px){#constructionPanel{width:min(86vw,310px)!important;}}
+/* PR #49: two-column construction groups with centered circular controls. */
+#constructionPanel{min-height:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-gutter:stable;}
+#constructionPanel .tool-group{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;justify-items:center;gap:8px;padding:8px 10px 10px;}
+#constructionPanel .tool-group summary{grid-column:1/-1;width:100%;box-sizing:border-box;text-align:center;}
+#constructionPanel .tool-group .tool-grid{grid-column:1/-1;width:100%;box-sizing:border-box;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))!important;justify-items:center;align-items:center;gap:9px;padding:8px 4px 4px;}
+#constructionPanel .tool-group button,#constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;margin:0!important;padding:0!important;justify-self:center;display:grid!important;place-items:center!important;border-radius:50%!important;text-align:center!important;}
+#constructionPanel .panel-heading{position:sticky;top:-12px;z-index:3;}
+@media(max-width:560px){#constructionPanel .tool-group{gap:7px;padding:7px 8px 9px;}#constructionPanel .tool-group .tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px;padding:7px 2px 3px;}#constructionPanel .tool-group button,#constructionPanel .tool-grid button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;}}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1647,7 +1706,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
  </div>
- <div class="sb-panel-resize-handle" role="separator" aria-orientation="vertical" aria-label="Resize construction panel" tabindex="0" title="Drag to resize panel"></div>
+ 
 </nav>
 </details>
 
@@ -2163,12 +2222,734 @@ marker.on('dragend',function(){
    ========================================================= */
 
 function updateUI(){
- document.getElementById('money').textContent='$'+money.toLocaleString();
- document.getElementById('passengers').textContent=passengers.toLocaleString();
- document.getElementById('stationCount').textContent='Stations: '+stations.length;
- document.getElementById('trackCount').textContent='Track: '+tracks.length+' sections';
- document.getElementById('undoBtn').disabled=historyIndex<=0;
- document.getElementById('redoBtn').disabled=historyIndex>=history.length-1;
+ const moneyEl=document.getElementById('money');if(moneyEl)moneyEl.textContent='$'+money.toLocaleString();
+ const passengersEl=document.getElementById('passengers');if(passengersEl)passengersEl.textContent=passengers.toLocaleString();
+ const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
+ const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
+ const undoEl=document.getElementById('undoBtn');if(undoEl)undoEl.disabled=historyIndex<=0;
+ const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=history.length-1;
+}
+function setMode(newMode){
+ mode=newMode;
+ selected=null;
+ const modeButtons={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
+ document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(btn=>{
+  const active=btn.id===modeButtons[mode];
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
+
+
+ const trashDock=document.getElementById('trashModeBtn');
+ if(trashDock)trashDock.classList.toggle('active',mode==='delete');
+
+ renderNetwork();
+
+ if(mode==='station')message('Tap the map to place a station ($500).');
+ if(mode==='track')message('Tap one station, then another station to connect them ($150).');
+ if(mode==='waypoint')message('Tap a track to select it for waypoint editing.');
+ if(mode==='inspect')message('Tap a station to inspect it.');
+ if(mode==='delete')message('Tap a station to delete it and its connected tracks.');
+}
+
+function setTrackStyle(style){
+ if(style!=='single'&&style!=='parallel')return;
+ trackStyle=style;
+ document.querySelectorAll('#singleTrackBtn,#parallelTrackBtn').forEach(btn=>{
+  const active=btn.id===(style==='single'?'singleTrackBtn':'parallelTrackBtn');
+  btn.classList.toggle('active',active);
+  btn.setAttribute('aria-pressed',String(active));
+ });
+
+ message(style==='parallel'?'Parallel track mode selected.':'Single track mode selected.');
+}
+
+function setPlatformWidth(width){
+ if(!['narrow','default','wide'].includes(width))return;
+ platformWidth=width;
+ document.querySelectorAll('[data-platform-width]').forEach(btn=>{
+  const active=btn.dataset.platformWidth===width;
+  btn.classList.toggle('active',active);btn.setAttribute('aria-pressed',String(active));
+ });
+ renderNetwork();message('Platform width: '+width+'.');
+}
+function toggleTunnelMode(){
+ tunnelMode=!tunnelMode;
+ const btn=document.getElementById("tunnelModeBtn");
+ btn.setAttribute("aria-pressed",String(tunnelMode));
+ btn.classList.toggle("active",tunnelMode);
+ message(tunnelMode?"Tunnel mode enabled — new track connections will run underground.":"Tunnel mode disabled — new track connections will run at grade.");
+}
+
+function toggleCurveMode(){
+ curveMode=!curveMode;
+
+ document.getElementById('curveBtn').setAttribute('aria-pressed',String(curveMode));
+
+ document.getElementById('curveBtn').classList.toggle('active',curveMode);
+
+ message(curveMode?'Curve tool enabled.':'Curve tool disabled.');
+}
+
+/* =========================================================
+   SECTION 15 — STATION OPTIONS
+   ========================================================= */
+
+function positionStationMenu(index){
+ const menu=document.getElementById('stationContextMenu');
+ const station=stations[index];
+ if(!menu||!station)return;
+ const point=map.latLngToContainerPoint([station.lat,station.lng]);
+ const rect=map.getContainer().getBoundingClientRect();
+ const width=menu.offsetWidth||196;
+ const height=menu.offsetHeight||180;
+ const gap=12;
+ let left=rect.left+point.x-width/2;
+ let top=rect.top+point.y-height-gap;
+ left=Math.max(8,Math.min(left,window.innerWidth-width-8));
+ if(top<8)top=Math.min(window.innerHeight-height-8,rect.top+point.y+gap+18);
+ menu.style.left=left+'px';menu.style.top=top+'px';
+}
+function showStationMenu(index){
+ const menu=document.getElementById('stationContextMenu');
+ if(!menu||!stations[index])return;
+ stationMenuIndex=index;
+ document.getElementById('stationMenuTitle').textContent=stations[index].name;
+ menu.style.display='block';
+ positionStationMenu(index);
+ requestAnimationFrame(()=>menu.classList.add('sb-station-menu-open'));
+}
+function closeStationMenu(){
+ const menu=document.getElementById('stationContextMenu');
+ if(menu){menu.classList.remove('sb-station-menu-open');menu.style.display='none';}
+ stationMenuIndex=null;
+}
+
+function renameSelectedStation(){
+ if(stationMenuIndex===null)return;
+
+ let station=stations[stationMenuIndex];
+ let name=prompt('Enter station name:',station.name);
+
+ if(name&&name.trim()){
+  station.name=name.trim();
+  saveHistory();
+  renderNetwork();
+  message('Station renamed.');
+ }
+
+ closeStationMenu();
+}
+
+function setStationElevation(level){
+ if(stationMenuIndex===null)return;
+
+ stations[stationMenuIndex].elevation=level;
+ saveHistory();
+ renderNetwork();
+
+ let labels={
+  above:'Above Grade',
+  at:'At Grade',
+  below:'Below Grade'
+ };
+
+ message('Station elevation: '+labels[level]);
+ closeStationMenu();
+}
+
+/* =========================================================
+   SECTION 16 — SELECTION AND EDITING
+   ========================================================= */
+
+function toggleDashboardDialog(open){const dialog=document.getElementById("sb-dashboard-dialog");if(open===false){dialog.classList.remove("open");clearTimeout(sbMessageTimer);}else message("Build stations, connect routes, adjust track settings, and run trains.");}
+let sbTouchPointerEnabled=false;
+function setTouchPointerEnabled(enabled){
+ sbTouchPointerEnabled=!!enabled;
+ document.body.classList.toggle('sb-touch-pointer-enabled',sbTouchPointerEnabled);
+ const button=document.getElementById('sb-pointer-toggle');
+ if(button){button.classList.toggle('active',sbTouchPointerEnabled);button.setAttribute('aria-pressed',String(sbTouchPointerEnabled));button.title=sbTouchPointerEnabled?'Switch to normal touch controls':'Enable touch pointer';button.setAttribute('aria-label',button.title);}
+ const pointer=document.getElementById('sb-touch-pointer');
+ if(pointer){pointer.classList.toggle('visible',sbTouchPointerEnabled);if(!sbTouchPointerEnabled)pointer.classList.remove('pressed');}
+}
+function toggleTouchPointer(){setTouchPointerEnabled(!sbTouchPointerEnabled);message(sbTouchPointerEnabled?'Touch pointer enabled. Tap or drag with the pointer; turn it off for normal touch controls.':'Normal touch controls enabled.');}
+function moveTouchPointer(x,y,visible=true){
+ const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
+ pointer.style.left=x+'px';pointer.style.top=y+'px';pointer.classList.toggle('visible',!!visible);
+ const play=document.getElementById('sb-play-button');
+ if(play){const r=play.getBoundingClientRect();play.classList.toggle('sb-pointer-hover',x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom&&visible);}
+}
+(function installTouchPointer(){
+ const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
+ document.addEventListener('pointermove',e=>{if(sbTouchPointerEnabled||document.getElementById('startMenu')?.style.display!=='none')moveTouchPointer(e.clientX,e.clientY,true);});
+ document.addEventListener('pointerdown',e=>{if(sbTouchPointerEnabled||document.getElementById('startMenu')?.style.display!=='none'){moveTouchPointer(e.clientX,e.clientY,true);pointer.classList.add('pressed');}});
+ document.addEventListener('pointerup',()=>pointer.classList.remove('pressed'));
+ document.addEventListener('pointercancel',()=>pointer.classList.remove('pressed'));
+ document.addEventListener('click',e=>{if(!sbTouchPointerEnabled&&document.getElementById('startMenu')?.style.display==='none')return;const ripple=document.createElement('i');ripple.className='sb-pointer-click';ripple.style.left=e.clientX+'px';ripple.style.top=e.clientY+'px';document.body.appendChild(ripple);setTimeout(()=>ripple.remove(),420);});
+ document.addEventListener('touchmove',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
+ document.addEventListener('touchstart',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
+ document.addEventListener('touchend',()=>{if(sbTouchPointerEnabled)pointer.classList.remove('pressed');});
+})();
+function toggleToolsPanel(open){
+ const menu=document.getElementById('sb-construction-menu');
+ const panel=document.getElementById('constructionPanel');
+ const toggle=document.getElementById('sb-panel-toggle');
+ if(!menu||!panel||!toggle)return;
+ menu.open=typeof open==='boolean'?open:!menu.open;
+ const expanded=menu.open;
+ toggle.setAttribute('aria-expanded',String(expanded));
+ const hamburger=toggle.querySelector('.menu-hamburger');
+ if(hamburger){hamburger.setAttribute('aria-expanded',String(expanded));hamburger.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');}
+ toggle.setAttribute('aria-label','Construction menu');
+ toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
+ panel.setAttribute('aria-hidden',String(!expanded));
+ if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
+}
+function syncConstructionControls(){
+ // Exclusive choices are synchronized from the live app state, not from
+ // whatever classes happened to be present in the HTML when the drawer opened.
+ const exclusiveGroups=[
+  {selector:'[data-panel-action^="mode-"]',value:mode,prefix:'mode-'},
+  {selector:'[data-panel-action^="track-"]',value:trackStyle,prefix:'track-'},
+  {selector:'[data-platform-width]',value:platformWidth,attribute:'platformWidth'},
+  {selector:'[data-platform-type]',value:platformType,attribute:'platformType'}
+ ];
+ exclusiveGroups.forEach(group=>{
+  document.querySelectorAll(group.selector).forEach(button=>{
+   const selected=group.attribute
+    ?button.dataset[group.attribute]===group.value
+    :button.dataset.panelAction===group.prefix+group.value;
+   button.classList.toggle('active',selected);
+   button.setAttribute('aria-pressed',String(selected));
+  });
+ });
+ const states={
+  curveBtn:curveMode,tunnelModeBtn:tunnelMode,runBtn:running,
+  'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')
+ };
+ Object.entries(states).forEach(([id,active])=>{
+  const button=document.getElementById(id);
+  if(!button)return;
+  button.classList.toggle('active',active);
+  button.setAttribute('aria-pressed',String(active));
+ });
+ const themeButton=document.getElementById('themeToggleBtn');
+ const themeMenu=document.getElementById('mapMenu');
+ if(themeButton&&themeMenu)themeButton.setAttribute('aria-expanded',String(themeMenu.style.display!=='none'));
+}
+function bindConstructionPanelControls(){
+ const panel=document.getElementById('constructionPanel');
+ const menu=document.getElementById('sb-construction-menu');
+ const toggle=document.getElementById('sb-panel-toggle');
+ if(!panel)return;
+ if(menu&&menu.dataset.stateBound!=='true'){
+  menu.dataset.stateBound='true';
+  menu.addEventListener('toggle',()=>{
+   const expanded=menu.open;
+   if(toggle){
+    toggle.setAttribute('aria-expanded',String(expanded));
+    const hamburger=toggle.querySelector('.menu-hamburger');
+    if(hamburger){hamburger.setAttribute('aria-expanded',String(expanded));hamburger.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');}
+    toggle.setAttribute('aria-label','Construction menu');
+    toggle.setAttribute('title','Construction menu');
+   }
+   panel.setAttribute('aria-hidden',String(!expanded));
+  });
+ }
+ if(panel.dataset.controlsBound!=='true'){
+  panel.dataset.controlsBound='true';
+  const actions={
+   'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
+   'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),
+   'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
+   'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
+   'theme-menu':()=>toggleMapMenu(),
+   'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
+   'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
+   'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
+   'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
+   'toggle-3d':()=>window.toggle3DCityView()
+  };
+  // Bind each real button directly. This avoids relying on click bubbling
+  // through nested native <details> elements in Android WebView.
+  panel.querySelectorAll('button[data-panel-action]').forEach(button=>{
+   if(button.dataset.actionBound==='true')return;
+   button.dataset.actionBound='true';
+   button.addEventListener('click',async event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    const action=button.dataset.panelAction;
+    try{
+     if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
+     else if(action==='platform-type')setPlatformType(button.dataset.platformType);
+     else if(typeof actions[action]==='function')await actions[action]();
+     else{console.warn('Unwired construction action:',action);message('This construction tool is not connected yet.');}
+     syncConstructionControls();
+    }catch(error){
+     console.error('Construction tool action failed:',action,error);
+     message('Could not run '+(button.getAttribute('aria-label')||button.title||'that tool')+'. Please try again.');
+    }
+   });
+  });
+  panel.querySelectorAll('details.tool-group').forEach(group=>{
+   const summary=group.querySelector('summary');if(!summary)return;
+   const update=()=>{summary.setAttribute('aria-expanded',String(group.open));group.classList.toggle('is-open',group.open);};
+   summary.addEventListener('click',event=>{event.preventDefault();group.open=!group.open;update();});
+   summary.addEventListener('keydown',event=>{
+    if(event.key!=='Enter'&&event.key!==' ')return;
+    event.preventDefault();group.open=!group.open;update();
+   });
+   group.addEventListener('toggle',update);update();
+  });
+ }
+ if(menu)menu.open=false;
+ if(toggle)toggle.setAttribute('aria-expanded','false');
+ panel.setAttribute('aria-hidden','true');
+ syncConstructionControls();
+}
+function resetSelection(){
+ selected=null;
+ renderNetwork();
+ message('Selection cleared.');
+}
+function activateDeleteMode(){
+ if(document.getElementById('sb-3d-map').classList.contains('active'))toggle3DCityView();
+ setMode('delete');
+}
+ function setWaypointElevation(trackIndex,waypointIndex,level){
+ let track=tracks[trackIndex];
+ if(!track||!track.waypoints[waypointIndex])return;
+
+ track.waypoints[waypointIndex].elevation=level;
+ saveHistory();
+ renderNetwork();
+ message('Waypoint elevation changed to '+level+' grade.');
+ }
+function selectTrackForWaypoints(trackIndex){
+ selectedTrackIndex=trackIndex;
+ message('Track selected. Tap the map to add a waypoint.');
+}
+function handleStationClick(index){
+  if(mode==='delete'){
+  let name=stations[index].name;
+
+  tracks=tracks.filter(t=>t.a!==index&&t.b!==index);
+
+  tracks.forEach(t=>{
+   if(t.a>index)t.a--;
+   if(t.b>index)t.b--;
+  });
+
+  stations.splice(index,1);
+  selected=null;
+  selectedTrackIndex=null;
+
+  saveHistory();
+  renderNetwork();
+  message(name+' and its connected tracks deleted.');
+  return;
+ }
+ if(mode==='track'){
+  if(selected===null){
+   selected=index;
+   renderNetwork();
+   message(stations[index].name+' selected. Now tap another station.');
+   return;
+  }
+
+  if(selected===index){
+   selected=null;
+   renderNetwork();
+   message('Selection cleared.');
+   return;
+  }
+
+  let first=selected;
+  let second=index;
+
+  if(tracks.some(t=>
+   (t.a===first&&t.b===second)||
+   (t.a===second&&t.b===first)
+  )){
+   selected=null;
+   renderNetwork();
+   message('These stations are already connected.');
+   return;
+  }
+
+  if(money<150){
+   selected=null;
+   renderNetwork();
+   message('Not enough money to build track.');
+   return;
+  }
+
+  money-=150;
+  tracks.push({
+  a:first,
+  b:second,
+  style:trackStyle,
+  curve:curveMode,
+  elevation:tunnelMode?"below":"at",
+  waypoints:[]
+});
+  selected=null;
+  saveHistory();
+  renderNetwork();
+  message('Track successfully connected to both stations!');
+  return;
+ }
+
+ if(mode==='inspect'){
+  let connections=tracks.filter(t=>t.a===index||t.b===index).length;
+  message(stations[index].name+' — '+connections+' connected track sections.');
+  return;
+ }
+
+ if(mode==='station'){
+  message(stations[index].name+' already exists. Select Build Track to connect it.');
+ }
+}
+
+map.on('zoom move',function(){if(stationMenuIndex!==null)positionStationMenu(stationMenuIndex);});
+window.addEventListener('resize',function(){if(stationMenuIndex!==null)positionStationMenu(stationMenuIndex);});
+
+/* =========================================================
+   SECTION 17 — MAP TOUCH INTERACTIONS
+   ========================================================= */
+
+// Live placement ghost follows the pointer in station construction mode.
+let stationPlacementPreview=null;
+map.on('mousemove',function(e){
+ if(mode!=='station'||document.getElementById('sb-3d-map').classList.contains('active')){
+  if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
+  return;
+ }
+ if(!stationPlacementPreview){
+  stationPlacementPreview=L.marker(e.latlng,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"></div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);
+ }else stationPlacementPreview.setLatLng(e.latlng);
+});
+map.on('mouseout',function(){if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}});
+
+let lastTouchPlacementAt=0;
+function handleMapPlacement(latlng){
+ const now=Date.now();
+ if(now-lastTouchPlacementAt<450)return;
+ lastTouchPlacementAt=now;
+ if(mode==='station'){
+  if(money<500){
+   message('Not enough money for a station.');
+   return;
+  }
+
+  money-=500;
+  stations.push({
+   lat:latlng.lat,
+   lng:latlng.lng,
+   name:'Station '+(stations.length+1),
+   platformType:platformType
+  });
+
+  saveHistory();
+  renderNetwork();
+  message('Station built successfully.');
+ }
+else if(mode==='delete'){
+  message('Tap a station, track, or waypoint to delete it.');
+}
+ else if(mode==='track'){
+  message('Tap an existing station marker, not the map, to select it.');
+ }
+ else if(mode==='waypoint'){
+  if(selectedTrackIndex===null){
+   message('Select a track first.');
+   return;
+  }
+
+  let track=tracks[selectedTrackIndex];
+  if(!track)return;
+
+  if(!track.waypoints)track.waypoints=[];
+
+  track.waypoints.push({
+   lat:latlng.lat,
+   lng:latlng.lng,
+   elevation:'at'
+  });
+
+  saveHistory();
+  renderNetwork();
+  message('Waypoint added.');
+ }
+}
+map.on('click',function(e){handleMapPlacement(e.latlng);});
+map.getContainer().addEventListener('pointerup',function(event){
+ if(event.pointerType!=='touch')return;
+ if(event.target.closest('.leaflet-marker-icon,.leaflet-interactive,.leaflet-control'))return;
+ const point=map.mouseEventToContainerPoint(event);
+ handleMapPlacement(map.containerPointToLatLng(point));
+},{passive:true});
+
+/* =========================================================
+   SECTION 18 — TRAIN SIMULATION
+   ========================================================= */
+
+function toggleSimulation(){
+ if(running){
+  clearInterval(simulation);simulation=null;running=false;
+  trainMovementTimers.forEach(clearInterval);trainMovementTimers=[];
+  trainMarkers.forEach(m=>map.removeLayer(m));trainMarkers=[];
+  platformCrowdMarkers.forEach(m=>map.removeLayer(m));platformCrowdMarkers=[];
+  document.getElementById('runBtn').textContent='▶';document.getElementById('runBtn').setAttribute('aria-label','Run trains');document.getElementById('runBtn').title='Run trains';
+  message('Simulation paused.');return;
+ }
+ if(stations.length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
+ running=true;document.getElementById('runBtn').textContent='Ⅱ';document.getElementById('runBtn').setAttribute('aria-label','Pause trains');document.getElementById('runBtn').title='Pause trains';
+ stations.forEach(station=>{if(!Number.isFinite(station.waitingPassengers))station.waitingPassengers=8+Math.floor(Math.random()*17);});
+ renderNetwork();
+ message('Trains are running — platform crowds are waiting and trains have limited capacity.');
+ const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'];
+ function createTrain(){
+  if(!running||!tracks.length)return;
+  const trackIndex=Math.floor(Math.random()*tracks.length),track=tracks[trackIndex];
+  const from=stations[track.a],to=stations[track.b];if(!from||!to)return;
+  let route=[[from.lat,from.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[to.lat,to.lng]];
+  if(Math.random()<.5)route=route.slice().reverse();
+  const lengths=[];let total=0;
+  for(let i=1;i<route.length;i++){const d=map.distance(route[i-1],route[i]);lengths.push(d);total+=d;}
+  if(total<1)return;
+  const color=colors[trackIndex%colors.length];
+  const train=L.marker(route[0],{icon:L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
+  trainMarkers.push(train);
+  let segment=0,segmentProgress=0,direction=1,stoppedUntil=0;
+  const capacity=60;
+  let onboard=10+Math.floor(Math.random()*16);
+  train.bindTooltip('On board: '+onboard+'/'+capacity,{direction:'top'});
+  const timer=setInterval(function(){
+   if(!running)return;
+   const now=Date.now();
+   if(stoppedUntil>now)return;
+   if(stoppedUntil&&now>=stoppedUntil){stoppedUntil=0;train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));}
+   const step=2.2;
+   segmentProgress+=step/Math.max(1,lengths[segment]);
+   if(segmentProgress>=1){
+    segmentProgress=0;
+    const next=segment+direction;
+    if(next<0||next>=route.length-1){
+     const stationIndex=direction>0?track.b:track.a;
+     const station=stations[stationIndex];
+     if(station){
+      const alighted=Math.min(onboard,Math.floor(Math.random()*7));
+      onboard-=alighted;
+      const waiting=Number.isFinite(station.waitingPassengers)?station.waitingPassengers:0;
+      const boarded=Math.min(waiting,capacity-onboard,3+Math.floor(Math.random()*9));
+      station.waitingPassengers=waiting-boarded;
+      onboard+=boarded;
+      passengers+=boarded;
+      station.waitingPassengers+=1+Math.floor(Math.random()*4);
+      updateUI();
+      train.setLatLng([station.lat,station.lng]);
+      train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-stop"><span>▣</span><b>+'+boarded+' boarding<span class="load">'+alighted+' off · '+onboard+'/'+capacity+' aboard</span></b></div>',iconSize:[132,52],iconAnchor:[66,26]}));
+      train.bindTooltip(station.name+' · '+boarded+' boarded · '+alighted+' left',{direction:'top',offset:[0,-18]}).openTooltip();
+      renderNetwork();
+      message(station.name+': '+alighted+' off, '+boarded+' boarded · train '+onboard+'/'+capacity+' full.');
+     }
+     direction*=-1;
+     segment=direction>0?0:route.length-2;
+     stoppedUntil=now+1800;
+     return;
+    }
+    segment=next;
+   }
+   const p=route[segment],q=route[segment+1],fraction=segmentProgress;
+   train.setLatLng([p[0]+(q[0]-p[0])*fraction,p[1]+(q[1]-p[1])*fraction]);
+   const el=train.getElement()?.querySelector('.sb-train-body');
+   if(el)el.style.filter='drop-shadow(0 0 6px '+color+') drop-shadow(0 2px 5px #000)';
+  },60);
+  trainMovementTimers.push(timer);
+ }
+ createTrain();
+ simulation=setInterval(createTrain,4200);
+}
+
+bindConstructionPanelControls();
+history.push(snapshot());
+updateUI();
+renderNetwork();
+
+/* =========================================================
+   SECTION 19 — STARTUP AND SPLASH SCREEN
+   ========================================================= */
+
+let sbStartMapPanTimer=null;
+function startStartMenuMapPan(){
+ document.body.classList.add('sb-start-menu-open');
+ document.getElementById('map')?.classList.add('sb-start-blur');
+ document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
+}
+function dismissStartupOverlays(){
+ const menu=document.getElementById('startMenu');
+ if(menu){menu.style.display='none';menu.setAttribute('aria-hidden','true');}
+ const terms=document.getElementById('sb-terms-overlay');
+ if(terms)terms.classList.remove('open');
+ document.body.classList.remove('sb-start-menu-open');
+ document.getElementById('map')?.classList.remove('sb-start-blur');
+ document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
+ if(sbStartMapPanTimer){clearInterval(sbStartMapPanTimer);sbStartMapPanTimer=null;}
+}
+function showStartMenuNotice(text){
+ const notice=document.getElementById('startMenuNotice');
+ if(!notice)return;
+ notice.textContent=text;
+ notice.hidden=false;
+}
+function closeStartMenu(){
+ if(!localStorage.getItem("sbTermsAccepted")){showTermsDialog();return;}
+ dismissStartupOverlays();
+ setTouchPointerEnabled(false);
+ message('Tap the map to build your first station.');
+}
+function showTermsDialog(){const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');}
+function acceptTerms(){
+ const check=document.getElementById('sb-terms-agree');
+ if(!check||!check.checked)return;
+ localStorage.setItem('sbTermsAccepted','yes');
+ dismissStartupOverlays();
+ setTouchPointerEnabled(false);
+ message('Tap the map to build your first station.');
+}
+function hideSplash(){
+ startStartMenuMapPan();
+ if(!localStorage.getItem('sbTermsAccepted'))showTermsDialog();
+}
+
+window.addEventListener('load',function(){
+ requestAnimationFrame(function(){requestAnimationFrame(hideSplash);});
+});
+/* Safety fallback for slow or stalled external map resources. */
+setTimeout(hideSplash,5000);
+</script>
+
+<script>
+let sb3dMap=null;
+let sb3dReady=false;
+let sb3dLibraryPromise=null;
+function sb3dData(){
+ const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
+ const stations=window.getSubway3DStations?window.getSubway3DStations():[];
+ return {lines:{type:'FeatureCollection',features:lines},stations:{type:'FeatureCollection',features:stations}};
+}
+function sb3dRefresh(){
+ if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
+ const data=sb3dData();
+ sb3dMap.getSource('sb-lines')?.setData(data.lines);
+ sb3dMap.getSource('sb-stations')?.setData(data.stations);
+}
+function loadMapLibre(){
+ if(!sb3dLibraryPromise)sb3dLibraryPromise=import('https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs').then(mod=>mod).catch(error=>{sb3dLibraryPromise=null;throw error;});
+ return sb3dLibraryPromise;
+}
+async function ensure3DMap(){
+ if(sb3dMap)return sb3dMap;
+ const maplibregl=await loadMapLibre();
+ const center=map.getCenter();
+ sb3dMap=new maplibregl.Map({
+  container:'sb-3d-map',style:'https://tiles.openfreemap.org/styles/liberty',
+  center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
+  pitch:58,bearing:-18,maxPitch:78,minPitch:0,antialias:true,attributionControl:false,
+  interactive:true,dragRotate:true,touchPitch:true,touchZoomRotate:true,
+  pitchWithRotate:true,cooperativeGestures:false
+ });
+ sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}), 'top-right');
+ sb3dMap.on('load',()=>{
+  try{
+   sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const layers=sb3dMap.getStyle().layers||[];
+   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
+   sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
+    filter:['!=',['get','hide_3d'],true],
+    paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
+     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
+   const data=sb3dData();
+   sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
+   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
+   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
+   sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
+   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
+   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
+   // Buildings, stations and routes are now directly inspectable in the 3D city.
+   sb3dMap.on('mouseenter','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
+   sb3dMap.on('mouseleave','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='';});
+   sb3dMap.on('click','sb-3d-buildings',event=>{
+    const feature=event.features&&event.features[0];if(!feature)return;
+    const props=feature.properties||{};
+    const name=props.name||props.name_en||'City building';
+    const height=Number(props.render_height||props.height);
+    const detail=Number.isFinite(height)&&height>0?Math.round(height)+' m tall':'Building footprint';
+    new maplibregl.Popup({closeButton:true,closeOnClick:true,offset:12})
+     .setLngLat(event.lngLat).setText(name+' · '+detail).addTo(sb3dMap);
+   });
+   sb3dMap.on('click','sb-station-dots',event=>{
+    const feature=event.features&&event.features[0];if(!feature)return;
+    const name=feature.properties?.name||'Subway station';
+    new maplibregl.Popup({closeButton:true,offset:14})
+     .setLngLat(event.lngLat).setText(name+' · Subway Builder station').addTo(sb3dMap);
+   });
+   sb3dMap.on('click','sb-route-lines',event=>{
+    const feature=event.features&&event.features[0];if(!feature)return;
+    const p=feature.properties||{};
+    new maplibregl.Popup({closeButton:true,offset:12})
+     .setLngLat(event.lngLat).setText((p.from||'Station')+' ↔ '+(p.to||'Station')+' · Track '+(p.trackNumber||'')).addTo(sb3dMap);
+   });
+   sb3dMap.on('mouseenter','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
+   sb3dMap.on('mouseleave','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='';});
+   sb3dMap.on('mouseenter','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
+   sb3dMap.on('mouseleave','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='';});
+   sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
+  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded. Switch back to 2D Build.');}
+ });
+ sb3dMap.on('error',event=>console.warn('3D city map:',event.error||event));
+ return sb3dMap;
+}
+window.toggle3DCityView=async function(){
+ const host=document.getElementById('sb-3d-map');
+ const toggle=document.getElementById('sb-3d-toggle');
+ const enable=!host.classList.contains('active');
+ if(!enable){
+  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
+  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  map.invalidateSize();message('2D construction view restored.');return;
+ }
+ host.classList.add('active');document.getElementById('map').style.visibility='hidden';
+ toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
+ try{
+  await ensure3DMap();
+  const center=map.getCenter();
+  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dRefresh();sb3dMap.triggerRepaint();}}));
+  message('3D city preview — switch to 2D Build to edit your network.');
+ }catch(error){
+  console.error('Unable to initialize 3D city map:',error);
+  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
+  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  map.invalidateSize();message('3D map could not load. Check your connection and try again.');
+ }
+};
+window.refreshSubway3D=sb3dRefresh;
+</script>
+
+
+
+
+</body>
+</html>
++money.toLocaleString();
+ const passengersEl=document.getElementById('passengers');if(passengersEl)passengersEl.textContent=passengers.toLocaleString();
+ const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
+ const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
+ const undoEl=document.getElementById('undoBtn');if(undoEl)undoEl.disabled=historyIndex<=0;
+ const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=history.length-1;
 }
 
 function setMode(newMode){
@@ -2883,48 +3664,44 @@ window.refreshSubway3D=sb3dRefresh;
 
 
 <script>
-/* Right-edge glass grip resizes the construction shell without capturing panel scrolling. */
+/* Shared press feedback and hold affordance for in-game tool buttons. */
 (function(){
- const panel=document.getElementById('constructionPanel');
- const grip=panel&&panel.querySelector('.sb-panel-resize-handle');
- if(!panel||!grip||grip.dataset.bound==='true')return;
- grip.dataset.bound='true';
- let pointerId=null,startX=0,startWidth=0;
- const limits=()=>({min:220,max:Math.min(Math.round(window.innerWidth*.86),420)});
- grip.addEventListener('pointerdown',e=>{
-  if(e.button!==undefined&&e.button!==0)return;
-  pointerId=e.pointerId;startX=e.clientX;startWidth=panel.getBoundingClientRect().width;
-  panel.classList.add('is-resizing');
-  grip.setPointerCapture(pointerId);
-  e.preventDefault();e.stopPropagation();
- });
- grip.addEventListener('pointermove',e=>{
-  if(pointerId===null||e.pointerId!==pointerId)return;
-  const {min,max}=limits();
-  const width=Math.max(min,Math.min(max,startWidth+(e.clientX-startX)));
-  panel.style.width=width+'px';
-  panel.style.maxWidth='calc(100vw - 20px)';
- });
- const finish=e=>{
-  if(pointerId===null||(e&&e.pointerId!==pointerId))return;
-  pointerId=null;panel.classList.remove('is-resizing');
+ const selector='#sb-action-dock button,#constructionPanel button,.tool-group button,.bottom button,#sb-3d-toggle,#sb-zoom-controls button,#stationContextMenu button';
+ let holdTimer=null,activeButton=null,shell=null,longPressed=false,releaseTimer=null;
+ const clearShell=()=>{if(shell){shell.remove();shell=null;}};
+ const finish=()=>{
+  if(holdTimer!==null){clearTimeout(holdTimer);holdTimer=null;}
+  if(activeButton){
+   const releasedButton=activeButton;
+   releasedButton.classList.remove('sb-neon-pressed');
+   releasedButton.classList.add('sb-neon-release');
+   if(releaseTimer!==null)clearTimeout(releaseTimer);
+   releaseTimer=setTimeout(()=>{releasedButton.classList.remove('sb-neon-release');releaseTimer=null;},420);
+  }
+  clearShell();activeButton=null;
  };
- grip.addEventListener('pointerup',finish);
- grip.addEventListener('pointercancel',finish);
- grip.addEventListener('lostpointercapture',finish);
- grip.addEventListener('keydown',e=>{
-  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
-  e.preventDefault();
-  const {min,max}=limits(),current=panel.getBoundingClientRect().width;
-  const delta=e.key==='ArrowRight'?16:-16;
-  panel.style.width=Math.max(min,Math.min(max,current+delta))+'px';
- });
- window.addEventListener('resize',()=>{
-  const {max}=limits();
-  if(panel.style.width)panel.style.width=Math.min(parseFloat(panel.style.width)||max,max)+'px';
- });
+ document.addEventListener('pointerdown',event=>{
+  const button=event.target.closest(selector);
+  if(!button||button.disabled||event.button!==undefined&&event.button!==0)return;
+  finish();activeButton=button;longPressed=false;button.classList.add('sb-neon-pressed');
+  holdTimer=setTimeout(()=>{
+   if(!activeButton)return;longPressed=true;
+   const rect=button.getBoundingClientRect(),scale=Math.max(.8,Math.min(1.8,Math.max(rect.width,rect.height)/42));
+   shell=document.createElement('span');shell.className='sb-long-press-shell'+(button.id==='trashModeBtn'?' sb-shell-delete':'');
+   shell.setAttribute('aria-hidden','true');
+   shell.style.width=Math.max(44,rect.width*1.42)+'px';shell.style.height=Math.max(44,rect.height*1.42)+'px';
+   shell.style.left=(rect.left+rect.width/2)+'px';shell.style.top=(rect.top+rect.height/2)+'px';
+   shell.style.transform='translate(-50%,-50%) scale('+scale+')';document.body.appendChild(shell);
+   button.classList.add('sb-neon-pressed');
+  },540);
+ },{passive:true});
+ document.addEventListener('pointerup',finish,{passive:true});
+ document.addEventListener('pointercancel',finish,{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)finish();});
+ document.addEventListener('click',event=>{
+  if(longPressed&&event.target.closest(selector)){event.preventDefault();event.stopImmediatePropagation();longPressed=false;}
+ },true);
 })();
 </script>
-
 </body>
 </html>
