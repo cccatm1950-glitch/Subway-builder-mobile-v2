@@ -2058,7 +2058,7 @@ setMapTheme(currentTheme);
    SECTION 11 — GAME STATE AND SETTINGS
    ========================================================= */
 
-let mode='station';
+var mode='station';
 let trackStyle='single';
 let platformWidth='default';
 let platformType='island';
@@ -2083,13 +2083,13 @@ let selected=null;
 let selectedTrackIndex=null;
 let stationMenuTimer=null;
 let stationMenuIndex=null;
-let running=false;
+var running=false;
 let simulation=null;
 let trainMarkers=[];
 let trainMovementTimers=[];
 let platformCrowdMarkers=[];
 let history=[];
-let historyIndex=0;
+var historyIndex=0;
 
 let sbMessageTimer=null;
 let sbPressedButton='';
