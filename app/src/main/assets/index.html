@@ -1871,6 +1871,15 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 #constructionPanel button.sb-neon-release,#sb-action-dock button.sb-neon-release{filter:brightness(1.25)!important}
 
 #sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,42,68,.42)!important;border:1px solid rgba(255,112,132,.98)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(255,75,95,.28),0 0 14px rgba(255,45,70,.82),0 0 27px rgba(255,45,70,.5),inset 0 0 12px rgba(255,45,70,.25)!important}
+
+/* PR #61 follow-up: force persistent Delete-mode state to remain visible. */
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,45,72,.38)!important;
+ border:2px solid rgba(255,92,112,.98)!important;
+ color:#fff!important;
+ box-shadow:0 0 0 2px rgba(255,55,82,.2),0 0 18px rgba(255,35,68,.72),inset 0 0 12px rgba(255,60,82,.28)!important;
+}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -3311,6 +3320,72 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  document.addEventListener('pointerup',release,{passive:true});
  document.addEventListener('pointercancel',release,{passive:true});
  document.addEventListener('visibilitychange',()=>{if(document.hidden)release();});
+})();
+</script>
+
+<script>
+/* Android WebView control bridge.
+   Remember the pressed control on pointer/touch down because some WebViews
+   retarget pointerup to the document/map. Activate on release and suppress
+   the synthetic click that follows. Native click remains a final fallback. */
+(function(){
+ const selector='#sb-game-menu-toggle,#sb-panel-toggle,#trashModeBtn,#undoBtn,#redoBtn,#constructionPanel button[data-panel-action]';
+ let pressed=null,lastHandled=null,lastAt=0;
+ function findButton(target){return target&&target.closest?target.closest(selector):null;}
+ function activate(button){
+  if(!button||button.disabled)return false;
+  try{
+   if(button.id==='sb-game-menu-toggle'){openInGameMenu();return true;}
+   if(button.id==='sb-panel-toggle'){toggleToolsPanel();return true;}
+   if(button.id==='trashModeBtn'){activateDeleteMode();syncConstructionControls();return true;}
+   if(button.id==='undoBtn'){undo();return true;}
+   if(button.id==='redoBtn'){redo();return true;}
+   const action=button.dataset.panelAction;
+   const actions={
+    'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
+    'draw-track':()=>setMode('track'),'curve-track':()=>setMode('curve'),
+    'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),
+    'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
+    'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
+    'theme-menu':()=>toggleMapMenu(),
+    'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
+    'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
+    'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
+    'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
+    'toggle-3d':()=>window.toggle3DCityView()
+   };
+   if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
+   else if(action==='platform-type')setPlatformType(button.dataset.platformType);
+   else if(typeof actions[action]==='function')actions[action]();
+   else return false;
+   syncConstructionControls();
+   return true;
+  }catch(error){console.error('Control activation failed',button.id||button.dataset.panelAction,error);return false;}
+ }
+ function activateOnce(button,event){
+  if(!button)return;
+  if(lastHandled===button&&Date.now()-lastAt<850)return;
+  if(activate(button)){
+   lastHandled=button;lastAt=Date.now();
+   if(event){event.preventDefault();event.stopPropagation();}
+  }
+ }
+ document.addEventListener('pointerdown',e=>{pressed=findButton(e.target);},{capture:true,passive:true});
+ document.addEventListener('touchstart',e=>{pressed=findButton(e.target);},{capture:true,passive:true});
+ document.addEventListener('pointerup',e=>{const b=findButton(e.target)||pressed;activateOnce(b,e);pressed=null;},{capture:true});
+ document.addEventListener('touchend',e=>{const b=findButton(e.target)||pressed;activateOnce(b,e);pressed=null;},{capture:true});
+ document.addEventListener('pointercancel',()=>{pressed=null;},{capture:true,passive:true});
+ document.addEventListener('touchcancel',()=>{pressed=null;},{capture:true,passive:true});
+ document.addEventListener('click',e=>{
+  const b=findButton(e.target);
+  if(!b)return;
+  if(lastHandled===b&&Date.now()-lastAt<850){
+   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+   lastHandled=null;lastAt=0;return;
+  }
+  // Some Android WebViews deliver click but no usable pointer/touch release.
+  activateOnce(b,e);
+ },{capture:true});
 })();
 </script>
 </body>
