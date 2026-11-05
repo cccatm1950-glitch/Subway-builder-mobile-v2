@@ -1619,6 +1619,7 @@ button{position:relative;isolation:isolate;transition:transform .16s ease,filter
 button:not(:disabled){--sb-neon:rgba(86,226,255,.92);}
 button:not(:disabled):hover{filter:brightness(1.16) saturate(1.18);box-shadow:0 0 0 1px color-mix(in srgb,var(--sb-neon) 55%,transparent),0 0 13px color-mix(in srgb,var(--sb-neon) 45%,transparent),inset 0 0 9px color-mix(in srgb,var(--sb-neon) 16%,transparent);}
 button:not(:disabled):focus-visible{outline:2px solid var(--sb-neon)!important;outline-offset:3px;box-shadow:0 0 16px color-mix(in srgb,var(--sb-neon) 65%,transparent)!important;}
+button:not(:disabled).sb-neon-release{filter:brightness(1.22);box-shadow:0 0 0 1px color-mix(in srgb,var(--sb-neon) 70%,transparent),0 0 13px color-mix(in srgb,var(--sb-neon) 48%,transparent)!important;}
 button:not(:disabled).sb-neon-pressed{transform:scale(.93);filter:brightness(1.35) saturate(1.35);box-shadow:0 0 0 1px var(--sb-neon),0 0 9px var(--sb-neon),0 0 22px color-mix(in srgb,var(--sb-neon) 68%,transparent),inset 0 0 12px color-mix(in srgb,var(--sb-neon) 35%,transparent)!important;}
 #trashModeBtn,#sb-action-dock .trash-dock-btn{--sb-neon:rgba(255,70,94,.98)!important;}
 #trashModeBtn:hover,#sb-action-dock .trash-dock-btn:hover{background:rgba(255,48,74,.3)!important;border-color:rgba(255,92,112,.95)!important;box-shadow:0 0 0 1px rgba(255,75,95,.8),0 0 15px rgba(255,55,80,.72),inset 0 0 12px rgba(255,55,80,.3)!important;}
@@ -3762,10 +3763,11 @@ window.refreshSubway3D=sb3dRefresh;
  const finish=()=>{
   if(holdTimer!==null){clearTimeout(holdTimer);holdTimer=null;}
   if(activeButton){
-   activeButton.classList.remove('sb-neon-pressed');
-   activeButton.classList.add('sb-neon-release');
+   const releasedButton=activeButton;
+   releasedButton.classList.remove('sb-neon-pressed');
+   releasedButton.classList.add('sb-neon-release');
    if(releaseTimer!==null)clearTimeout(releaseTimer);
-   releaseTimer=setTimeout(()=>{activeButton&&activeButton.classList.remove('sb-neon-release');releaseTimer=null;},420);
+   releaseTimer=setTimeout(()=>{releasedButton.classList.remove('sb-neon-release');releaseTimer=null;},420);
   }
   clearShell();activeButton=null;
  };
