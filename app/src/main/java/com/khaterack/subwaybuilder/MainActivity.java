@@ -5,6 +5,8 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.os.Build;
 import android.view.View;
+import android.view.MotionEvent;
+import android.util.Log;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -31,6 +33,13 @@ public class MainActivity extends Activity {
         hideSystemUI();
 
         webView = new WebView(this);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            WebView.setWebContentsDebuggingEnabled(true);
+        }
+        webView.setOnTouchListener((view, event) -> {
+            Log.d("SB_WEBVIEW_TOUCH", MotionEvent.actionToString(event.getActionMasked()) + " x=" + event.getX() + " y=" + event.getY());
+            return false;
+        });
         webView.setBackgroundColor(0xFFE8EDF0);
 
         WebSettings settings = webView.getSettings();
@@ -40,11 +49,17 @@ public class MainActivity extends Activity {
         settings.setSupportZoom(false);
         settings.setBuiltInZoomControls(false);
 
-        webView.setWebChromeClient(new WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onConsoleMessage(android.webkit.ConsoleMessage message) {
+                Log.d("SB_WEBVIEW_CONSOLE", message.message() + " (" + message.sourceId() + ":" + message.lineNumber() + ")");
+                return true;
+            }
+        });
         webView.setWebViewClient(new WebViewClient());
 
         setContentView(webView);
-        webView.loadUrl("file:///android_asset/index.html");
+        webView.loadUrl("file:///android_asset/index.html?sbdebug=1");
     }
 
     @Override
