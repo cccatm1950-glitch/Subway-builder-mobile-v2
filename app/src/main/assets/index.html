@@ -869,6 +869,11 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-construction-menu[open]>#sb-panel-toggle{background:linear-gradient(145deg,rgba(80,226,205,.32),rgba(117,170,207,.18))!important;border-color:rgba(132,255,231,.72)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.38),0 0 0 2px rgba(100,255,220,.12),0 0 22px rgba(75,241,216,.28)!important}
 @media(max-width:560px){#sb-panel-toggle{left:10px!important;right:auto!important;width:46px!important;height:46px!important;min-height:46px!important}#sb-construction-menu[open]>#constructionPanel{left:10px!important;right:auto!important;width:min(86vw,310px)!important}}
 
+
+/* Keep the edit dock clear of the construction drawer on narrow phones. */
+#sb-action-dock{z-index:1500!important;right:max(9px,env(safe-area-inset-right,0px))!important;bottom:max(9px,env(safe-area-inset-bottom,0px))!important;pointer-events:auto!important}
+#sb-construction-menu[open]>#constructionPanel{width:min(76vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 190px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 174px)!important;}
+@media(max-width:560px){#sb-construction-menu[open]>#constructionPanel{width:min(76vw,310px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 190px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 174px)!important;}}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1710,9 +1715,24 @@ function toggleToolsPanel(open){
  if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
 }
 function syncConstructionControls(){
+ // Exclusive choices are synchronized from the live app state, not from
+ // whatever classes happened to be present in the HTML when the drawer opened.
+ const exclusiveGroups=[
+  {selector:'[data-panel-action^="mode-"]',value:mode,prefix:'mode-'},
+  {selector:'[data-panel-action^="track-"]',value:trackStyle,prefix:'track-'},
+  {selector:'[data-platform-width]',value:platformWidth,attribute:'platformWidth'},
+  {selector:'[data-platform-type]',value:platformType,attribute:'platformType'}
+ ];
+ exclusiveGroups.forEach(group=>{
+  document.querySelectorAll(group.selector).forEach(button=>{
+   const selected=group.attribute
+    ?button.dataset[group.attribute]===group.value
+    :button.dataset.panelAction===group.prefix+group.value;
+   button.classList.toggle('active',selected);
+   button.setAttribute('aria-pressed',String(selected));
+  });
+ });
  const states={
-  stationBtn:mode==='station',trackBtn:mode==='track',waypointBtn:mode==='waypoint',inspectBtn:mode==='inspect',
-  singleTrackBtn:trackStyle==='single',parallelTrackBtn:trackStyle==='parallel',
   curveBtn:curveMode,tunnelModeBtn:tunnelMode,runBtn:running,
   'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')
  };
@@ -1721,14 +1741,6 @@ function syncConstructionControls(){
   if(!button)return;
   button.classList.toggle('active',active);
   button.setAttribute('aria-pressed',String(active));
- });
- document.querySelectorAll('[data-platform-width]').forEach(button=>{
-  const active=button.dataset.platformWidth===platformWidth;
-  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
- });
- document.querySelectorAll('[data-platform-type]').forEach(button=>{
-  const active=button.dataset.platformType===platformType;
-  button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
  });
  const themeButton=document.getElementById('themeToggleBtn');
  const themeMenu=document.getElementById('mapMenu');
@@ -1765,21 +1777,26 @@ function bindConstructionPanelControls(){
    'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
    'toggle-3d':()=>window.toggle3DCityView()
   };
-  panel.addEventListener('click',async event=>{
-   const button=event.target.closest('button[data-panel-action]');
-   if(!button||!panel.contains(button))return;
-   const action=button.dataset.panelAction;
-   event.preventDefault();event.stopPropagation();
-   try{
-    if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
-    else if(action==='platform-type')setPlatformType(button.dataset.platformType);
-    else if(typeof actions[action]==='function')await actions[action]();
-    else{console.warn('Unwired construction action:',action);message('This construction tool is not connected yet.');}
-    syncConstructionControls();
-   }catch(error){
-    console.error('Construction tool action failed:',action,error);
-    message('Could not run '+(button.getAttribute('aria-label')||button.title||'that tool')+'. Please try again.');
-   }
+  // Bind each real button directly. This avoids relying on click bubbling
+  // through nested native <details> elements in Android WebView.
+  panel.querySelectorAll('button[data-panel-action]').forEach(button=>{
+   if(button.dataset.actionBound==='true')return;
+   button.dataset.actionBound='true';
+   button.addEventListener('click',async event=>{
+    event.preventDefault();
+    event.stopPropagation();
+    const action=button.dataset.panelAction;
+    try{
+     if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
+     else if(action==='platform-type')setPlatformType(button.dataset.platformType);
+     else if(typeof actions[action]==='function')await actions[action]();
+     else{console.warn('Unwired construction action:',action);message('This construction tool is not connected yet.');}
+     syncConstructionControls();
+    }catch(error){
+     console.error('Construction tool action failed:',action,error);
+     message('Could not run '+(button.getAttribute('aria-label')||button.title||'that tool')+'. Please try again.');
+    }
+   });
   });
   panel.querySelectorAll('details.tool-group').forEach(group=>{
    const summary=group.querySelector('summary');if(!summary)return;
