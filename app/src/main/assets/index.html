@@ -1495,6 +1495,32 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  }
 }
 
+
+/* Construction panel heading: inherit the same continuous glass shell treatment. */
+#constructionPanel .panel-heading{
+ position:relative!important;top:auto!important;z-index:1!important;
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ box-sizing:border-box!important;width:100%!important;min-height:58px!important;
+ margin:0!important;padding:0 14px!important;gap:8px!important;
+ color:#f3f8ff!important;
+ background:var(--sb-glass)!important;
+ border:1px solid var(--sb-glass-line)!important;
+ border-radius:18px 0 0 0!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.1)!important;
+}
+#constructionPanel .panel-heading .panel-title{
+ display:block!important;margin:0!important;padding:0!important;
+ color:#f3f8ff!important;font-size:12px!important;font-weight:800!important;
+ letter-spacing:1.6px!important;line-height:1.2!important;white-space:nowrap!important;
+ text-shadow:0 1px 8px rgba(0,0,0,.18);
+}
+@media(max-width:560px){
+ #constructionPanel .panel-heading{min-height:54px!important;padding:0 12px!important}
+ #constructionPanel .panel-heading .panel-title{font-size:11px!important;letter-spacing:1.4px!important}
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
