@@ -1593,6 +1593,26 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-construction-menu>summary#sb-panel-toggle{position:fixed!important;left:auto!important;right:21px!important;top:auto!important;bottom:calc(max(8px,env(safe-area-inset-bottom,0px)) + 8px)!important;z-index:1602!important;width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;border-radius:50%!important;margin:0!important}
 #sb-construction-menu>summary#sb-panel-toggle svg{width:22px!important;height:22px!important}
 @media(max-width:380px){#sb-action-dock{left:7px!important;right:7px!important;min-height:54px!important;padding:6px 53px 6px 7px!important;gap:7px!important}#sb-action-dock button,#sb-construction-menu>summary#sb-panel-toggle{width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;min-height:40px!important;max-height:40px!important;flex-basis:40px!important}#sb-action-dock::after{right:49px}#sb-construction-menu>summary#sb-panel-toggle{right:14px!important;bottom:calc(max(8px,env(safe-area-inset-bottom,0px)) + 7px)!important}}
+
+/* PR#49 — consistent icon fit, alignment, and button feedback across the app */
+button{
+ box-sizing:border-box;align-items:center;justify-content:center;text-align:center;
+ vertical-align:middle;transform-origin:center center;
+ -webkit-tap-highlight-color:transparent;
+ transition:transform .16s ease,filter .18s ease,box-shadow .18s ease,border-color .18s ease,background-color .18s ease,color .18s ease;
+}
+button svg,button img,button .icon,button i,button [class*="icon"]{
+ display:inline-block;box-sizing:border-box;max-width:1.35em;max-height:1.35em;
+ width:1.15em;height:1.15em;object-fit:contain;vertical-align:middle;
+ flex:0 0 auto;margin-inline:auto;line-height:1;
+}
+button svg{overflow:visible}
+button:where(:hover){filter:brightness(1.12);box-shadow:0 0 0 1px rgba(190,225,255,.16),0 4px 14px rgba(0,0,0,.14)}
+button:where(:focus-visible){outline:2px solid rgba(135,210,255,.9);outline-offset:3px;filter:brightness(1.12)}
+button:where(:active){transform:scale(.94);filter:brightness(1.18);box-shadow:inset 0 1px 5px rgba(0,0,0,.2),0 0 0 1px rgba(190,225,255,.22)}
+button:disabled,button[aria-disabled="true"]{cursor:not-allowed;filter:saturate(.55);transition:opacity .18s ease,filter .18s ease}
+@media(hover:none){button:where(:hover){filter:none;box-shadow:initial}}
+@media(prefers-reduced-motion:reduce){button{transition:none!important}button:where(:active){transform:none}}
 </style>
 </head>
 <body class="sb-start-menu-open">
