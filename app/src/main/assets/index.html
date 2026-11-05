@@ -1710,6 +1710,38 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  animation:none!important;
  transition:background .18s ease,border-color .18s ease,box-shadow .18s ease!important;
 }
+
+/* PR #56 — eight evenly spaced columns across two horizontal rows. */
+#constructionPanel .tool-grid{
+ display:grid!important;
+ grid-template-columns:repeat(8,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,minmax(42px,auto))!important;
+ grid-auto-flow:row!important;
+ align-items:center!important;justify-items:center!important;
+ gap:12px 4px!important;
+ width:100%!important;box-sizing:border-box!important;
+ padding:12px 7px 14px!important;
+}
+#constructionPanel .tool-grid button,
+#constructionPanel .tool-grid .sb-tool-slot-empty{
+ width:27px!important;height:27px!important;min-width:27px!important;min-height:27px!important;
+ max-width:27px!important;max-height:27px!important;
+ margin:0!important;padding:2px!important;justify-self:center!important;align-self:center!important;
+ border-radius:50%!important;box-sizing:border-box!important;
+}
+#constructionPanel .tool-grid button svg{width:19px!important;height:19px!important;max-width:19px!important;max-height:19px!important}
+#constructionPanel .tool-grid .sb-tool-slot-empty{display:block!important;border:1px dashed rgba(205,229,250,.13)!important;background:rgba(255,255,255,.012)!important;pointer-events:none}
+#constructionPanel .tool-grid button.active,
+#constructionPanel .tool-grid button[aria-pressed='true']{
+ background:rgba(32,196,169,.38)!important;border:1px solid rgba(116,255,226,.9)!important;
+ box-shadow:0 0 0 2px rgba(53,231,208,.2),0 0 16px rgba(53,231,208,.32),inset 0 0 9px rgba(53,231,208,.16)!important;
+ color:#fff!important;filter:brightness(1.12)!important;
+}
+#constructionPanel .tool-grid button:active{transform:scale(.92)!important}
+/* Station icons render in Leaflet's top marker pane, clearly above OSM and track layers. */
+.leaflet-marker-pane .sb-station-marker{display:block!important;opacity:1!important;visibility:visible!important;background:#087f79!important;border:3px solid #f4fbff!important;box-shadow:0 2px 10px rgba(0,0,0,.9),0 0 0 4px rgba(77,220,195,.42),0 0 18px rgba(38,220,190,.7)!important}
+.leaflet-marker-pane .sb-station-marker.is-selected{background:#ffbd45!important;box-shadow:0 0 0 5px rgba(255,189,69,.38),0 0 18px rgba(255,189,69,.8)!important}
+.leaflet-marker-pane .leaflet-marker-icon{z-index:1000!important}
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1797,6 +1829,16 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
    <button type="button" data-panel-action="mode-station" aria-label="Add station" title="Add station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-5 8 5v12M8 20v-7h8v7M2 20h20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="8" r="1.5" fill="currentColor"/></svg></button>
    <button type="button" data-panel-action="draw-track" aria-label="Add track" title="Press and drag to draw track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18M20 3v18M2 6h20M2 11h20M2 16h20M2 21h20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1" opacity=".55"/></svg></button>
    <button type="button" data-panel-action="curve-track" aria-label="Curve track" title="Tap a track to add a curve point"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19C7 19 7 5 13 5h8M17 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
@@ -2271,7 +2313,8 @@ if(mode==='delete'){
   }
   L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:9,color:'#f4fbff',weight:2,fillColor:'#087f79',fillOpacity:1,interactive:false}).addTo(window.networkLayer);
   let marker=L.marker([s.lat,s.lng],{
- pane:'sbStationPane',draggable:true,
+ /* Use Leaflet's marker pane (above vector overlays) so station icons remain visible over OSM tiles and track/platform layers. */
+ draggable:true,keyboard:false,zIndexOffset:1000,
  icon:L.divIcon({
   className:'',
   html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+'"></div>',
@@ -2358,6 +2401,15 @@ function updateUI(){
 function setMode(newMode){
  mode=newMode;
  selected=null;
+ const constructionPanel=document.getElementById('constructionPanel');
+ if(constructionPanel){
+  const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':null;
+  constructionPanel.querySelectorAll('[data-panel-action]').forEach(button=>{
+   const active=button.dataset.panelAction===selectedAction;
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
+ }
  const modeButtons={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
  document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(btn=>{
   const active=btn.id===modeButtons[mode];
