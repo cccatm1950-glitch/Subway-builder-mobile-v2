@@ -1640,7 +1640,29 @@ button{width:46px!important;height:46px!important;min-width:46px!important;min-h
 .sb-game-menu-action{width:100%!important;height:auto!important;min-height:48px!important;min-width:0!important;flex:1 1 auto!important;padding:10px 18px!important;border-radius:999px!important;background:rgba(60,205,180,.2)!important;border-color:rgba(125,255,225,.45)!important}
 #sb-game-menu-settings-view[hidden]{display:none!important}
 @media(max-width:700px){#sb-game-menu-card{padding:17px;border-radius:25px}}
-\n</style>
+\n
+/* PR #52 — force the selected delete control's neon feedback to stay red. */
+#sb-action-dock #trashModeBtn,
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"],
+#sb-action-dock #trashModeBtn.sb-neon-pressed,
+#sb-action-dock #trashModeBtn.sb-neon-release{
+ --sb-neon:rgba(255,48,72,.99)!important;
+ border-color:rgba(255,105,125,.92)!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"],
+#sb-action-dock #trashModeBtn.sb-neon-pressed,
+#sb-action-dock #trashModeBtn.sb-neon-release{
+ background:rgba(255,42,68,.34)!important;
+ box-shadow:0 0 0 2px rgba(255,75,95,.24),0 0 10px rgba(255,45,70,.82),0 0 22px rgba(255,45,70,.56),inset 0 0 12px rgba(255,45,70,.24)!important;
+}
+#sb-game-menu-toggle{position:relative!important;z-index:2!important;pointer-events:auto!important;touch-action:manipulation!important;}
+#sb-game-menu{pointer-events:none}
+#sb-game-menu.open{pointer-events:auto}
+#sb-game-menu-card{pointer-events:auto}
+
+</style>
 </head>
 <body class="sb-start-menu-open">
 
@@ -1703,7 +1725,7 @@ button{width:46px!important;height:46px!important;min-width:46px!important;min-h
 <div id="sb-top-dock" class="topbar" role="group" aria-label="City status">
  <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
  <div class="stats">
-  <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu" onclick="openInGameMenu()">☰</button>
+  <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu">☰</button>
   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
   <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
@@ -2992,25 +3014,43 @@ window.refreshSubway3D=sb3dRefresh;
 <script>
 let sbInGameMenuOpen=false;
 let sbInGameMenuWasRunning=false;
+function sbSaveMenuState(){
+ try{if(typeof persistGameState==='function')persistGameState();}catch(error){console.warn('Unable to save before opening game menu:',error);}
+}
 function openInGameMenu(){
  const menu=document.getElementById('sb-game-menu');if(!menu||sbInGameMenuOpen)return;
- sbInGameMenuWasRunning=!!running;sbInGameMenuOpen=true;persistGameState();
+ sbInGameMenuWasRunning=!!running;
+ sbInGameMenuOpen=true;
+ running=false;
+ sbSaveMenuState();
  menu.classList.add('open');menu.setAttribute('aria-hidden','false');
- document.getElementById('sb-game-menu-main').hidden=false;document.getElementById('sb-game-menu-settings-view').hidden=true;
- document.getElementById('sb-game-menu-toggle')?.setAttribute('aria-expanded','true');
- document.getElementById('sb-game-menu-save-status').textContent='Save status: saved just now.';
+ const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+ if(main)main.hidden=false;if(settings)settings.hidden=true;
+ const toggle=document.getElementById('sb-game-menu-toggle');
+ if(toggle)toggle.setAttribute('aria-expanded','true');
+ const runButton=document.getElementById('runBtn');
+ if(runButton){runButton.textContent='▶';runButton.setAttribute('aria-label','Run trains');runButton.title='Run trains';}
+ const status=document.getElementById('sb-game-menu-save-status');
+ if(status)status.textContent='Save status: saved just now.';
 }
 function closeInGameMenu(){
  const menu=document.getElementById('sb-game-menu');if(!menu||!sbInGameMenuOpen)return;
- persistGameState();sbInGameMenuOpen=false;menu.classList.remove('open');menu.setAttribute('aria-hidden','true');
- document.getElementById('sb-game-menu-toggle')?.setAttribute('aria-expanded','false');
- if(sbInGameMenuWasRunning)running=true;sbInGameMenuWasRunning=false;
+ sbSaveMenuState();sbInGameMenuOpen=false;menu.classList.remove('open');menu.setAttribute('aria-hidden','true');
+ const toggle=document.getElementById('sb-game-menu-toggle');
+ if(toggle)toggle.setAttribute('aria-expanded','false');
+ running=sbInGameMenuWasRunning;
+ const runButton=document.getElementById('runBtn');
+ if(runButton){runButton.textContent=running?'Ⅱ':'▶';runButton.setAttribute('aria-label',running?'Pause trains':'Run trains');runButton.title=running?'Pause trains':'Run trains';}
+ sbInGameMenuWasRunning=false;
 }
 function toggleInGameMenuSettings(){
  const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');if(!main||!settings)return;
  const show=settings.hidden;main.hidden=show;settings.hidden=!show;
  document.getElementById('sb-game-menu-settings')?.setAttribute('aria-label',show?'Back to game menu':'Open menu settings');
 }
+document.getElementById('sb-game-menu-toggle')?.addEventListener('click',function(event){
+ event.preventDefault();event.stopPropagation();openInGameMenu();
+});
 document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMenuOpen)closeInGameMenu();});
 </script>\n</body>
 </html>
