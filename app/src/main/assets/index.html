@@ -946,6 +946,25 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  #sb-construction-menu[open]>#constructionPanel{left:max(7px,env(safe-area-inset-left,0px))!important;top:calc(env(safe-area-inset-top,0px) + 76px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 10px)!important;width:min(290px,calc(100vw - 82px))!important;border-radius:22px!important}
 }
 
+
+/* Repair native details semantics: the entire top dock is its direct summary. */
+.sb-menu-shell>summary.topbar{display:flex!important;list-style:none!important;cursor:default!important}
+.sb-menu-shell>summary.topbar::-webkit-details-marker{display:none!important}
+.sb-menu-shell>summary.topbar .menu-hamburger{order:0;flex:0 0 40px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 4px 14px rgba(0,0,0,.12)}
+.sb-menu-shell>summary.topbar .menu-hamburger svg{width:22px;height:22px;display:block}
+.sb-menu-shell>summary.topbar .brand{order:-1;flex:1;min-width:0}
+.sb-menu-shell>summary.topbar .stats{order:1;flex:0 1 auto;justify-content:flex-end;min-width:0}
+.sb-menu-shell>summary.topbar #sb-dashboard-dialog{position:absolute;left:12px;right:12px;top:calc(100% + 8px)}
+#sb-construction-menu[open]>summary.topbar .menu-hamburger{background:rgba(65,190,170,.24);border-color:rgba(120,255,225,.55)}
+@media(max-width:560px){
+ .sb-menu-shell>summary.topbar{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;min-height:60px!important;padding:7px 9px!important;gap:8px!important;border-radius:25px!important}
+ .sb-menu-shell>summary.topbar .menu-hamburger{flex-basis:36px;width:36px;height:36px}
+ .sb-menu-shell>summary.topbar .brand{font-size:10px!important;letter-spacing:.6px!important}
+ .sb-menu-shell>summary.topbar .stats{gap:5px!important}
+ .sb-menu-shell>summary.topbar .stat{font-size:7px!important;letter-spacing:.5px!important}
+ .sb-menu-shell>summary.topbar .stat strong{font-size:10px!important}
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1007,9 +1026,9 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
      ======================================================== -->
 
 <details id="sb-construction-menu" class="sb-menu-shell">
-<div class="topbar">
+<summary id="sb-panel-toggle" class="topbar" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false">
  <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
- <summary id="sb-panel-toggle" aria-controls="constructionPanel" aria-label="Open construction menu" title="Construction menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary>
+ <div class="menu-hamburger" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></div>
  <div class="stats">
   <button id="sb-pointer-toggle" type="button" aria-pressed="false" title="Enable touch pointer" aria-label="Enable touch pointer" onclick="toggleTouchPointer()">⌖</button>
   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
@@ -1017,7 +1036,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
   <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
  </div>
  <div id="sb-dashboard-dialog" role="status" aria-live="polite">Tap the map to build your first station.</div>
-</div>
+</summary>
 
 <!-- ========================================================
      SECTION 08 — CONSTRUCTION PANEL
