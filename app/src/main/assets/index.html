@@ -2772,7 +2772,7 @@ function toggleSimulation(){
   let onboard=10+Math.floor(Math.random()*16);
   train.bindTooltip('On board: '+onboard+'/'+capacity,{direction:'top'});
   const timer=setInterval(function(){
-   if(!running)return;
+   if(!running||sbInGameMenuOpen)return;
    const now=Date.now();
    if(stoppedUntil>now)return;
    if(stoppedUntil&&now>=stoppedUntil){stoppedUntil=0;train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));}
@@ -3519,7 +3519,7 @@ function toggleSimulation(){
   let onboard=10+Math.floor(Math.random()*16);
   train.bindTooltip('On board: '+onboard+'/'+capacity,{direction:'top'});
   const timer=setInterval(function(){
-   if(!running)return;
+   if(!running||sbInGameMenuOpen)return;
    const now=Date.now();
    if(stoppedUntil>now)return;
    if(stoppedUntil&&now>=stoppedUntil){stoppedUntil=0;train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));}
