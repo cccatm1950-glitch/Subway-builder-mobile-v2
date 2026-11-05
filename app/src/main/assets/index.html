@@ -1449,6 +1449,52 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  }
 }
 
+
+/* Place the construction wrench as the fourth control in the bottom glass dock. */
+#sb-construction-menu>summary#sb-panel-toggle{
+ position:fixed!important;
+ top:auto!important;inset-block-start:auto!important;
+ left:calc(7px + 8px + 3 * 46px + 3 * 10px)!important;
+ right:auto!important;
+ bottom:max(6px,env(safe-area-inset-bottom,0px))!important;
+ z-index:1601!important;
+ box-sizing:border-box!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ flex:0 0 46px!important;aspect-ratio:1/1!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ overflow:hidden!important;list-style:none!important;
+ color:#e8f7ff!important;
+ background:linear-gradient(145deg,rgba(65,111,135,.48),rgba(35,62,82,.42))!important;
+ border:1px solid rgba(205,232,245,.34)!important;
+ box-shadow:0 6px 20px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.2)!important;
+ backdrop-filter:blur(26px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(175%)!important;
+ cursor:pointer!important;
+}
+#sb-construction-menu>summary#sb-panel-toggle svg{
+ width:23px!important;height:23px!important;display:block!important;
+}
+#sb-construction-menu>summary#sb-panel-toggle:active{
+ transform:scale(.94)!important;
+ background:rgba(75,145,180,.52)!important;
+}
+#sb-construction-menu[open]>summary#sb-panel-toggle{
+ background:rgba(55,130,170,.42)!important;
+ border-color:rgba(145,215,245,.62)!important;
+ box-shadow:0 0 0 1px rgba(125,200,235,.16),0 0 15px rgba(65,155,205,.2),inset 0 1px 0 rgba(255,255,255,.2)!important;
+}
+@media(max-width:700px){
+ #sb-construction-menu>summary#sb-panel-toggle{
+  left:calc(7px + 7px + 3 * 44px + 3 * 8px)!important;
+  bottom:max(6px,env(safe-area-inset-bottom,0px))!important;
+  width:44px!important;min-width:44px!important;max-width:44px!important;
+  height:44px!important;min-height:44px!important;max-height:44px!important;
+  flex-basis:44px!important;
+ }
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
