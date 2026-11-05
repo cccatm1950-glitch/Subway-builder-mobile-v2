@@ -1691,6 +1691,25 @@ html,body,#map,#sb-3d-map,#constructionPanel,#constructionPanel *,#sb-top-dock,#
 input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
 ::selection,::-moz-selection{background:transparent!important;color:inherit!important}
 
+
+/* PR #55 — Keep the delete tool's red neon selection glow active for the full delete mode. */
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,38,65,.38)!important;
+ border:1px solid rgba(255,105,125,.98)!important;
+ color:#ffd5dc!important;
+ --sb-neon:rgba(255,48,72,1)!important;
+ box-shadow:0 0 0 2px rgba(255,75,95,.34),
+            0 0 11px rgba(255,45,70,.92),
+            0 0 25px rgba(255,45,70,.68),
+            inset 0 0 13px rgba(255,45,70,.28)!important;
+ filter:brightness(1.08) saturate(1.2)!important;
+}
+#sb-action-dock #trashModeBtn.active.sb-neon-release,
+#sb-action-dock #trashModeBtn.active.sb-neon-pressed{
+ animation:none!important;
+ transition:background .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+}
 </style>
 </head>
 <body class="sb-start-menu-open">
