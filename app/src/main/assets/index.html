@@ -1626,7 +1626,7 @@ button:not(:disabled).sb-neon-pressed{transform:scale(.93);filter:brightness(1.3
 #constructionPanel .panel-heading{position:sticky;top:-12px;z-index:3;}
 @media(max-width:560px){#constructionPanel .tool-group{gap:7px;padding:7px 8px 9px;}#constructionPanel .tool-group .tool-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px;padding:7px 2px 3px;}#constructionPanel .tool-group button,#constructionPanel .tool-grid button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;}}
 /* PR #51 — circular controls and blurred pause menu */
-button,.leaflet-control-zoom a,.maplibregl-ctrl-group button{border-radius:50%!important}
+button,.start-card button,#constructionPanel button,#stationContextMenu button,#sb-game-menu button,#sb-action-dock button,#sb-top-dock button,.leaflet-control-zoom a,.maplibregl-ctrl-group button{border-radius:50%!important}
 button{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 46px!important;line-height:1!important;text-align:center!important}
 #sb-game-menu-toggle{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;flex:0 0 36px!important;font-size:17px!important;margin:0!important}
 #sb-game-menu{position:fixed;inset:0;z-index:5000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,9,18,.28);backdrop-filter:blur(13px) saturate(125%);-webkit-backdrop-filter:blur(13px) saturate(125%)}
@@ -3503,7 +3503,7 @@ function toggleSimulation(){
  message('Trains are running — platform crowds are waiting and trains have limited capacity.');
  const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'];
  function createTrain(){
-  if(!running||!tracks.length)return;
+  if(!running||sbInGameMenuOpen||!tracks.length)return;
   const trackIndex=Math.floor(Math.random()*tracks.length),track=tracks[trackIndex];
   const from=stations[track.a],to=stations[track.b];if(!from||!to)return;
   let route=[[from.lat,from.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[to.lat,to.lng]];
