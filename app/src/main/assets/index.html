@@ -4254,5 +4254,50 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 })();
 </script>
 
+
+<style id="sb-dock-glass-no-border-reset">
+/* Dock refinement: restore translucent glass while removing all dock borders
+   and button outlines/glow/pressed or selected highlight effects. */
+#sb-top-dock,#sb-action-dock,.topbar,.bottom{
+  background:rgba(13,25,42,.58)!important;
+  background-image:none!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+  backdrop-filter:blur(24px) saturate(170%)!important;
+}
+#sb-top-dock button,#sb-action-dock button,
+.topbar button,.bottom button{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:rgba(255,255,255,.085)!important;
+  background-image:none!important;
+  text-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  transition:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+#sb-top-dock button:hover,#sb-top-dock button:focus,
+#sb-top-dock button:focus-visible,#sb-top-dock button:active,
+#sb-top-dock button.active,
+#sb-action-dock button:hover,#sb-action-dock button:focus,
+#sb-action-dock button:focus-visible,#sb-action-dock button:active,
+#sb-action-dock button.active,
+.topbar button:hover,.topbar button:focus,.topbar button:focus-visible,
+.topbar button:active,.topbar button.active,
+.bottom button:hover,.bottom button:focus,.bottom button:focus-visible,
+.bottom button:active,.bottom button.active{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:rgba(255,255,255,.085)!important;
+  filter:none!important;
+  transform:none!important;
+}
+</style>
+
 </body>
 </html>
