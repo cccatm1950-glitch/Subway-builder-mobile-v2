@@ -4299,5 +4299,108 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 }
 </style>
 
+
+<style id="sb-dock-crosshair-pair-layout">
+/* Dock geometry and paired control groups */
+#sb-top-dock,#sb-action-dock{
+ border-radius:16px!important;overflow:visible!important;
+}
+#sb-top-dock .sb-dock-pair,#sb-action-dock .sb-dock-pair{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:8px!important;padding:0!important;margin:0!important;border:0!important;
+ background:transparent!important;box-shadow:none!important;
+}
+#sb-top-dock,#sb-action-dock{
+ display:flex!important;align-items:center!important;gap:12px!important;
+}
+#sb-top-dock button,#sb-action-dock button{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.09)!important;color:#f4f8fc!important;
+ margin:0!important;transform:none!important;filter:none!important;
+}
+#sb-top-dock button:hover,#sb-top-dock button:focus,#sb-top-dock button:focus-visible,
+#sb-top-dock button:active,#sb-top-dock button.active,
+#sb-action-dock button:hover,#sb-action-dock button:focus,#sb-action-dock button:focus-visible,
+#sb-action-dock button:active,#sb-action-dock button.active{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.09)!important;transform:none!important;filter:none!important;
+}
+#sb-action-dock{flex-direction:row!important;flex-wrap:nowrap!important}
+#sb-action-dock .sb-dock-pair{flex-direction:row!important}
+#map .sb-map-crosshair{
+ position:absolute;left:50%;top:50%;width:30px;height:30px;
+ transform:translate(-50%,-50%);z-index:1200;pointer-events:none;
+}
+#map .sb-map-crosshair:before,#map .sb-map-crosshair:after{
+ content:"";position:absolute;left:50%;top:50%;background:#fff;
+ transform:translate(-50%,-50%);border-radius:0;box-shadow:none;
+}
+#map .sb-map-crosshair:before{width:2px;height:30px}
+#map .sb-map-crosshair:after{width:30px;height:2px}
+#map .leaflet-marker-pane .sb-station-marker .sb-station-node{
+ width:20px!important;height:20px!important;border-radius:50%!important;
+ background:#fff!important;border:2px solid rgba(255,255,255,.7)!important;
+ box-shadow:none!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected .sb-station-node,
+#map .leaflet-marker-pane .sb-station-marker.is-track-target .sb-station-node,
+#map .leaflet-marker-pane .sb-station-marker.is-dragging .sb-station-node{
+ background:#fff!important;border:2px solid rgba(255,255,255,.7)!important;
+ box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 12px rgba(255,255,255,.95),0 0 24px rgba(255,255,255,.75)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-crosshair-target .sb-station-node{
+ background:#fff!important;border:2px solid rgba(255,255,255,.7)!important;
+ box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 12px rgba(255,255,255,.95),0 0 24px rgba(255,255,255,.75)!important;
+}
+#map .leaflet-marker-pane .sb-placement-preview{display:none!important;visibility:hidden!important;opacity:0!important}
+@media(max-width:560px){
+ #sb-action-dock{right:9px!important;bottom:10px!important;left:auto!important;
+  width:auto!important;padding:8px!important;gap:8px!important;border-radius:16px!important}
+ #sb-action-dock .sb-dock-pair{gap:7px!important}
+}
+</style>
+<script id="sb-crosshair-and-dock-pairs">
+(function(){
+ function groupDockButtons(dock){
+  if(!dock||dock.dataset.paired==='true')return;
+  const buttons=Array.from(dock.children).filter(el=>el.tagName==='BUTTON');
+  for(let i=0;i<buttons.length;i+=2){
+   const pair=document.createElement('div');pair.className='sb-dock-pair';
+   dock.insertBefore(pair,buttons[i]);
+   pair.appendChild(buttons[i]);if(buttons[i+1])pair.appendChild(buttons[i+1]);
+  }
+  dock.dataset.paired='true';
+ }
+ function setup(){
+  groupDockButtons(document.getElementById('sb-top-dock'));
+  groupDockButtons(document.getElementById('sb-action-dock'));
+  const mapEl=document.getElementById('map');
+  if(mapEl&&!mapEl.querySelector('.sb-map-crosshair')){
+   const cross=document.createElement('div');cross.className='sb-map-crosshair';cross.setAttribute('aria-hidden','true');mapEl.appendChild(cross);
+  }
+ }
+ function syncCrosshairStation(){
+  if(typeof map==='undefined'||!map||!window.networkLayer)return;
+  const center=map.getSize().divideBy(2),radius=19;
+  window.networkLayer.eachLayer(marker=>{
+   if(!marker.getLatLng||!marker.getElement)return;
+   const p=map.latLngToContainerPoint(marker.getLatLng());
+   const el=marker.getElement(),node=el&&el.querySelector('.sb-station-marker');
+   if(!node)return;
+   node.classList.toggle('is-crosshair-target',p.distanceTo(center)<=radius);
+  });
+ }
+ document.addEventListener('DOMContentLoaded',setup,{once:true});
+ setup();
+ if(typeof map!=='undefined'&&map){
+  map.on('move zoom moveend zoomend',syncCrosshairStation);
+  map.on('layeradd layerremove',syncCrosshairStation);
+  setTimeout(syncCrosshairStation,0);
+ }
+ const priorRender=window.renderNetwork;
+ if(typeof priorRender==='function')window.renderNetwork=function(){const r=priorRender.apply(this,arguments);syncCrosshairStation();return r;};
+})();
+</script>
+
 </body>
 </html>
