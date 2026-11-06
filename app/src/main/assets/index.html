@@ -2357,7 +2357,7 @@ button.sb-flat-close,[data-flat-close="true"]{
 
 
 <div id="sb-terms-overlay" role="dialog" aria-modal="true" aria-labelledby="sb-terms-title">
- <div id="sb-terms-card"><button class="sb-menu-close" type="button" aria-label="Close terms dialog" onclick="document.getElementById('sb-terms-overlay').classList.remove('open')">×</button><h2 id="sb-terms-title">Terms of Use</h2><div class="terms-scroll"><p>Welcome to Subway Builder. By continuing, you agree to use this app responsibly and understand that it is provided for entertainment and simulation purposes.</p><ul><li><strong>Simulation only:</strong> Routes, stations, passenger counts, costs and map overlays are fictional game data and are not real transit guidance.</li><li><strong>Map data:</strong> Map imagery and geographic information are provided by third-party map services and may be incomplete or inaccurate.</li><li><strong>Availability:</strong> The app is provided as-is. Features, saved progress and external services may change or become unavailable.</li><li><strong>Responsible use:</strong> Do not rely on the app for real-world navigation, safety, construction, financial or transport decisions.</li><li><strong>Privacy:</strong> The app may use local device storage for preferences and agreement status. Third-party map providers may process requests needed to display map tiles.</li></ul><p>These terms apply when you use the app. If you do not agree, do not continue into the game.</p></div><label><input id="sb-terms-agree" type="checkbox" onchange="document.getElementById('sb-terms-accept').disabled=!this.checked"><span>I have read and agree to the Terms of Use.</span></label><button id="sb-terms-accept" type="button" disabled onclick="acceptTerms()">Agree &amp; Continue</button></div>
+ <div id="sb-terms-card"><h2 id="sb-terms-title">Terms of Use</h2><div class="terms-scroll"><p>Welcome to Subway Builder. By continuing, you agree to use this app responsibly and understand that it is provided for entertainment and simulation purposes.</p><ul><li><strong>Simulation only:</strong> Routes, stations, passenger counts, costs and map overlays are fictional game data and are not real transit guidance.</li><li><strong>Map data:</strong> Map imagery and geographic information are provided by third-party map services and may be incomplete or inaccurate.</li><li><strong>Availability:</strong> The app is provided as-is. Features, saved progress and external services may change or become unavailable.</li><li><strong>Responsible use:</strong> Do not rely on the app for real-world navigation, safety, construction, financial or transport decisions.</li><li><strong>Privacy:</strong> The app may use local device storage for preferences and agreement status. Third-party map providers may process requests needed to display map tiles.</li></ul><p>These terms apply when you use the app. If you do not agree, do not continue into the game.</p></div><label><input id="sb-terms-agree" type="checkbox" onchange="document.getElementById('sb-terms-accept').disabled=!this.checked"><span>I have read and agree to the Terms of Use.</span></label><button id="sb-terms-accept" type="button" disabled onclick="acceptTerms()">Agree &amp; Continue</button></div>
 </div>
 
 <div id="map"></div>
@@ -3592,7 +3592,11 @@ function closeStartMenu(){
  setTouchPointerEnabled(false);
  message('Tap the map to build your first station.');
 }
-function showTermsDialog(){const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');}
+function showTermsDialog(){
+ startStartMenuMapPan();
+ const start=document.getElementById('startMenu');if(start){start.style.display='none';start.setAttribute('aria-hidden','true');}
+ const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');
+}
 function acceptTerms(){
  const check=document.getElementById('sb-terms-agree');
  if(!check||!check.checked)return;
@@ -3601,17 +3605,14 @@ function acceptTerms(){
  setTouchPointerEnabled(false);
  message('Tap the map to build your first station.');
 }
-function hideSplash(){
+function initializeTermsGate(){
  if(sbStartupDismissed)return;
- if(!document.body.classList.contains('sb-start-menu-open'))startStartMenuMapPan();
  if(!localStorage.getItem('sbTermsAccepted'))showTermsDialog();
+ else dismissStartupOverlays();
 }
-
 window.addEventListener('load',function(){
- requestAnimationFrame(function(){requestAnimationFrame(hideSplash);});
+ requestAnimationFrame(function(){requestAnimationFrame(initializeTermsGate);});
 });
-/* Safety fallback for slow or stalled external map resources. */
-setTimeout(hideSplash,5000);
 </script>
 
 <script>
@@ -4929,5 +4930,129 @@ body,#map,#sb-3d-map{touch-action:none!important}
  box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 20px rgba(85,234,255,.85)!important;
 }
 </style>
+
+<style id="sb-final-figma-icon-dock-terms-layout">
+/* Shared dock geometry: same capsule height, material and 6px breathing room. */
+#sb-action-dock .sb-dock-panel{
+ min-height:58px!important;height:58px!important;
+ box-sizing:border-box!important;
+ padding:6px!important;gap:6px!important;
+ border-radius:999px!important;
+}
+#sb-action-dock .sb-dock-panel button{
+ width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+ flex:0 0 44px!important;margin:1px!important;border-radius:50%!important;
+}
+#sb-action-dock .sb-dock-panel-left,#sb-action-dock .sb-dock-panel-right{
+ min-height:58px!important;height:58px!important;
+}
+#constructionPanel{
+ position:fixed!important;
+ left:6px!important;right:6px!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + 76px)!important;
+ top:auto!important;
+ width:auto!important;max-width:calc(100vw - 12px)!important;
+ max-height:calc(100dvh - 156px)!important;
+ box-sizing:border-box!important;
+ border:0!important;border-radius:24px!important;
+ background:rgba(15,25,40,.58)!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+}
+#constructionPanel .tool-group{background:transparent!important;border:0!important}
+#constructionPanel .tool-grid{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ justify-items:center!important;justify-content:center!important;
+ gap:10px!important;padding:10px 6px!important;
+}
+#constructionPanel .tool-grid button{
+ width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+ border-radius:50%!important;margin:0!important;justify-self:center!important;
+}
+#sb-terms-overlay{
+ background:rgba(4,10,18,.46)!important;
+ backdrop-filter:blur(24px) saturate(165%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(165%)!important;
+}
+#sb-terms-card{
+ width:min(92vw,440px)!important;max-height:min(82dvh,680px)!important;
+ overflow:auto!important;padding:22px!important;border:0!important;
+ border-radius:28px!important;background:rgba(15,25,40,.62)!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.2)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+}
+#sb-terms-card #sb-terms-accept{
+ min-height:48px!important;border:0!important;border-radius:999px!important;
+ background:rgba(35,210,165,.2)!important;
+ box-shadow:inset 0 0 0 1px rgba(110,255,210,.28)!important;
+}
+#sb-terms-card #sb-terms-accept:disabled{opacity:.35!important}
+#sb-terms-card .sb-menu-close{display:none!important}
+#sb-terms-card h2{margin-top:0!important}
+#sb-top-dock #sb-map-theme-toggle{
+ touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;
+ cursor:grab!important;position:relative;z-index:2;
+}
+body.sb-theme-dragging #sb-top-dock,
+body.sb-theme-dragging #sb-action-dock .sb-dock-panel{
+ margin:6px!important;
+}
+body.sb-theme-dragging #sb-top-dock #sb-map-theme-toggle{cursor:grabbing!important}
+#sb-top-dock .sb-theme-menu-pair{overflow:visible!important}
+#sb-top-dock svg,#sb-action-dock svg,#constructionPanel .tool-grid svg{
+ display:block!important;width:24px!important;height:24px!important;
+ min-width:24px!important;min-height:24px!important;
+ flex:0 0 24px!important;max-width:24px!important;max-height:24px!important;
+ margin:auto!important;overflow:visible!important;
+}
+#sb-top-dock button,#sb-action-dock button,#constructionPanel .tool-grid button{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+}
+#sb-terms-card input[type="checkbox"]{border-radius:5px!important}
+</style>
+<script id="sb-theme-button-long-press-drag">
+(function(){
+ const HOLD_MS=420;
+ function bind(){
+  const button=document.getElementById('sb-map-theme-toggle');if(!button||button.dataset.dragBound)return;
+  button.dataset.dragBound='true';
+  let timer=null,startX=0,startY=0,dragging=false,pointerId=null,offsetX=0,offsetY=0;
+  const clear=()=>{if(timer){clearTimeout(timer);timer=null;}};
+  button.addEventListener('pointerdown',event=>{
+   if(event.pointerType==='mouse'&&event.button!==0)return;
+   clear();pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragging=false;
+   timer=setTimeout(()=>{
+    dragging=true;button.setPointerCapture?.(pointerId);
+    const rect=button.getBoundingClientRect();offsetX=startX-rect.left;offsetY=startY-rect.top;
+    button.style.position='fixed';button.style.left=rect.left+'px';button.style.top=rect.top+'px';
+    button.style.right='auto';button.style.bottom='auto';button.style.margin='0';
+    button.style.zIndex='3000';button.dataset.dragMoved='true';
+    document.body.classList.add('sb-theme-dragging');
+   },HOLD_MS);
+  });
+  button.addEventListener('pointermove',event=>{
+   if(event.pointerId!==pointerId)return;
+   if(!dragging){if(Math.hypot(event.clientX-startX,event.clientY-startY)>10)clear();return;}
+   const rect=button.getBoundingClientRect();
+   const x=Math.max(6,Math.min(innerWidth-rect.width-6,event.clientX-offsetX));
+   const y=Math.max(6,Math.min(innerHeight-rect.height-6,event.clientY-offsetY));
+   button.style.left=x+'px';button.style.top=y+'px';
+  });
+  const finish=event=>{
+   if(event.pointerId!==pointerId)return;clear();
+   if(dragging){event.preventDefault();event.stopPropagation();button.dataset.suppressClick='true';}
+   dragging=false;pointerId=null;document.body.classList.remove('sb-theme-dragging');
+  };
+  button.addEventListener('pointerup',finish);
+  button.addEventListener('pointercancel',finish);
+  button.addEventListener('click',event=>{
+   if(button.dataset.suppressClick==='true'){event.preventDefault();event.stopImmediatePropagation();button.dataset.suppressClick='false';}
+  },true);
+ }
+ document.addEventListener('DOMContentLoaded',bind,{once:true});bind();
+})();
+</script>
 </body>
 </html>
