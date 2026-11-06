@@ -2209,6 +2209,7 @@ button.sb-menu-close,
  border:0!important;border-radius:50%!important;
  background:transparent!important;box-shadow:none!important;
 }
+#map .leaflet-marker-pane .sb-station-marker::after{display:none!important;content:none!important}
 #map .leaflet-marker-pane .sb-station-marker .sb-station-node{
  display:block!important;box-sizing:border-box!important;
  width:18px!important;height:18px!important;border:0!important;border-radius:50%!important;
@@ -3337,6 +3338,7 @@ map.on('mousemove touchmove',function(){
  }else stationPlacementPreview.setLatLng(center);
 });
 map.on('mouseout',function(){if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}});
+map.on('move zoom',function(){if(mode==='station'&&stationPlacementPreview)stationPlacementPreview.setLatLng(map.getCenter());});
 
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
