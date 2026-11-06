@@ -5273,5 +5273,57 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  document.addEventListener('resume',onResume);
 })();
 </script>
+
+<style id="sb-bottom-docks-topbar-glass-cleanup">
+/* Bottom dock shells: match the top bar's translucent dark glass, without gradients or outlines. */
+#sb-action-dock .sb-dock-panel{
+ background:rgba(5,13,25,.68)!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:0 14px 38px rgba(2,8,18,.30)!important;
+ backdrop-filter:blur(22px) saturate(150%)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(150%)!important;
+}
+/* Keep both dock groups visually consistent; no inherited gradient or border on either bar. */
+#sb-action-dock .sb-dock-panel-left,
+#sb-action-dock .sb-dock-panel-right{
+ background:rgba(5,13,25,.68)!important;
+ background-image:none!important;
+ border:0!important;
+}
+/* Edit controls use the same quiet glass treatment as the other dock buttons,
+   without the always-on white outline/glow that made them look selected. */
+#sb-action-dock .sb-dock-panel #undoBtn,
+#sb-action-dock .sb-dock-panel #redoBtn{
+ background:rgba(255,255,255,.09)!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ filter:none!important;
+ opacity:1!important;
+ color:#f4f8fc!important;
+}
+#sb-action-dock .sb-dock-panel #undoBtn:disabled,
+#sb-action-dock .sb-dock-panel #redoBtn:disabled{
+ opacity:.42!important;
+ color:rgba(245,250,255,.55)!important;
+}
+#sb-action-dock .sb-dock-panel #undoBtn:not(:disabled),
+#sb-action-dock .sb-dock-panel #redoBtn:not(:disabled){
+ box-shadow:none!important;
+}
+#sb-action-dock .sb-dock-panel #undoBtn:hover,
+#sb-action-dock .sb-dock-panel #undoBtn:focus,
+#sb-action-dock .sb-dock-panel #undoBtn:focus-visible,
+#sb-action-dock .sb-dock-panel #redoBtn:hover,
+#sb-action-dock .sb-dock-panel #redoBtn:focus,
+#sb-action-dock .sb-dock-panel #redoBtn:focus-visible{
+ background:rgba(255,255,255,.09)!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+</style>
 </body>
 </html>
