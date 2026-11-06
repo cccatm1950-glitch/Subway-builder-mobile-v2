@@ -1137,6 +1137,8 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-top-dock .stat{font-size:9px!important;letter-spacing:.8px!important}
 #sb-top-dock .stat strong{font-size:clamp(11px,1.2vw,14px)!important}
 #sb-top-dock #sb-pointer-toggle{flex:0 0 42px!important;width:42px!important;height:42px!important;min-height:42px!important;margin:0!important;padding:0!important}
+#sb-top-dock #sb-map-theme-toggle{flex:0 0 42px!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(225,245,255,.28)!important;color:#f4fbff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 5px 16px rgba(0,0,0,.16)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;font-size:20px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;order:0!important}
+#sb-top-dock #sb-map-theme-toggle[aria-pressed=true]{border-color:rgba(105,245,220,.7)!important;box-shadow:0 0 14px rgba(55,230,200,.25),inset 0 1px 0 rgba(255,255,255,.22)!important}
 #sb-panel-toggle.menu-hamburger{position:fixed!important;z-index:1501!important;top:calc(max(9px,env(safe-area-inset-top,0px)) + 11px)!important;left:clamp(220px,25vw,390px)!important;right:auto!important;appearance:none!important;-webkit-appearance:none!important;list-style:none!important;flex:0 0 46px!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;margin:0!important;padding:0!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#f2ffff!important;background:rgba(38,75,91,.62)!important;border:1.5px solid rgba(139,255,235,.62)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 0 0 1px rgba(90,240,215,.12),0 4px 15px rgba(0,0,0,.2)!important;backdrop-filter:blur(16px) saturate(165%)!important;-webkit-backdrop-filter:blur(16px) saturate(165%)!important;cursor:pointer!important;touch-action:manipulation!important;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease!important}
 #sb-panel-toggle.menu-hamburger::-webkit-details-marker{display:none!important}
 #sb-panel-toggle.menu-hamburger svg{width:22px!important;height:22px!important;pointer-events:none!important}
@@ -1145,7 +1147,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-construction-menu:not([open])>#constructionPanel{display:none!important}
 #sb-construction-menu[open]>#constructionPanel{position:fixed!important;display:block!important;left:max(10px,env(safe-area-inset-left,0px))!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 84px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 145px)!important;width:min(310px,calc(100vw - 92px))!important;height:auto!important;min-height:0!important;max-height:none!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;box-sizing:border-box!important;border-radius:24px!important;border:1px solid var(--ios-line,rgba(255,255,255,.22))!important;background:var(--ios-glass,rgba(15,25,40,.46))!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important;z-index:1400!important;transform:none!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 #sb-action-dock{z-index:1500!important;pointer-events:auto!important}
-@media(max-width:560px){#sb-top-dock{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;min-height:60px!important;padding:7px 9px!important;gap:8px!important;border-radius:25px!important}#sb-top-dock .brand{font-size:clamp(9px,2.6vw,12px)!important;letter-spacing:.6px!important}#sb-top-dock .stats{gap:clamp(4px,1.5vw,8px)!important}#sb-top-dock .stat{font-size:7px!important;letter-spacing:.35px!important}#sb-top-dock .stat strong{font-size:clamp(9px,2.4vw,11px)!important}#sb-top-dock #sb-pointer-toggle{flex-basis:34px!important;width:34px!important;height:34px!important;min-height:34px!important}#sb-panel-toggle.menu-hamburger{top:calc(max(7px,env(safe-area-inset-top,0px)) + 9px)!important;left:clamp(145px,24vw,230px)!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}#sb-construction-menu[open]>#constructionPanel{left:max(7px,env(safe-area-inset-left,0px))!important;top:calc(env(safe-area-inset-top,0px) + 76px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 145px)!important;width:min(290px,calc(100vw - 82px))!important;border-radius:22px!important}}
+@media(max-width:560px){#sb-top-dock{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;min-height:60px!important;padding:7px 9px!important;gap:8px!important;border-radius:25px!important}#sb-top-dock .brand{font-size:clamp(9px,2.6vw,12px)!important;letter-spacing:.6px!important}#sb-top-dock .stats{gap:clamp(4px,1.5vw,8px)!important}#sb-top-dock .stat{font-size:7px!important;letter-spacing:.35px!important}#sb-top-dock .stat strong{font-size:clamp(9px,2.4vw,11px)!important}#sb-top-dock #sb-pointer-toggle{flex-basis:34px!important;width:34px!important;height:34px!important;min-height:34px!important}#sb-top-dock #sb-map-theme-toggle{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}#sb-panel-toggle.menu-hamburger{top:calc(max(7px,env(safe-area-inset-top,0px)) + 9px)!important;left:clamp(145px,24vw,230px)!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}#sb-construction-menu[open]>#constructionPanel{left:max(7px,env(safe-area-inset-left,0px))!important;top:calc(env(safe-area-inset-top,0px) + 76px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 145px)!important;width:min(290px,calc(100vw - 82px))!important;border-radius:22px!important}}
 @media(max-height:520px){#sb-construction-menu[open]>#constructionPanel{bottom:calc(env(safe-area-inset-bottom,0px) + 132px)!important}}
 
 
@@ -2011,6 +2013,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 <div id="sb-top-dock" class="topbar" role="group" aria-label="City status">
  <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
  <div class="stats">
+  <button id="sb-map-theme-toggle" type="button" aria-label="Switch map to dark mode" title="Toggle map appearance" aria-pressed="false">◐</button>
   <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu">☰</button>
   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
@@ -2117,8 +2120,16 @@ function toggleMapMenu(){
  const menu=document.getElementById('mapMenu');
  menu.style.display=menu.style.display==='none'?'block':'none';
 }
+
+function toggleMapTheme(){
+ const next=currentTheme==='dark'?'light':'dark';
+ setMapTheme(next);
+ const button=document.getElementById('sb-map-theme-toggle');
+ if(button){button.setAttribute('aria-pressed',String(next==='dark'));button.setAttribute('aria-label',next==='dark'?'Switch map to light mode':'Switch map to dark mode');button.title=next==='dark'?'Switch to light map':'Switch to dark map';button.textContent=next==='dark'?'☼':'◐';}
+}
 // Map-theme clicks are handled by the delegated construction-panel listener.
 setMapTheme(currentTheme);
+ document.addEventListener('DOMContentLoaded',()=>{const button=document.getElementById('sb-map-theme-toggle');if(button){button.setAttribute('aria-pressed',String(currentTheme==='dark'));button.textContent=currentTheme==='dark'?'☼':'◐';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleMapTheme();});}});
 
 /* Default map zoom and attribution controls are intentionally hidden. */
 
@@ -2145,8 +2156,8 @@ let curveMode=false;
 let tunnelMode=false;
 let money=25000;
 let passengers=0;
-let stations=[];
-let tracks=[];
+var stations=[];
+var tracks=[];
 var selected=null;
 var selectedTrackIndex=null;
 let stationMenuTimer=null;
@@ -2159,8 +2170,9 @@ var platformCrowdMarkers=[];
 var history=[];
 var historyIndex=0;
 
-let sbMessageTimer=null;
+var sbMessageTimer=null;
 var sbPressedButton='';
+var sbStartMapPanTimer=null;
 function message(t){
  const box=document.getElementById('sb-dashboard-dialog');
  if(!box)return;
@@ -2467,7 +2479,20 @@ if(mode==='delete'){
   let other=connected
     ? stations[connected.a===i?connected.b:connected.a]
     : null;
-
+  // Before a new station is connected, align it with the nearest existing
+  // station so the platform does not default to north/south. Once connected,
+  // the actual track bearing takes precedence on every render.
+  if(!other&&stations.length>1){
+   let nearest=null,nearestDistance=Infinity;
+   stations.forEach((candidate,j)=>{
+    if(j===i)return;
+    const east=(candidate.lng-s.lng)*Math.cos(s.lat*Math.PI/180);
+    const north=candidate.lat-s.lat;
+    const distance=east*east+north*north;
+    if(distance<nearestDistance){nearestDistance=distance;nearest=candidate;}
+   });
+   other=nearest;
+  }
   let dx=other?(other.lng-s.lng)*Math.cos(s.lat*Math.PI/180):0;
   let dy=other?other.lat-s.lat:1;
   let len=Math.sqrt(dx*dx+dy*dy)||1;
@@ -2612,6 +2637,12 @@ function updateUI(){
 function setMode(newMode){
  mode=newMode;
  selected=null;
+ // A mode change is a completed choice: close expanded submenus and the
+ // construction drawer so it cannot obscure the map or retain stale menus.
+ const constructionMenu=document.getElementById('sb-construction-menu');
+ if(constructionMenu)constructionMenu.open=false;
+ document.querySelectorAll('#constructionPanel details.tool-group').forEach(group=>{group.open=false;});
+ if(typeof toggleToolsPanel==='function')toggleToolsPanel(false);
   if(mode!=='waypoint')selectedTrackIndex=null;
  const constructionPanel=document.getElementById('constructionPanel');
  if(constructionPanel){
@@ -2864,6 +2895,10 @@ function bindConstructionPanelControls(){
      else if(action==='platform-type')setPlatformType(button.dataset.platformType);
      else if(typeof actions[action]==='function')await actions[action]();
      else{console.warn('Unwired construction action:',action);message('This construction tool is not connected yet.');}
+     // Close the dropdown that contained the selected option. Keep the
+     // drawer open for non-mode settings, but mode changes close it in setMode().
+     const group=button.closest('details.tool-group');
+     if(group&&['track-single','track-parallel','curve','tunnel','platform-width','platform-type','theme-dark','theme-light'].includes(action))group.open=false;
      syncConstructionControls();
     }catch(error){
      console.error('Construction tool action failed:',action,error);
@@ -2893,8 +2928,9 @@ function resetSelection(){
  message('Selection cleared.');
 }
 function activateDeleteMode(){
- if(document.getElementById('sb-3d-map').classList.contains('active'))toggle3DCityView();
- setMode('delete');
+ if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
+ // The trash control is a true toggle: tapping it again exits delete mode.
+ setMode(mode==='delete'?'station':'delete');
 }
  function setWaypointElevation(trackIndex,waypointIndex,level){
  let track=tracks[trackIndex];
@@ -3159,7 +3195,6 @@ persistGameState();
    SECTION 19 — STARTUP AND SPLASH SCREEN
    ========================================================= */
 
-let sbStartMapPanTimer=null;
 function startStartMenuMapPan(){
  document.body.classList.add('sb-start-menu-open');
  document.getElementById('map')?.classList.add('sb-start-blur');
