@@ -3935,12 +3935,15 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  function ensurePreview(){
   if(typeof map==='undefined'||!map)return;
   if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){
+   if(typeof stationPlacementPreview!=='undefined'&&stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
    if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}return;
   }
-  if(!stationPreview){
-   stationPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1000,
-    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview sb-station-preview-visible"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
+  /* Reuse the single camera-centered reticle created by the original placement layer. */
+  if(typeof stationPlacementPreview!=='undefined'&&!stationPlacementPreview){
+   stationPlacementPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1200,
+    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
   }
+  if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
  }
  function clearStationMoveMode(){
   if(stationMoveMarker&&stationMoveMarker.dragging)stationMoveMarker.dragging.disable();
