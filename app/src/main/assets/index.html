@@ -4942,7 +4942,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<div id="sb-service-lines"><div class="sb-service-lines-heading">SERVICE LINES</div><div id="sb-service-create-slot"><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name"><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="sb-service-run" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
+   serviceDock.innerHTML='<div id="sb-service-lines"><div class="sb-service-lines-heading">SERVICE LINES</div><div id="sb-service-create-slot"><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name"><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   buildPalette();draw();bindRunButton();
@@ -4973,7 +4973,7 @@ function toggleDefaultDarkOnStart(){
   host.scrollLeft=oldScroll;
   const trigger=document.getElementById('sb-line-color-trigger');if(trigger)trigger.style.setProperty('--sb-picked-line-color',draftColor);
  }
- function bindRunButton(){const button=document.getElementById('sb-service-run');if(!button||button.dataset.bound)return;button.dataset.bound='true';button.addEventListener('click',()=>toggleSimulation());const sync=()=>{button.textContent=running?'Ⅱ':'▶';button.setAttribute('aria-label',running?'Pause trains':'Run trains');button.title=running?'Pause trains':'Run trains';button.classList.toggle('active',!!running);};sync();const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceRunSync){const wrapped=function(){const result=prior.apply(this,arguments);sync();draw();return result;};wrapped.__sbServiceRunSync=true;window.updateUI=wrapped;}}
+ function bindRunButton(){const button=document.getElementById('runBtn');if(!button||button.dataset.bound)return;button.dataset.bound='true';button.addEventListener('click',()=>toggleSimulation());const sync=()=>{button.textContent=running?'Ⅱ':'▶';button.setAttribute('aria-label',running?'Pause trains':'Run trains');button.title=running?'Pause trains':'Run trains';button.classList.toggle('active',!!running);};sync();const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceRunSync){const wrapped=function(){const result=prior.apply(this,arguments);sync();draw();return result;};wrapped.__sbServiceRunSync=true;window.updateUI=wrapped;}}
  function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';saveHistory();draw();message(line.name+' created.');}
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
  document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
@@ -6375,7 +6375,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  margin:0!important;padding:0 12px!important;border:0!important;border-radius:999px!important;
  background:rgba(255,255,255,.10)!important;color:#f4f8fc!important;
 }
-#sb-line-color-trigger,#sb-line-add,#sb-service-run,
+#sb-line-color-trigger,#sb-line-add,#runBtn,
 #sb-service-lines .sb-line-select,#sb-service-lines .sb-line-remove{
  box-sizing:border-box!important;display:inline-flex!important;flex:0 0 40px!important;
  width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
