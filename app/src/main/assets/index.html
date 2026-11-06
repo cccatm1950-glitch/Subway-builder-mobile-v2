@@ -2061,6 +2061,41 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
   max-height:min(22dvh,150px)!important;
  }
 }
+
+/* PR #69 recording fixes: compact construction close control and station-anchored dock menu. */
+#constructionPanel .panel-heading{position:sticky!important;display:flex!important;align-items:center!important;gap:8px!important}
+#constructionPanel .panel-heading button{
+ width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;
+ flex:0 0 24px!important;margin:0 0 0 auto!important;padding:0!important;font-size:14px!important;line-height:1!important;
+}
+#stationContextMenu{
+ position:absolute!important;z-index:10000!important;left:0;top:0;
+ transform:translate(-50%,-100%)!important;
+ width:min(230px,calc(100vw - 20px))!important;max-width:calc(100vw - 16px)!important;
+ max-height:min(62dvh,420px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+ padding:42px 12px 12px!important;
+ border-radius:22px!important;
+ background:linear-gradient(145deg,rgba(5,13,25,.76),rgba(11,25,42,.70))!important;
+ border:1px solid rgba(174,205,231,.2)!important;
+ color:#f5f8fc!important;
+ backdrop-filter:blur(26px) saturate(175%)!important;-webkit-backdrop-filter:blur(26px) saturate(175%)!important;
+ box-shadow:0 14px 38px rgba(0,0,0,.34)!important;
+ pointer-events:auto!important;
+}
+#stationContextMenu h3{margin:8px 4px;color:#a9c2dc;font-size:10px;letter-spacing:1.4px}
+#stationContextMenu>button:not(.sb-menu-close){
+ display:flex!important;width:100%!important;min-height:38px!important;margin:5px 0!important;
+ align-items:center!important;justify-content:flex-start!important;padding:9px 13px!important;
+ text-align:left!important;border-radius:999px!important;
+ background:rgba(255,255,255,.085)!important;border:1px solid rgba(174,205,231,.18)!important;
+}
+#stationContextMenu>.sb-menu-close{position:absolute!important;top:7px!important;right:7px!important;width:25px!important;height:25px!important;min-height:25px!important;padding:0!important;font-size:15px!important}
+#stationContextMenu:after{
+ content:"";position:absolute;left:50%;bottom:-8px;width:14px;height:14px;
+ transform:translateX(-50%) rotate(45deg);background:rgba(8,19,33,.82);
+ border-right:1px solid rgba(174,205,231,.2);border-bottom:1px solid rgba(174,205,231,.2);
+}
+
 </style>
 
 /* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
@@ -2770,12 +2805,14 @@ function setMode(newMode){
   if(mode!=='waypoint')selectedTrackIndex=null;
  const constructionPanel=document.getElementById('constructionPanel');
  if(constructionPanel){
-  const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':null;
-  constructionPanel.querySelectorAll('[data-panel-action]').forEach(button=>{
-   const active=button.dataset.panelAction===selectedAction;
-   button.classList.toggle('active',active);
-   button.setAttribute('aria-pressed',String(active));
-  });
+  if(mode!=='delete'){
+   const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':null;
+   constructionPanel.querySelectorAll('[data-panel-action]').forEach(button=>{
+    const active=button.dataset.panelAction===selectedAction;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+   });
+  }
  }
  const modeButtons={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
  document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(btn=>{
@@ -3754,7 +3791,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}return;
   }
   if(!stationPreview){
-   stationPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:7000,
+   stationPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1000,
     icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview sb-station-preview-visible"></div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
   }
  }
@@ -3845,6 +3882,73 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    if(main)main.hidden=false;if(settings)settings.hidden=true;
   }
  };
+})();
+</script>
+
+
+<script>
+/* PR #69 recording fixes: keep Delete latched, keep the actual station node above its preview,
+   and attach the station options dropdown to the station's map coordinate. */
+(function(){
+ let modeBeforeDelete='station';
+ const priorActivateDelete=window.activateDeleteMode;
+ window.activateDeleteMode=function(){
+  if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
+  if(typeof window.closeStationMenu==='function')window.closeStationMenu();
+  if(mode==='delete'){
+   const restore=['station','track','curve','waypoint','inspect'].includes(modeBeforeDelete)?modeBeforeDelete:'station';
+   setMode(restore);
+  }else{
+   modeBeforeDelete=mode;
+   setMode('delete');
+  }
+ };
+ window.positionStationMenu=function(index){
+  const menu=document.getElementById('stationContextMenu');
+  const station=stations[index];
+  if(!menu||!station||!map)return;
+  const point=map.latLngToContainerPoint([station.lat,station.lng]);
+  /* Coordinates are map-container local, never viewport-clamped: panning carries
+     the menu with its station, including beyond the visible map edge. */
+  menu.style.left=point.x+'px';
+  menu.style.top=(point.y-16)+'px';
+ };
+ window.showStationMenu=function(index){
+  const menu=document.getElementById('stationContextMenu');
+  if(!menu||!stations[index]||!map)return;
+  stationMenuIndex=index;
+  const title=document.getElementById('stationMenuTitle');
+  if(title)title.textContent=stations[index].name||('Station '+(index+1));
+  if(menu.parentElement!==map.getContainer())map.getContainer().appendChild(menu);
+  menu.style.display='block';
+  menu.classList.add('sb-station-menu-open');
+  window.positionStationMenu(index);
+  const move=document.getElementById('sb-station-move-toggle');
+  if(move){move.setAttribute('aria-pressed','false');move.textContent='Move Station: Off';}
+ };
+ /* The marker pane must always win over the placement ghost. Refresh once after
+    the placement transaction so the committed station is immediately visible. */
+ const priorPlacement=window.handleMapPlacement;
+ window.handleMapPlacement=function(latlng){
+  const wasStation=mode==='station';
+  if(typeof priorPlacement==='function')priorPlacement(latlng);
+  if(wasStation&&mode==='station'){
+   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+   requestAnimationFrame(function(){
+    renderNetwork();
+    ensureStationPlacementPreview();
+   });
+  }
+ };
+ function ensureStationPlacementPreview(){
+  if(mode!=='station'||!map)return;
+  if(!stationPreview){
+   stationPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1000,
+    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview sb-station-preview-visible"></div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
+  }
+ }
+ map.on('move zoom',function(){if(stationMenuIndex!==null)window.positionStationMenu(stationMenuIndex);});
+ window.addEventListener('resize',function(){if(stationMenuIndex!==null)window.positionStationMenu(stationMenuIndex);});
 })();
 </script>
 
