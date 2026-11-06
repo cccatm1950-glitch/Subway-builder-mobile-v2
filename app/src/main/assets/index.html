@@ -2062,6 +2062,22 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  }
 }
 </style>
+
+/* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
+#sb-game-menu{padding: max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))!important;box-sizing:border-box!important;overflow:hidden!important}
+#sb-game-menu-card{position:relative!important;display:flex!important;flex-direction:column!important;width:min(92vw,390px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px)!important;min-height:0!important;box-sizing:border-box!important;overflow:hidden!important;padding:16px!important;gap:8px!important}
+#sb-game-menu-card .sb-game-menu-header{flex:0 0 auto!important;margin:0!important}
+#sb-game-menu-card .sb-game-menu-view{min-height:0!important;max-height:calc(100dvh - 150px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;padding:2px 4px 10px!important;width:100%!important;box-sizing:border-box!important}
+.sb-menu-header-actions{display:flex;align-items:center;gap:7px}
+.sb-menu-close{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 32px!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;max-width:32px!important;max-height:32px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(225,245,255,.3)!important;color:#f5fbff!important;font-size:21px!important;line-height:1!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 12px rgba(0,0,0,.18)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
+#constructionPanel .panel-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important}
+#stationContextMenu{box-sizing:border-box!important;max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding-top:44px!important}
+#stationContextMenu>.sb-menu-close{position:absolute!important;top:8px!important;right:8px!important}
+#sb-game-menu-card .sb-game-menu-action{flex:0 0 auto!important;min-height:54px!important}
+#sb-station-move-toggle[aria-pressed="true"]{background:rgba(42,210,180,.28)!important;border-color:rgba(105,255,225,.8)!important;box-shadow:0 0 16px rgba(55,235,205,.32)!important}
+.sb-station-move-active{cursor:move!important}
+@media(max-width:560px){#sb-game-menu-card{width:calc(100vw - 24px)!important;max-width:calc(100vw - 24px)!important;padding:13px!important}#sb-game-menu-card .sb-game-menu-view{max-height:calc(100dvh - 132px)!important}#stationContextMenu{max-width:calc(100vw - 16px)!important}}
+
 </head>
 <body class="sb-start-menu-open">
 
@@ -2087,7 +2103,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><button class="sb-game-menu-action" type="button" onclick="toggleInGameMenuSettings()">Back to menu</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button class="sb-menu-close" type="button" aria-label="Close game menu" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button><button class="sb-game-menu-action" type="button" onclick="toggleInGameMenuSettings()">Back to menu</button></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -2108,8 +2124,10 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  border:1px solid rgba(255,255,255,0.2);
  box-shadow:0 12px 35px rgba(0,0,0,0.4);
 ">
+ <button class="sb-menu-close" type="button" aria-label="Close station menu" onclick="closeStationMenu()">×</button>
  <h3 id="stationMenuTitle">STATION OPTIONS</h3>
  <button onclick="renameSelectedStation()">Rename Station</button>
+ <button id="sb-station-move-toggle" aria-pressed="false" onclick="toggleStationMoveMode()">Move Station: Off</button>
  <h3>ELEVATION</h3>
  <button onclick="setStationElevation('above')">Above Grade</button>
  <button onclick="setStationElevation('at')">At Grade</button>
@@ -2142,6 +2160,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  <nav id="constructionPanel" class="panel" aria-label="Construction tools" aria-hidden="true">
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
+  <button class="sb-menu-close" type="button" aria-label="Close construction menu" onclick="toggleToolsPanel(false)">×</button>
  </div>
  <details class="tool-group" open>
   <summary>BUILD TOOLS</summary>
@@ -2648,7 +2667,7 @@ if(mode==='delete'){
   L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:9,color:'#f4fbff',weight:2,fillColor:'#087f79',fillOpacity:1,interactive:false}).addTo(window.networkLayer);
   let marker=L.marker([s.lat,s.lng],{
  /* Keep the actual station node above platform/halo graphics; disable drag while deleting. */
- pane:'markerPane',draggable:mode!=='delete',keyboard:false,riseOnHover:true,zIndexOffset:5000,
+ pane:'markerPane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:5000,
  icon:L.divIcon({
   className:'sb-station-leaflet-icon',
   html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"></div>',
@@ -3026,7 +3045,7 @@ function resetSelection(){
 function activateDeleteMode(){
  if(document.getElementById('sb-3d-map').classList.contains('active'))toggle3DCityView();
  if(typeof closeStationMenu==='function')closeStationMenu();
- setMode('delete');
+ setMode(mode==='delete'?'station':'delete');
 }
  function setWaypointElevation(trackIndex,waypointIndex,level){
  let track=tracks[trackIndex];
@@ -3714,6 +3733,113 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    el.style.top=top+'px';el.style.left=left+'px';
   };
  }
+})();
+</script>
+
+
+<script>
+/* PR #69 follow-up runtime: station preview, opt-in dragging, and save-to-device. */
+(function(){
+ const DEFAULT_CENTER=[37.7749,-122.4194],DEFAULT_ZOOM=12;
+ let stationMoveIndex=null,stationMoveMarker=null,stationMoveOriginalDrag=null;
+ let stationPreview=null,previewHoldTimer=null,previewHoldTriggered=false,previewMenu=null;
+ function ensurePreview(){
+  if(typeof map==='undefined'||!map)return;
+  if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){
+   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}return;
+  }
+  if(!stationPreview){
+   stationPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:7000,
+    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview sb-station-preview-visible"></div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
+  }
+ }
+ function clearStationMoveMode(){
+  if(stationMoveMarker&&stationMoveMarker.dragging)stationMoveMarker.dragging.disable();
+  if(stationMoveMarker){const el=stationMoveMarker.getElement();el?.classList.remove('sb-station-move-active');}
+  stationMoveMarker=null;stationMoveIndex=null;
+  const b=document.getElementById('sb-station-move-toggle');
+  if(b){b.setAttribute('aria-pressed','false');b.textContent='Move Station: Off';}
+ }
+ window.toggleStationMoveMode=function(){
+  if(stationMoveIndex!==null){clearStationMoveMode();return;}
+  if(stationMenuIndex===null||!stations[stationMenuIndex])return;
+  const index=stationMenuIndex;
+  const marker=window.networkLayer&&window.networkLayer.getLayers().find(layer=>{
+   if(!layer.getLatLng||!layer.options||!layer.options.icon)return false;
+   const p=layer.getLatLng(),s=stations[index];
+   return Math.abs(p.lat-s.lat)<1e-9&&Math.abs(p.lng-s.lng)<1e-9;
+  });
+  if(!marker||!marker.dragging){message('Station marker is not ready to move.');return;}
+  stationMoveIndex=index;stationMoveMarker=marker;marker.dragging.enable();
+  marker.getElement()?.classList.add('sb-station-move-active');
+  const b=document.getElementById('sb-station-move-toggle');
+  if(b){b.setAttribute('aria-pressed','true');b.textContent='Move Station: On';}
+  message('Move mode enabled. Drag this station, then close the menu to turn move mode off.');
+ };
+ const oldCloseStationMenu=window.closeStationMenu;
+ window.closeStationMenu=function(){
+  clearStationMoveMode();
+  if(previewMenu){previewMenu.remove();previewMenu=null;}
+  if(typeof oldCloseStationMenu==='function')oldCloseStationMenu();
+ };
+ const oldShowStationMenu=window.showStationMenu;
+ window.showStationMenu=function(index){
+  clearStationMoveMode();
+  if(typeof oldShowStationMenu==='function')oldShowStationMenu(index);
+  const menu=document.getElementById('stationContextMenu');
+  if(menu){
+   const button=document.getElementById('sb-station-move-toggle');
+   if(button){button.setAttribute('aria-pressed','false');button.textContent='Move Station: Off';}
+   const mapRect=map.getContainer().getBoundingClientRect();
+   const point=map.latLngToContainerPoint([stations[index].lat,stations[index].lng]);
+   const menuRect=menu.getBoundingClientRect();
+   let left=Math.max(8,Math.min(mapRect.left+point.x-menuRect.width/2,innerWidth-menuRect.width-8));
+   let top=Math.max(8,Math.min(mapRect.top+point.y-menuRect.height-12,innerHeight-menuRect.height-8));
+   menu.style.left=left+'px';menu.style.top=top+'px';
+  }
+ };
+ const oldSetMode=window.setMode;
+ window.setMode=function(next){
+  clearStationMoveMode();
+  if(typeof oldSetMode==='function')oldSetMode(next);
+  if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+  if(next==='station')ensurePreview();
+ };
+ const oldHandleMapPlacement=window.handleMapPlacement;
+ window.handleMapPlacement=function(latlng){
+  if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+  if(typeof oldHandleMapPlacement==='function')oldHandleMapPlacement(latlng);
+  if(mode==='station')ensurePreview();
+ };
+ map.on('move zoom',function(){if(stationPreview&&mode==='station')stationPreview.setLatLng(map.getCenter());});
+ map.on('mousemove touchmove',function(e){if(stationPreview&&mode==='station')stationPreview.setLatLng(e.latlng);});
+ map.on('click',function(e){if(mode==='station'&&stationPreview)stationPreview.setLatLng(e.latlng);});
+ ensurePreview();
+ 
+ window.exportGameStateToDevice=function(){
+  try{
+   persistGameState();
+   const raw=localStorage.getItem(SB_GAME_SAVE_KEY);
+   if(!raw){message('No saved game state is available yet.');return;}
+   if(window.AndroidStorage&&typeof window.AndroidStorage.saveGameState==='function'){
+    window.AndroidStorage.saveGameState(raw);
+    const status=document.getElementById('sb-game-menu-save-status');if(status)status.textContent='Choose a location in the Android save dialog.';
+   }else{
+    const blob=new Blob([raw],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='subway-builder-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    window.onDeviceGameSaveComplete(true);
+   }
+  }catch(error){console.error('Game export failed:',error);window.onDeviceGameSaveComplete(false);}
+ };
+ window.onDeviceGameSaveComplete=function(success){
+  const status=document.getElementById('sb-game-menu-save-status');
+  if(status)status.textContent=success?'Save exported successfully. Camera reset; game returned to menu.':'Save could not be exported. Your automatic local save is still available.';
+  if(success){
+   if(typeof map!=='undefined'&&map){map.setView(DEFAULT_CENTER,DEFAULT_ZOOM,{animate:false});persistGameState();}
+   const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+   if(main)main.hidden=false;if(settings)settings.hidden=true;
+  }
+ };
 })();
 </script>
 
