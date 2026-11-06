@@ -4923,10 +4923,27 @@ function toggleDefaultDarkOnStart(){
  }
  function buildPalette(){
   const trigger=document.getElementById('sb-line-color-trigger'),palette=document.getElementById('sb-line-color-options');if(!trigger||!palette)return;
-  trigger.style.setProperty('--sb-picked-line-color',draftColor);palette.replaceChildren();
-  const choose=(color)=>{draftColor=color;trigger.style.setProperty('--sb-picked-line-color',color);palette.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.color===color)));palette.hidden=true;trigger.setAttribute('aria-expanded','false');};
+  trigger.style.setProperty('--sb-picked-line-color',draftColor);
+  palette.replaceChildren();
+  const choose=(color)=>{draftColor=color;trigger.style.setProperty('--sb-picked-line-color',color);palette.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.color===color)));};
+  const addCustomEditor=(slot)=>{
+   const editor=document.createElement('div');editor.className='sb-custom-color-editor';editor.setAttribute('role','group');editor.setAttribute('aria-label','Add custom service line color');
+   const preview=document.createElement('span');preview.className='sb-custom-color-preview';preview.style.setProperty('--sb-custom-preview',draftColor);
+   const hex=document.createElement('input');hex.type='text';hex.inputMode='text';hex.autocomplete='off';hex.spellcheck=false;hex.maxLength=7;hex.value=draftColor;hex.placeholder='#RRGGBB';hex.className='sb-custom-color-hex';hex.setAttribute('aria-label','Custom color hexadecimal value');
+   const apply=document.createElement('button');apply.type='button';apply.className='sb-custom-color-apply';apply.textContent='Add';apply.setAttribute('aria-label','Save custom color');
+   const valid=()=>/^#[0-9a-fA-F]{6}$/.test(hex.value.trim());
+   hex.addEventListener('input',()=>{preview.style.setProperty('--sb-custom-preview',valid()?hex.value.trim():'#667788');apply.disabled=!valid();});
+   apply.disabled=!valid();
+   apply.addEventListener('click',()=>{const color=hex.value.trim().toLowerCase();if(!/^#[0-9a-f]{6}$/.test(color))return;customColors[slot]=color;saveCustomColors();buildPalette();choose(color);});
+   editor.append(preview,hex,apply);palette.prepend(editor);hex.focus();
+  };
   presetColors.forEach(color=>{const b=document.createElement('button');b.type='button';b.className='sb-line-color-option';b.dataset.color=color;b.style.setProperty('--sb-option-color',color);b.title=color;b.setAttribute('aria-label','Preset '+color);b.setAttribute('aria-selected',String(color===draftColor));b.addEventListener('click',()=>choose(color));palette.append(b);});
-  for(let slot=0;slot<10;slot++){const b=document.createElement('button');b.type='button';b.className='sb-line-color-option sb-custom-color-slot';const color=customColors[slot];if(color){b.dataset.color=color;b.style.setProperty('--sb-option-color',color);b.title='Custom '+(slot+1)+' '+color;b.setAttribute('aria-label','Use custom color '+(slot+1));b.setAttribute('aria-selected',String(color===draftColor));b.addEventListener('click',()=>choose(color));}else{b.classList.add('empty');b.textContent='+';b.title='Add custom color '+(slot+1);b.setAttribute('aria-label','Add custom color slot '+(slot+1));const input=document.createElement('input');input.type='color';input.value=draftColor;input.className='sb-custom-color-input';input.setAttribute('aria-label','Choose custom color for slot '+(slot+1));input.addEventListener('input',()=>{customColors[slot]=input.value;saveCustomColors();buildPalette();choose(input.value);});b.append(input);}palette.append(b);}
+  for(let slot=0;slot<10;slot++){
+   const color=customColors[slot],b=document.createElement('button');b.type='button';b.className='sb-line-color-option sb-custom-color-slot';
+   if(color){b.dataset.color=color;b.style.setProperty('--sb-option-color',color);b.title='Custom '+(slot+1)+' '+color;b.setAttribute('aria-label','Use custom color '+(slot+1));b.setAttribute('aria-selected',String(color===draftColor));b.addEventListener('click',()=>choose(color));}
+   else{b.classList.add('empty');b.textContent='+';b.title='Add custom color '+(slot+1);b.setAttribute('aria-label','Add custom color slot '+(slot+1));b.addEventListener('click',()=>addCustomEditor(slot));}
+   palette.append(b);
+  }
   trigger.onclick=(event)=>{event.stopPropagation();palette.hidden=!palette.hidden;trigger.setAttribute('aria-expanded',String(!palette.hidden));};
   document.addEventListener('pointerdown',event=>{if(!palette.hidden&&!palette.contains(event.target)&&event.target!==trigger){palette.hidden=true;trigger.setAttribute('aria-expanded','false');}},{passive:true});
  }
@@ -6645,5 +6662,60 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  box-shadow:0 0 10px var(--sb-picked-line-color,#ff5263)!important;
  pointer-events:none!important;
 }
+</style>
+<style id="sb-nov06-inline-glass-custom-color-editor">
+/* Custom color editing stays inside the in-game horizontal glass palette. */
+#sb-line-color-options{
+ position:absolute!important;z-index:1000000!important;left:50%!important;right:auto!important;
+ bottom:calc(100% + 12px)!important;top:auto!important;transform:translateX(-50%)!important;
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:flex-start!important;gap:8px!important;
+ width:max-content!important;max-width:min(92vw,520px)!important;min-width:0!important;
+ overflow-x:auto!important;overflow-y:hidden!important;padding:9px 11px!important;
+ border:0!important;border-radius:999px!important;background:rgba(18,29,44,.84)!important;
+ box-shadow:0 8px 26px rgba(0,0,0,.28)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+ backdrop-filter:blur(26px) saturate(180%)!important;scrollbar-width:none!important;
+}
+#sb-line-color-options[hidden]{display:none!important}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options .sb-line-color-option{
+ position:relative!important;box-sizing:border-box!important;display:inline-flex!important;
+ flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important;
+ min-height:36px!important;max-width:36px!important;max-height:36px!important;
+ align-items:center!important;justify-content:center!important;padding:4px!important;margin:0!important;
+ border:0!important;border-radius:50%!important;background:rgba(235,245,255,.12)!important;
+ box-shadow:none!important;overflow:hidden!important;color:#fff!important;
+}
+#sb-line-color-options .sb-line-color-option:before{
+ content:""!important;position:absolute!important;inset:4px!important;
+ border-radius:50%!important;background:var(--sb-option-color,transparent)!important;
+}
+#sb-line-color-options .sb-line-color-option.empty:before{display:none!important}
+#sb-line-color-options .sb-line-color-option.empty{border:1px dashed rgba(255,255,255,.65)!important}
+#sb-line-color-options .sb-line-color-option[aria-selected="true"]{outline:2px solid #a5ffe0!important;outline-offset:2px!important}
+#sb-line-color-options .sb-custom-color-editor{
+ box-sizing:border-box!important;display:inline-flex!important;flex:0 0 auto!important;
+ flex-direction:row!important;align-items:center!important;gap:7px!important;
+ height:42px!important;padding:3px 8px!important;margin:0!important;
+ border:0!important;border-radius:999px!important;background:rgba(255,255,255,.09)!important;
+}
+#sb-line-color-options .sb-custom-color-preview{
+ display:block!important;flex:0 0 26px!important;width:26px!important;height:26px!important;
+ border-radius:50%!important;background:var(--sb-custom-preview,#667788)!important;
+ box-shadow:0 0 8px var(--sb-custom-preview,#667788)!important;
+}
+#sb-line-color-options .sb-custom-color-hex{
+ box-sizing:border-box!important;flex:0 0 82px!important;width:82px!important;height:30px!important;
+ min-width:82px!important;padding:0 8px!important;margin:0!important;
+ border:0!important;border-radius:999px!important;background:rgba(255,255,255,.10)!important;
+ color:#f4f8fc!important;font-size:12px!important;outline:none!important;
+}
+#sb-line-color-options .sb-custom-color-apply{
+ box-sizing:border-box!important;flex:0 0 auto!important;height:30px!important;min-width:42px!important;
+ padding:0 10px!important;margin:0!important;border:0!important;border-radius:999px!important;
+ background:rgba(42,211,170,.20)!important;color:#a5ffe0!important;font-size:11px!important;
+}
+#sb-line-color-options .sb-custom-color-apply:disabled{opacity:.35!important}
 </style>
 </html>
