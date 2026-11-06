@@ -2877,6 +2877,17 @@ if(mode==='delete'){
   }else{
     drawLine(0);
   }
+  // Keep shared service routes visually distinct while retaining one physical track edge.
+  assignedLines.slice(1).forEach((line,lineIndex)=>{
+   const offset=(lineIndex-(assignedLines.length-2)/2)*5;
+   const overlay=points.map((p,index)=>{
+    const prev=points[Math.max(0,index-1)],next=points[Math.min(points.length-1,index+1)];
+    const dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180),dy=next[0]-prev[0];
+    const length=Math.sqrt(dx*dx+dy*dy)||1;
+    return [p[0]+(dx/length)*offset/111320,p[1]-(dy/length)*offset/(111320*Math.cos(p[0]*Math.PI/180))];
+   });
+   L.polyline(overlay,{pane:'sbTrackPane',color:line.color,weight:4,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  });
 });
 
  stations.forEach((s,i)=>{
