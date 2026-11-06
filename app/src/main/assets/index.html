@@ -2228,6 +2228,49 @@ button.sb-menu-close,
 #map .leaflet-marker-pane .sb-station-marker.is-dragging .sb-station-node{
  background:#fff!important;box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 22px #55eaff!important;
 }
+
+
+/* PR #69 follow-up: normalize flat close controls and history dock states. */
+button.sb-menu-close,
+#constructionPanel .panel-heading button.sb-menu-close,
+button.sb-flat-close,[data-flat-close="true"]{
+ box-sizing:border-box!important;
+ width:16px!important;min-width:16px!important;max-width:16px!important;
+ height:16px!important;min-height:16px!important;max-height:16px!important;
+ flex:0 0 16px!important;aspect-ratio:1/1!important;
+ padding:0!important;margin:0 0 0 auto!important;
+ border-radius:50%!important;overflow:hidden!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ font-size:11px!important;line-height:14px!important;font-weight:700!important;
+ color:#fff!important;background:rgba(255,72,86,.76)!important;
+ border:1px solid rgba(255,255,255,.3)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 0 7px rgba(255,65,82,.18)!important;
+}
+#sb-action-dock button:disabled,
+#sb-action-dock button[aria-disabled="true"]{
+ opacity:.28!important;filter:grayscale(1)!important;
+ background:rgba(150,165,180,.08)!important;
+ border-color:rgba(190,205,220,.12)!important;
+ color:rgba(225,235,245,.38)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;
+}
+#sb-action-dock #undoBtn:not(:disabled),
+#sb-action-dock #redoBtn:not(:disabled){
+ opacity:1!important;filter:none!important;
+ color:#fff!important;
+ background:rgba(255,255,255,.13)!important;
+ border-color:rgba(255,255,255,.72)!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.34),0 0 9px rgba(255,255,255,.42),0 0 18px rgba(255,255,255,.22),inset 0 0 8px rgba(255,255,255,.12)!important;
+}
+#sb-action-dock #undoBtn:disabled,
+#sb-action-dock #redoBtn:disabled{
+ opacity:.28!important;filter:grayscale(1)!important;
+ background:rgba(150,165,180,.08)!important;
+ border-color:rgba(190,205,220,.12)!important;
+ color:rgba(225,235,245,.38)!important;
+ box-shadow:none!important;
+}
+
 </style>
 
 /* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
@@ -4129,5 +4172,35 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  document.addEventListener('pointercancel',end,{passive:true});
 })();
 </script>
+
+<script>
+/* PR #69 follow-up: keep undo/redo visual state synchronized with the history cursor. */
+(function(){
+ const originalUpdateUI=window.updateUI;
+ function syncHistoryDock(){
+  const undoButton=document.getElementById('undoBtn');
+  const redoButton=document.getElementById('redoBtn');
+  if(!undoButton||!redoButton)return;
+  const canUndo=Number.isFinite(window.historyIndex)&&window.historyIndex>0;
+  const canRedo=Array.isArray(window.history)&&window.historyIndex<window.history.length-1;
+  undoButton.disabled=!canUndo;
+  redoButton.disabled=!canRedo;
+  undoButton.setAttribute('aria-disabled',String(!canUndo));
+  redoButton.setAttribute('aria-disabled',String(!canRedo));
+  undoButton.classList.toggle('sb-history-available',canUndo);
+  redoButton.classList.toggle('sb-history-available',canRedo);
+ }
+ if(typeof originalUpdateUI==='function'){
+  window.updateUI=function(){
+   const result=originalUpdateUI.apply(this,arguments);
+   syncHistoryDock();
+   return result;
+  };
+ }
+ window.addEventListener('DOMContentLoaded',syncHistoryDock,{once:true});
+ requestAnimationFrame(syncHistoryDock);
+})();
+</script>
+
 </body>
 </html>
