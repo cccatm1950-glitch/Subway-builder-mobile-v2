@@ -3933,20 +3933,11 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const wasStation=mode==='station';
   if(typeof priorPlacement==='function')priorPlacement(latlng);
   if(wasStation&&mode==='station'){
-   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
-   requestAnimationFrame(function(){
-    renderNetwork();
-    ensureStationPlacementPreview();
-   });
+   /* Repaint the committed marker after the placement transaction. Keep the
+      lower-z placement ghost in place; the real station node now renders above it. */
+   requestAnimationFrame(function(){renderNetwork();});
   }
  };
- function ensureStationPlacementPreview(){
-  if(mode!=='station'||!map)return;
-  if(!stationPreview){
-   stationPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1000,
-    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview sb-station-preview-visible"></div>',iconSize:[30,30],iconAnchor:[15,15]})}).addTo(map);
-  }
- }
  map.on('move zoom',function(){if(stationMenuIndex!==null)window.positionStationMenu(stationMenuIndex);});
  window.addEventListener('resize',function(){if(stationMenuIndex!==null)window.positionStationMenu(stationMenuIndex);});
 })();
