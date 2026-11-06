@@ -4933,29 +4933,37 @@ function toggleDefaultDarkOnStart(){
 (function(){
  const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff','#ff8bd1','#54d7e8'];
  function draw(){
-  const host=document.getElementById('sb-service-lines-content');if(!host)return;host.replaceChildren();
+  const host=document.getElementById('sb-service-lines-content');if(!host)return;
+  const scrollLeft=host.scrollLeft;host.replaceChildren();
   lines.forEach(line=>{
    const row=document.createElement('div');row.className='sb-line-row';
    const sw=document.createElement('i');sw.className='sb-line-swatch';sw.style.background=line.color;
-   const pick=document.createElement('button');pick.className='sb-line-select'+(activeLineId===line.id?' active':'');pick.textContent='●';pick.title='Select '+line.name;pick.setAttribute('aria-label','Select '+line.name);
+   const pick=document.createElement('button');pick.type='button';pick.className='sb-line-select'+(activeLineId===line.id?' active':'');pick.textContent='●';pick.title='Select '+line.name;pick.setAttribute('aria-label','Select '+line.name);pick.setAttribute('aria-pressed',String(activeLineId===line.id));
    pick.addEventListener('click',()=>{activeLineId=line.id;draw();message(line.name+' selected for new track sections.');});
    const label=document.createElement('span');label.className='sb-line-label';label.textContent=line.name;
    const count=document.createElement('small');count.textContent=tracks.filter(t=>(t.lineIds||[]).includes(line.id)).length;
-   const remove=document.createElement('button');remove.className='sb-line-remove';remove.textContent='−';remove.title='Remove line';
+   const remove=document.createElement('button');remove.type='button';remove.className='sb-line-remove';remove.textContent='−';remove.title='Remove line';
    remove.addEventListener('click',()=>{lines=lines.filter(x=>x.id!==line.id);tracks.forEach(t=>t.lineIds=(t.lineIds||[]).filter(id=>id!==line.id));if(activeLineId===line.id)activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();});
    row.append(sw,pick,label,count,remove);host.append(row);
   });
   const create=document.createElement('div');create.className='sb-line-create';
-  const name=document.createElement('input');name.placeholder='New line name';name.maxLength=24;
-  const color=document.createElement('select');colors.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;color.append(o);});
-  const add=document.createElement('button');add.className='sb-line-add';add.textContent='+';add.setAttribute('aria-label','Create line');
-  add.addEventListener('click',()=>{if(!name.value.trim()){message('Enter a line name first.');return;}const line={id:'line-'+(nextLineId++),name:name.value.trim(),color:color.value};lines.push(line);activeLineId=line.id;saveHistory();draw();message(line.name+' created.');});
-  create.append(name,color,add);host.append(create);
-  const link=document.createElement('button');link.className='sb-line-link';link.textContent='↗';link.title='Link selected track to active line';link.setAttribute('aria-label','Link selected track to active line');
-  link.disabled=selectedTrackIndex===null||!activeLineId;
+  const name=document.createElement('input');name.placeholder='New line name';name.maxLength=24;name.setAttribute('aria-label','New line name');
+  const picker=document.createElement('div');picker.className='sb-line-color-picker';
+  const trigger=document.createElement('button');trigger.type='button';trigger.className='sb-line-color-trigger';trigger.setAttribute('aria-label','Choose line color');trigger.setAttribute('aria-expanded','false');
+  let selectedColor=colors[0];trigger.style.setProperty('--sb-picked-line-color',selectedColor);
+  const options=document.createElement('div');options.className='sb-line-color-options';options.setAttribute('role','listbox');options.setAttribute('aria-label','Line colors');options.hidden=true;
+  colors.forEach(c=>{const option=document.createElement('button');option.type='button';option.className='sb-line-color-option';option.style.setProperty('--sb-option-color',c);option.setAttribute('role','option');option.setAttribute('aria-label',c);option.setAttribute('aria-selected',String(c===selectedColor));option.addEventListener('click',()=>{selectedColor=c;trigger.style.setProperty('--sb-picked-line-color',c);options.querySelectorAll('.sb-line-color-option').forEach(el=>el.setAttribute('aria-selected',String(el.getAttribute('aria-label')===c)));options.hidden=true;trigger.setAttribute('aria-expanded','false');});options.append(option);});
+  trigger.addEventListener('click',event=>{event.stopPropagation();options.hidden=!options.hidden;trigger.setAttribute('aria-expanded',String(!options.hidden));});
+  picker.append(trigger,options);
+  const add=document.createElement('button');add.type='button';add.className='sb-line-add';add.textContent='+';add.setAttribute('aria-label','Create line');
+  add.addEventListener('click',()=>{if(!name.value.trim()){message('Enter a line name first.');name.focus();return;}const line={id:'line-'+(nextLineId++),name:name.value.trim(),color:selectedColor};lines.push(line);activeLineId=line.id;saveHistory();draw();message(line.name+' created.');});
+  create.append(name,picker,add);host.append(create);
+  const link=document.createElement('button');link.type='button';link.className='sb-line-link';link.textContent='↗';link.title='Link selected track to active line';link.disabled=selectedTrackIndex===null||!activeLineId;
   link.addEventListener('click',()=>{const t=tracks[selectedTrackIndex];if(!t||!activeLineId)return;t.lineIds=Array.isArray(t.lineIds)?t.lineIds:[];if(!t.lineIds.includes(activeLineId))t.lineIds.push(activeLineId);saveHistory();renderNetwork();draw();message('Track shared with '+(lines.find(x=>x.id===activeLineId)?.name||'line')+'.');});
   host.append(link);
   const hint=document.createElement('p');hint.className='sb-line-hint';hint.textContent='Select a line before drawing. To share an existing section, choose Waypoint, tap its track, then link it here.';host.append(hint);
+  host.scrollLeft=scrollLeft;
+ }
  }
  function mount(){
   const dock=document.getElementById('sb-action-dock');
@@ -6229,5 +6237,28 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  #sb-service-lines input{flex-basis:88px!important;width:88px!important;min-width:72px!important}
  #sb-service-lines select{flex-basis:74px!important;width:74px!important;min-width:74px!important}
 }
+</style>
+
+<style id="sb-nov06-service-line-overflow-color-and-construction-fix">
+#sb-action-dock .sb-dock-panel-service{overflow:visible!important;min-width:0!important}
+#sb-service-lines{display:flex!important;flex-direction:row!important;align-items:center!important;width:100%!important;min-width:0!important;max-width:100%!important;height:100%!important;gap:8px!important;overflow:visible!important}
+#sb-service-lines .sb-service-lines-heading{flex:0 0 auto!important}
+#sb-service-lines-content{display:flex!important;flex:1 1 0!important;flex-flow:row nowrap!important;width:0!important;min-width:0!important;max-width:100%!important;height:100%!important;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-x!important;overscroll-behavior-x:contain!important;padding:0 12px 0 7px!important;margin:0!important;scrollbar-width:thin!important}
+#sb-service-lines-content>*{flex:0 0 auto!important;min-width:max-content!important}
+#sb-service-lines .sb-line-row,#sb-service-lines .sb-line-create{flex:0 0 auto!important;width:max-content!important;min-width:max-content!important}
+#sb-service-lines .sb-line-label{flex:0 0 auto!important;max-width:110px!important}
+#sb-service-lines .sb-line-color-picker{position:relative!important;display:flex!important;flex:0 0 40px!important;width:40px!important;height:40px!important;align-items:center!important;justify-content:center!important}
+#sb-service-lines .sb-line-color-trigger{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;border-radius:50%!important;border:1px solid rgba(230,243,255,.16)!important;background:rgba(235,245,255,.12)!important;position:relative!important}
+#sb-service-lines .sb-line-color-trigger:before{content:''!important;display:block!important;width:13px!important;height:13px!important;border-radius:50%!important;background:var(--sb-picked-line-color,#ff5263)!important;box-shadow:0 0 9px var(--sb-picked-line-color,#ff5263)!important}
+#sb-service-lines .sb-line-color-options{position:absolute!important;z-index:99999!important;left:50%!important;bottom:calc(100% + 9px)!important;transform:translateX(-50%)!important;display:flex!important;flex-direction:column!important;gap:8px!important;padding:0!important;margin:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#sb-service-lines .sb-line-color-options[hidden]{display:none!important}
+#sb-service-lines .sb-line-color-option{display:block!important;flex:0 0 30px!important;width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;border-radius:50%!important;padding:0!important;margin:0!important;background:var(--sb-option-color)!important;border:2px solid rgba(255,255,255,.78)!important;box-shadow:0 2px 9px rgba(0,0,0,.35)!important}
+#sb-service-lines .sb-line-color-option[aria-selected='true']{outline:2px solid #fff!important;outline-offset:2px!important}
+#sb-construction-menu[open]>#constructionPanel{position:fixed!important;box-sizing:border-box!important;width:124px!important;min-width:124px!important;max-width:124px!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;flex:none!important;transform:none!important}
+#constructionPanel .tool-group{width:100%!important;min-width:0!important;max-width:none!important;flex:none!important}
+#constructionPanel .tool-grid{display:grid!important;grid-template-columns:repeat(2,40px)!important;grid-template-rows:repeat(4,40px)!important;grid-auto-flow:row!important;grid-auto-columns:40px!important;grid-auto-rows:40px!important;width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;justify-content:center!important;align-content:start!important;gap:6px 5px!important;transform:none!important;overflow:visible!important}
+#constructionPanel .tool-grid>*{position:static!important;float:none!important;transform:none!important;grid-column:auto!important;grid-row:auto!important}
+#constructionPanel .tool-grid button{box-sizing:border-box!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important;flex:none!important;margin:0!important;padding:0!important;border-radius:50%!important}
+@media(max-width:420px){#sb-service-lines-content{padding-inline:5px 12px!important}#sb-service-lines .sb-line-color-picker{flex-basis:36px!important;width:36px!important}#sb-service-lines .sb-line-color-trigger{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}#sb-construction-menu[open]>#constructionPanel{width:124px!important;min-width:124px!important;max-width:124px!important}}
 </style>
 </html>
