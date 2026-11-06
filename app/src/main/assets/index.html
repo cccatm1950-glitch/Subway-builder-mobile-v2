@@ -2809,8 +2809,13 @@ function renderNetwork(){
  }
  window.networkLayer=L.layerGroup().addTo(map);
   /* Keep committed station nodes in their own layer so track redraws cannot clear them. */
-  if(!window.stationNodeLayer)window.stationNodeLayer=L.layerGroup().addTo(map);
+  if(!window.stationNodeLayer)window.stationNodeLayer=L.layerGroup();
   else window.stationNodeLayer.clearLayers();
+  /* Re-attach the dedicated node layer on every redraw. This guards against
+     map/theme/3D transitions detaching the layer while tracks are rebuilt. */
+  if(!map.hasLayer(window.stationNodeLayer))window.stationNodeLayer.addTo(map);
+  const stationPane=map.getPane('sbStationNodePane');
+  if(stationPane){stationPane.style.zIndex='650';stationPane.style.pointerEvents='auto';}
 
  tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
@@ -5433,6 +5438,46 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
    message('Move the map until a station, track, or waypoint is under the crosshair.');
   }
  });
+})();
+</script>
+
+
+<style id="sb-construction-drawer-dock-inset-buffer">
+/* Keep a clear inset between the construction drawer and the bottom-left edit dock. */
+#constructionPanel{
+ bottom:calc(env(safe-area-inset-bottom,0px) + 88px)!important;
+ max-height:calc(100dvh - 176px)!important;
+}
+@media(max-width:560px){
+ #constructionPanel{bottom:calc(env(safe-area-inset-bottom,0px) + 88px)!important;max-height:calc(100dvh - 176px)!important}
+}
+</style>
+<script id="sb-build-dock-selected-tool-state">
+(function(){
+ if(window.__sbBuildDockSelectedToolState)return;
+ window.__sbBuildDockSelectedToolState=true;
+ function sync(){
+  const button=document.getElementById('sb-build-dock-btn');
+  const menu=document.getElementById('sb-construction-menu');
+  if(!button)return;
+  const buildMode=['station','track','curve','waypoint','inspect'].includes(window.mode);
+  const active=!!(menu&&menu.open)||buildMode;
+  const selected=active&&window.mode!=='delete';
+  button.classList.toggle('active',selected);
+  button.setAttribute('aria-pressed',String(selected));
+ }
+ document.addEventListener('DOMContentLoaded',sync);
+ const menu=document.getElementById('sb-construction-menu');
+ if(menu)new MutationObserver(sync).observe(menu,{attributes:true,attributeFilter:['open']});
+ const panel=document.getElementById('constructionPanel');
+ if(panel)panel.addEventListener('click',event=>{
+  if(event.target.closest('[data-panel-action]'))requestAnimationFrame(sync);
+ },true);
+ const originalSetMode=window.setMode;
+ if(typeof originalSetMode==='function')window.setMode=function(){const result=originalSetMode.apply(this,arguments);sync();return result;};
+ const originalToggle=window.toggleToolsPanel;
+ if(typeof originalToggle==='function')window.toggleToolsPanel=function(){const result=originalToggle.apply(this,arguments);sync();return result;};
+ sync();
 })();
 </script>
 
