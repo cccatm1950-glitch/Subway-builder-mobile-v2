@@ -2642,9 +2642,8 @@ function updateUI(){
 function setMode(newMode){
  const previousMode=mode;
  mode=newMode;
- // A completed tool choice closes expanded submenus and the construction drawer.
- const constructionMenu=document.getElementById('sb-construction-menu');
- if(constructionMenu)constructionMenu.open=false;
+ // Keep the construction drawer open while a tool is active. The user closes
+ // it explicitly with the construction toggle; only the selected category collapses.
  document.querySelectorAll('#constructionPanel details.tool-group').forEach(group=>{group.open=false;});
  selected=null;
  if(mode!=='waypoint'&&mode!=='curve')selectedTrackIndex=null;
@@ -5151,9 +5150,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #map .sb-station-marker.is-track-target{box-shadow:0 0 0 3px rgba(255,255,255,.55)!important}
 @media(max-width:560px){#sb-construction-menu[open]>#constructionPanel{width:calc(100vw - 16px)!important;right:8px!important;padding:8px 6px!important}#constructionPanel .tool-grid{grid-template-columns:repeat(8,minmax(0,1fr))!important;grid-auto-rows:42px!important;gap:2px!important}#constructionPanel .tool-grid button{}#constructionPanel .tool-grid button svg{}}
 </style>
-<script id="sb-construction-menu-persistence-fix">
-(function(){const original=window.setMode;if(typeof original==='function'&&!original.__sbKeepConstructionDockOpen){const wrapped=function(nextMode){const wasOpen=!!document.getElementById('sb-construction-menu')?.open;const result=original.apply(this,arguments);const buildMode=['station','track','curve','waypoint','inspect'].includes(nextMode);if(wasOpen||buildMode)toggleToolsPanel(true);return result;};wrapped.__sbKeepConstructionDockOpen=true;window.setMode=wrapped;}const menu=document.getElementById('sb-construction-menu');const panel=document.getElementById('constructionPanel');const toggle=document.getElementById('sb-panel-toggle');if(menu&&panel&&toggle){const sync=()=>{panel.setAttribute('aria-hidden',String(!menu.open));toggle.setAttribute('aria-expanded',String(menu.open));};menu.addEventListener('toggle',sync);sync();}})();
-</script>
+<!-- Removed conflicting construction auto-reopen script 1; toggleToolsPanel is the sole visibility controller. -->
 
 
 <style id="sb-nov06-dock-sizing-servicebar">/* Match the construction drawer footprint to the lower-right two-button dock. */
@@ -5385,18 +5382,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 @media(max-width:700px){#sb-construction-menu[open]>#constructionPanel{right:8px!important;width:124px!important;min-width:124px!important;max-width:124px!important}}
 </style>
 
-<script id="sb-nov06-keep-build-menu-open-after-station-placement">
-(function(){
- if(window.__sbKeepBuildMenuAfterStationPlacement)return;
- window.__sbKeepBuildMenuAfterStationPlacement=true;
- if(typeof map==='undefined'||!map)return;
- map.on('click',function(){
-  if(mode!=='station')return;
-  const menu=document.getElementById('sb-construction-menu');
-  if(menu&&!menu.open&&typeof window.toggleToolsPanel==='function')window.toggleToolsPanel(true);
- });
-})();
-</script>
+<!-- Removed conflicting construction auto-reopen script 2; toggleToolsPanel is the sole visibility controller. -->
 </body>
 <style id="sb-nov06-dock-pill-inset-and-service-button-parity">
 /* One shared viewport inset for all three bottom docks, matching the top HUD. */
@@ -5533,22 +5519,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  margin:0!important;padding:0!important;border-radius:50%!important;place-items:center!important}#constructionPanel .tool-grid button svg{display:block!important;width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;pointer-events:none!important}
 @media(max-width:700px){#sb-construction-menu[open]>#constructionPanel{right:8px!important}}
 </style>
-<script id="sb-nov06-keep-construction-open-after-station-placement">
-(function(){
- if(window.__sbKeepConstructionOpenAfterPlacement)return;
- window.__sbKeepConstructionOpenAfterPlacement=true;
- if(typeof map==='undefined'||!map)return;
- map.on('click',function(){
-  if(mode!=='station')return;
-  requestAnimationFrame(function(){
-   if(mode==='station'){
-    const menu=document.getElementById('sb-construction-menu');
-    if(menu&&!menu.open&&typeof window.toggleToolsPanel==='function')window.toggleToolsPanel(true);
-   }
-  });
- });
-})();
-</script>
+<!-- Removed conflicting construction auto-reopen script 3; toggleToolsPanel is the sole visibility controller. -->
 <style id="sb-nov06-service-dock-stable-slots-and-placement-centering">
 /* Station icon, platform and fixed reticle share Leaflet's exact map-center coordinate. */
 #map .sb-station-leaflet-icon{width:20px!important;height:20px!important;margin:0!important}
