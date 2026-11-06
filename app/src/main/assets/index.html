@@ -2492,7 +2492,7 @@ const darkTiles = L.tileLayer(
  }
 );
 
-let currentTheme=localStorage.getItem('sbDefaultDarkOnStart')==='true'?'dark':(localStorage.getItem('mapTheme')||'light');
+let currentTheme=localStorage.getItem('sbDefaultDarkOnStart')===null?(localStorage.getItem('mapTheme')||'light'):(localStorage.getItem('sbDefaultDarkOnStart')==='true'?'dark':'light');
 
 function setMapTheme(theme){
  if(theme!=='light'&&theme!=='dark')return;
@@ -4557,7 +4557,7 @@ function toggleDefaultDarkOnStart(){
  const enabled=!(localStorage.getItem('sbDefaultDarkOnStart')==='true');
  localStorage.setItem('sbDefaultDarkOnStart',String(enabled));
  if(button)button.setAttribute('aria-checked',String(enabled));
- if(enabled){localStorage.setItem('mapTheme','dark');}
+ localStorage.setItem('mapTheme',enabled?'dark':'light');
 }
 (function(){
  function setupDockPanels(){
