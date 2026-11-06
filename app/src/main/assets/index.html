@@ -4294,43 +4294,88 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines">≡</button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name"><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines">≡</button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search or name a service line" title="Search or name a service line">⌕</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
-  buildPalette();draw();bindRunButton();bindServiceDockToggle();
+  buildPalette();draw();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
  }
  function buildPalette(){
-  const trigger=document.getElementById('sb-line-color-trigger'),palette=document.getElementById('sb-line-color-options');if(!trigger||!palette)return;
+  const trigger=document.getElementById('sb-line-color-trigger'),palette=document.getElementById('sb-line-color-options');
+  if(!trigger||!palette)return;
   trigger.style.setProperty('--sb-picked-line-color',draftColor);
   palette.replaceChildren();
-  const choose=(color)=>{draftColor=color;trigger.style.setProperty('--sb-picked-line-color',color);palette.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.color===color)));};
-  const addCustomEditor=(slot)=>{
-   const editor=document.createElement('div');editor.className='sb-custom-color-editor';editor.setAttribute('role','group');editor.setAttribute('aria-label','Add custom service line color');
-   const preview=document.createElement('span');preview.className='sb-custom-color-preview';preview.style.setProperty('--sb-custom-preview',draftColor);
-   const hex=document.createElement('input');hex.type='text';hex.inputMode='text';hex.autocomplete='off';hex.spellcheck=false;hex.maxLength=7;hex.value=draftColor;hex.placeholder='#RRGGBB';hex.className='sb-custom-color-hex';hex.setAttribute('aria-label','Custom color hexadecimal value');
-   const apply=document.createElement('button');apply.type='button';apply.className='sb-custom-color-apply';apply.textContent='Add';apply.setAttribute('aria-label','Save custom color');
-   const valid=()=>/^#[0-9a-fA-F]{6}$/.test(hex.value.trim());
-   hex.addEventListener('input',()=>{preview.style.setProperty('--sb-custom-preview',valid()?hex.value.trim():'#667788');apply.disabled=!valid();});
-   apply.disabled=!valid();
-   apply.addEventListener('click',()=>{const color=hex.value.trim().toLowerCase();if(!/^#[0-9a-f]{6}$/.test(color))return;customColors[slot]=color;saveCustomColors();buildPalette();choose(color);});
-   editor.append(preview,hex,apply);palette.prepend(editor);hex.focus();
+  const choose=(color)=>{
+   draftColor=color;trigger.style.setProperty('--sb-picked-line-color',color);
+   palette.querySelectorAll('[data-color]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.color===color)));
   };
-  presetColors.forEach(color=>{const b=document.createElement('button');b.type='button';b.className='sb-line-color-option';b.dataset.color=color;b.style.setProperty('--sb-option-color',color);b.title=color;b.setAttribute('aria-label','Preset '+color);b.setAttribute('aria-selected',String(color===draftColor));b.addEventListener('click',()=>choose(color));palette.append(b);});
+  presetColors.forEach(color=>{
+   const button=document.createElement('button');button.type='button';button.className='sb-line-color-option';
+   button.dataset.color=color;button.style.setProperty('--sb-option-color',color);button.title=color;
+   button.setAttribute('aria-label','Preset '+color);button.setAttribute('aria-selected',String(color===draftColor));
+   button.addEventListener('click',()=>choose(color));palette.append(button);
+  });
   for(let slot=0;slot<10;slot++){
-   const color=customColors[slot],b=document.createElement('button');b.type='button';b.className='sb-line-color-option sb-custom-color-slot';
-   if(color){b.dataset.color=color;b.style.setProperty('--sb-option-color',color);b.title='Custom '+(slot+1)+' '+color;b.setAttribute('aria-label','Use custom color '+(slot+1));b.setAttribute('aria-selected',String(color===draftColor));b.addEventListener('click',()=>choose(color));}
-   else{b.classList.add('empty');b.textContent='+';b.title='Add custom color '+(slot+1);b.setAttribute('aria-label','Add custom color slot '+(slot+1));b.addEventListener('click',()=>addCustomEditor(slot));}
-   palette.append(b);
+   const color=customColors[slot],button=document.createElement('button');button.type='button';
+   button.className='sb-line-color-option sb-custom-color-slot';
+   if(color){
+    button.dataset.color=color;button.style.setProperty('--sb-option-color',color);button.title='Custom '+(slot+1)+' '+color;
+    button.setAttribute('aria-label','Use custom color '+(slot+1));button.setAttribute('aria-selected',String(color===draftColor));
+    button.addEventListener('click',()=>choose(color));
+   }else{
+    button.classList.add('empty');button.textContent='+';button.title='Add custom color '+(slot+1);
+    button.setAttribute('aria-label','Add custom color slot '+(slot+1));
+    button.addEventListener('click',()=>{
+     let editor=palette.querySelector('.sb-custom-color-editor');
+     if(editor)editor.remove();
+     editor=document.createElement('div');editor.className='sb-custom-color-editor';
+     const hex=document.createElement('input');hex.type='text';hex.inputMode='text';hex.autocomplete='off';
+     hex.spellcheck=false;hex.maxLength=7;hex.value=draftColor;hex.placeholder='#RRGGBB';
+     hex.className='sb-custom-color-hex';hex.setAttribute('aria-label','Custom color hexadecimal value');
+     const apply=document.createElement('button');apply.type='button';apply.className='sb-custom-color-apply';
+     apply.textContent='Add';apply.setAttribute('aria-label','Save custom color');
+     const valid=()=>/^#[0-9a-fA-F]{6}$/.test(hex.value.trim());apply.disabled=!valid();
+     hex.addEventListener('input',()=>apply.disabled=!valid());
+     apply.addEventListener('click',()=>{
+      const value=hex.value.trim().toLowerCase();if(!/^#[0-9a-f]{6}$/.test(value))return;
+      customColors[slot]=value;saveCustomColors();buildPalette();choose(value);
+     });
+     editor.append(hex,apply);palette.prepend(editor);hex.focus();
+    });
+   }
+   palette.append(button);
   }
-  trigger.onclick=(event)=>{event.stopPropagation();palette.hidden=!palette.hidden;trigger.setAttribute('aria-expanded',String(!palette.hidden));};
-  document.addEventListener('pointerdown',event=>{if(!palette.hidden&&!palette.contains(event.target)&&event.target!==trigger){palette.hidden=true;trigger.setAttribute('aria-expanded','false');}},{passive:true});
+  const close=()=>{palette.classList.remove('is-open','is-hold-menu');palette.hidden=true;trigger.setAttribute('aria-expanded','false');};
+  const open=(hold)=>{
+   palette.hidden=false;palette.classList.add('is-open');palette.classList.toggle('is-hold-menu',!!hold);
+   trigger.setAttribute('aria-expanded','true');
+  };
+  trigger.onclick=(event)=>{
+   event.stopPropagation();
+   if(palette.hidden)open(false);else close();
+  };
+  let holdTimer=null,didHold=false;
+  const clearHold=()=>{if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}};
+  trigger.addEventListener('pointerdown',event=>{
+   if(event.pointerType==='mouse'&&event.button!==0)return;
+   didHold=false;clearHold();
+   holdTimer=setTimeout(()=>{didHold=true;open(true);},480);
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(name=>trigger.addEventListener(name,clearHold));
+  trigger.addEventListener('contextmenu',event=>{event.preventDefault();didHold=true;open(true);});
+  trigger.addEventListener('click',event=>{if(didHold){event.preventDefault();event.stopImmediatePropagation();didHold=false;}},true);
+  if(!palette.dataset.outsideBound){
+   palette.dataset.outsideBound='true';
+   document.addEventListener('pointerdown',event=>{
+    if(!palette.hidden&&!palette.contains(event.target)&&event.target!==trigger)close();
+   },{passive:true});
+  }
  }
  function draw(){
   const host=document.getElementById('sb-service-lines-content');if(!host)return;
   const oldScroll=host.scrollLeft;host.replaceChildren();
   (Array.isArray(lines)?lines:[]).forEach(line=>{
    const slot=document.createElement('div');slot.className='sb-line-slot';slot.setAttribute('role','group');slot.setAttribute('aria-label',line.name+' service line');
-   const sw=document.createElement('i');sw.className='sb-line-swatch';sw.style.background=line.color;
+   const sw=document.createElement('button');sw.type='button';sw.className='sb-line-swatch sb-line-color-chip';sw.style.setProperty('--sb-line-chip-color',line.color);sw.setAttribute('aria-label','Color of '+line.name);sw.title=line.name+' · '+line.color;sw.addEventListener('click',()=>{activeLineId=line.id;draw();message(line.name+' selected for new track sections.');});
    const pick=document.createElement('button');pick.type='button';pick.className='sb-line-select'+(activeLineId===line.id?' active':'');pick.textContent='●';pick.title='Select '+line.name;pick.setAttribute('aria-label','Select '+line.name);pick.setAttribute('aria-pressed',String(activeLineId===line.id));
    pick.addEventListener('click',()=>{activeLineId=line.id;draw();message(line.name+' selected for new track sections.');});
    const label=document.createElement('span');label.className='sb-line-label';label.textContent=line.name;
@@ -4341,6 +4386,23 @@ function toggleDefaultDarkOnStart(){
   });
   host.scrollLeft=oldScroll;
   const trigger=document.getElementById('sb-line-color-trigger');if(trigger)trigger.style.setProperty('--sb-picked-line-color',draftColor);const removeActive=document.getElementById('sb-line-remove-active');if(removeActive){removeActive.disabled=!lines.some(item=>item.id===activeLineId);removeActive.title=removeActive.disabled?'Select a line first':'Remove '+(lines.find(item=>item.id===activeLineId)?.name||'selected line');}
+ }
+ function bindServiceNameSearch(){
+  const editor=document.getElementById('sb-line-name-editor'),button=document.getElementById('sb-line-name-search'),input=document.getElementById('sb-new-line-name');
+  if(!editor||!button||!input||button.dataset.bound)return;
+  button.dataset.bound='true';
+  button.addEventListener('click',()=>{
+   editor.classList.add('is-editing');
+   input.setAttribute('aria-hidden','false');
+   input.focus({preventScroll:true});
+   try{input.click();}catch(_){}
+  });
+  input.addEventListener('blur',()=>{
+   if(!input.value.trim())editor.classList.remove('is-editing');
+  });
+  input.addEventListener('keydown',event=>{
+   if(event.key==='Escape'){input.value='';input.blur();editor.classList.remove('is-editing');}
+  });
  }
  function bindServiceDockToggle(){
   const dock=document.getElementById('sb-service-dock'),button=document.getElementById('sb-service-dock-toggle');
@@ -6068,5 +6130,60 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  #sb-service-dock{flex-basis:48px!important;width:48px!important;min-width:48px!important}
  #sb-service-dock.is-expanded{flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important}
 }
+</style>
+
+<style id="sb-service-name-search-and-color-context-card">
+/* Search starts as a dock-matched circular action and expands inline on demand. */
+#sb-line-name-editor{position:relative;box-sizing:border-box;display:flex!important;align-items:center!important;flex:0 0 40px!important;
+ width:40px!important;min-width:40px!important;height:40px!important;overflow:hidden!important;border-radius:22px!important;
+ background:rgba(235,245,255,.12)!important;transition:flex-basis .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1),background .22s ease!important}
+#sb-line-name-editor #sb-line-name-search{position:relative!important;z-index:2;flex:0 0 40px!important;width:40px!important;height:40px!important;
+ min-width:40px!important;min-height:40px!important;border:0!important;border-radius:50%!important;background:transparent!important;
+ color:#f4f8fc!important;font-size:24px!important;box-shadow:none!important}
+#sb-line-name-editor #sb-new-line-name{box-sizing:border-box!important;flex:1 1 auto!important;width:0!important;min-width:0!important;
+ height:40px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;
+ color:#f4f8fc!important;opacity:0!important;pointer-events:none!important;transition:opacity .18s ease .04s!important}
+#sb-line-name-editor.is-editing{flex:0 1 190px!important;width:190px!important;min-width:120px!important;background:rgba(235,245,255,.14)!important}
+#sb-line-name-editor.is-editing #sb-new-line-name{width:auto!important;min-width:0!important;padding:0 12px 0 2px!important;opacity:1!important;pointer-events:auto!important}
+#sb-line-name-editor #sb-new-line-name::placeholder{color:rgba(235,245,255,.48)!important}
+#sb-line-color-options{
+ box-sizing:border-box!important;position:absolute!important;z-index:10020!important;left:50%!important;bottom:calc(100% + 10px)!important;
+ top:auto!important;transform:translate(-50%,10px)!important;width:max-content!important;max-width:min(92vw,560px)!important;
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;gap:8px!important;padding:9px!important;
+ overflow-x:auto!important;overflow-y:hidden!important;border:0!important;border-radius:24px!important;
+ background:rgba(15,25,40,.84)!important;color:#f4f8fc!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;backdrop-filter:blur(24px) saturate(170%)!important;
+ box-shadow:0 12px 30px rgba(0,0,0,.28)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+ transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s!important;
+}
+#sb-line-color-options[hidden]{display:none!important}
+#sb-line-color-options.is-open{display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ transform:translate(-50%,0)!important;transition-delay:0s!important}
+#sb-line-color-options.is-hold-menu{border-radius:26px!important;background:rgba(13,24,39,.92)!important}
+#sb-line-color-options .sb-line-color-option{box-sizing:border-box!important;position:relative!important;flex:0 0 40px!important;
+ width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;border:0!important;
+ border-radius:50%!important;background:rgba(235,245,255,.10)!important;color:#fff!important;box-shadow:none!important}
+#sb-line-color-options .sb-line-color-option:before{content:""!important;position:absolute!important;inset:4px!important;
+ border-radius:50%!important;background:var(--sb-option-color,transparent)!important}
+#sb-line-color-options .sb-line-color-option.empty:before{display:none!important}
+#sb-line-color-options .sb-custom-color-editor{position:sticky!important;left:0!important;z-index:2;display:flex!important;
+ flex:0 0 auto!important;align-items:center!important;gap:6px!important;padding:5px 8px!important;border-radius:18px!important;
+ background:rgba(35,49,66,.94)!important}
+#sb-line-color-options .sb-custom-color-hex{width:90px!important;min-width:90px!important;height:34px!important;
+ padding:0 8px!important;border:0!important;border-radius:17px!important;background:rgba(255,255,255,.10)!important;color:#fff!important}
+#sb-line-color-options .sb-custom-color-apply{width:38px!important;height:34px!important;min-width:38px!important;
+ border:0!important;border-radius:17px!important;background:rgba(235,245,255,.14)!important;color:#fff!important}
+#sb-service-lines .sb-line-color-chip{position:relative!important;flex:0 0 36px!important;width:36px!important;height:36px!important;
+ min-width:36px!important;min-height:36px!important;border:0!important;border-radius:50%!important;padding:0!important;
+ background:rgba(235,245,255,.10)!important;overflow:hidden!important;box-shadow:none!important}
+#sb-service-lines .sb-line-color-chip:before{content:""!important;position:absolute!important;inset:4px!important;
+ border-radius:50%!important;background:var(--sb-line-chip-color)!important}
+#sb-service-lines .sb-line-swatch:not(.sb-line-color-chip){display:none!important}
+#sb-service-lines .sb-line-slot{gap:6px!important}
+@media(max-width:700px){
+ #sb-line-name-editor.is-editing{flex-basis:154px!important;width:154px!important;min-width:112px!important}
+ #sb-line-color-options{max-width:calc(100vw - 24px)!important;gap:6px!important;padding:8px!important}
+}
+@media(prefers-reduced-motion:reduce){#sb-line-name-editor,#sb-line-color-options{transition:none!important}}
 </style>
 </html>
