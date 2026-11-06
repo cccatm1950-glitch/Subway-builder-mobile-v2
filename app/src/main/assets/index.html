@@ -3995,6 +3995,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   clearStationMoveMode();
   if(typeof oldSetMode==='function')oldSetMode(next);
   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+  if(next!=='station'&&typeof stationPlacementPreview!=='undefined'&&stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
   if(next==='station')ensurePreview();
  };
  const oldHandleMapPlacement=window.handleMapPlacement;
