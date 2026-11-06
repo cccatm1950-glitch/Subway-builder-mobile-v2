@@ -3913,7 +3913,9 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   menu.style.left=point.x+'px';
   menu.style.top=(point.y-16)+'px';
  };
+ const priorShowStationMenu=window.showStationMenu;
  window.showStationMenu=function(index){
+  if(typeof priorShowStationMenu==='function')priorShowStationMenu(index);
   const menu=document.getElementById('stationContextMenu');
   if(!menu||!stations[index]||!map)return;
   stationMenuIndex=index;
