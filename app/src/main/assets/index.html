@@ -2926,6 +2926,8 @@ if(mode==='delete'){
  ];
 }
 
+  const assignedLines=lines.filter(line=>(t.lineIds||[]).includes(line.id));
+  const routeColor=assignedLines[0]?.color||['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
       let prev=points[Math.max(0,i-1)];
@@ -2941,14 +2943,12 @@ if(mode==='delete'){
     });
 
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
-  const assignedLines=lines.filter(line=>(t.lineIds||[]).includes(line.id));
-  const routeColor=assignedLines[0]?.color||['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
+  const selectedCurve=!!(t.curve&&selectedTrackIndex===trackIndex);
+  L.polyline(shifted,{pane:'sbTrackPane',color:selectedCurve?'#76ddff':routeColor,weight:selectedCurve?17:14,opacity:selectedCurve ? .24 : .22,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   if(elevation==='below'){
-   L.polyline(shifted,{pane:'sbTrackPane',color:'#020914',weight:14,opacity:1,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer);
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
-   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:'#d8f5ff',weight:2,fillColor:'#0c2638',fillOpacity:1}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
+   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:.22}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
   }else{
-   L.polyline(shifted,{pane:'sbTrackPane',color:'#06101d',weight:12,opacity:.96,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer);
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:elevation==='at'?null:'10 8'}).addTo(window.networkLayer);
   }
 }  
@@ -2977,12 +2977,12 @@ if(mode==='delete'){
      can follow connected track geometry reliably. Keep the station node only. */
   let marker=L.marker([s.lat,s.lng],{
  /* Use Leaflet's persistent built-in marker pane; keep nodes above track SVGs. */
- pane:'markerPane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:10000,
+ pane:'sbStationNodePane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:10000,
  icon:L.divIcon({
   className:'sb-station-leaflet-icon',
   html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"><span class="sb-station-node"></span></div>',
-  iconSize:[34,34],
-  iconAnchor:[17,17]
+  iconSize:[28,28],
+  iconAnchor:[14,14]
  })
 }).addTo(window.stationNodeLayer);
 
@@ -3072,6 +3072,10 @@ function updateUI(){
 function setMode(newMode){
  const previousMode=mode;
  mode=newMode;
+ // A completed tool choice closes expanded submenus and the construction drawer.
+ const constructionMenu=document.getElementById('sb-construction-menu');
+ if(constructionMenu)constructionMenu.open=false;
+ document.querySelectorAll('#constructionPanel details.tool-group').forEach(group=>{group.open=false;});
  selected=null;
  if(mode!=='waypoint'&&mode!=='curve')selectedTrackIndex=null;
  if(mode!=='delete'){
@@ -3500,10 +3504,10 @@ function handleMapPlacement(latlng){
  if(now-lastTouchPlacementAt<120)return;
  lastTouchPlacementAt=now;
  // Build placements always use the fixed map-center reticle, never the raw touch coordinate.
- if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.getCenter();
+ if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
  if(mode==='station'){
   /* Station placement is locked to the map/camera center, matching the fixed preview reticle. */
-  latlng=map.getCenter();
+  latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
   if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
   if(money<500){
    message('Not enough money for a station.');
@@ -3558,7 +3562,7 @@ else if(mode==='delete'){
   message('Waypoint added.');
  }
 }
-map.on('click',function(e){handleMapPlacement(map.getCenter());});
+map.on('click',function(e){handleMapPlacement(map.containerPointToLatLng(map.getSize().divideBy(2)));});
 /* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
@@ -5404,11 +5408,34 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   return point.distanceTo(L.point(a.x+t*dx,a.y+t*dy));
  }
  function trackAtCrosshair(){
-  const center=centerPoint();let best=null,bestDistance=20;
+  const center=centerPoint();let best=null,bestDistance=26;
   tracks.forEach((track,index)=>{
    const aStation=stations[track.a],bStation=stations[track.b];if(!aStation||!bStation)return;
-   const points=[[aStation.lat,aStation.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[bStation.lat,bStation.lng]]
-    .map(ll=>map.latLngToContainerPoint(ll));
+   let latLngs=[[aStation.lat,aStation.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[bStation.lat,bStation.lng]];
+   if(track.curve&&(track.waypoints||[]).length){
+    const route=latLngs.map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
+    const alpha=.5,stepsPerSegment=20;
+    const distance2=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
+    const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+    const curved=[];
+    for(let segment=0;segment<route.length-1;segment++){
+     const p0=route[Math.max(0,segment-1)],p1=route[segment],p2=route[segment+1],p3=route[Math.min(route.length-1,segment+2)];
+     const t0=0,t1=t0+Math.max(1e-4,Math.pow(distance2(p0,p1),alpha));
+     const t2=t1+Math.max(1e-4,Math.pow(distance2(p1,p2),alpha));
+     const t3=t2+Math.max(1e-4,Math.pow(distance2(p2,p3),alpha));
+     const blend=(a,b,ta,tb,t)=>mix(a,b,(t-ta)/(tb-ta));
+     for(let step=0;step<=stepsPerSegment;step++){
+      if(segment>0&&step===0)continue;
+      const u=step/stepsPerSegment,t=t1+u*(t2-t1);
+      const A1=blend(p0,p1,t0,t1,t),A2=blend(p1,p2,t1,t2,t),A3=blend(p2,p3,t2,t3,t);
+      const B1=blend(A1,A2,t0,t2,t),B2=blend(A2,A3,t1,t3,t);
+      const C=blend(B1,B2,t1,t2,t),ll=map.unproject(C,18);
+      curved.push([ll.lat,ll.lng]);
+     }
+    }
+    latLngs=curved;
+   }
+   const points=latLngs.map(ll=>map.latLngToContainerPoint(ll));
    let distance=Infinity;
    for(let i=1;i<points.length;i++)distance=Math.min(distance,segmentDistance(center,points[i-1],points[i]));
    if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
@@ -5575,5 +5602,144 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 }
 </style>
 
+
+<style id="sb-nov06-glass-dock-map-alignment">
+/* Dock buttons share identical dimensions and matching selected-state glow geometry. */
+#sb-action-dock #trashModeBtn,
+#sb-action-dock #sb-build-dock-btn{
+  box-sizing:border-box!important;
+  width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+  flex:0 0 46px!important;padding:0!important;margin:0!important;border-radius:50%!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  border:2px solid rgba(225,240,250,.16)!important;outline:0!important;
+  box-shadow:none!important;transform:none!important;
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+  color:#fff!important;background:rgba(255,48,75,.40)!important;
+  border-color:rgba(255,115,135,.95)!important;
+  box-shadow:0 0 0 2px rgba(255,75,95,.35),0 0 13px rgba(255,48,75,.55),
+    0 0 25px rgba(255,48,75,.30),inset 0 0 12px rgba(255,70,90,.35)!important;
+}
+#sb-action-dock #sb-build-dock-btn.active,
+#sb-action-dock #sb-build-dock-btn[aria-pressed="true"]{
+  color:#9affdc!important;background:rgba(25,210,145,.42)!important;
+  border-color:rgba(100,255,195,.98)!important;
+  box-shadow:0 0 0 2px rgba(70,245,170,.35),0 0 13px rgba(35,235,150,.55),
+    0 0 25px rgba(35,235,150,.30),inset 0 0 12px rgba(45,235,160,.38)!important;
+}
+#sb-action-dock #trashModeBtn:not(.active):not([aria-pressed="true"]),
+#sb-action-dock #sb-build-dock-btn:not(.active):not([aria-pressed="true"]){
+  background:rgba(255,255,255,.08)!important;border-color:rgba(225,240,250,.16)!important;
+  box-shadow:none!important;
+}
+/* Give the tool bay real breathing room; keep the icons centered in separate circles. */
+#constructionPanel{
+  border-radius:28px!important;
+  overflow-x:hidden!important;
+  background:rgba(12,23,39,.42)!important;
+}
+#constructionPanel .panel-heading,
+#constructionPanel .panel-heading:before{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+#constructionPanel .tool-group{
+  border-radius:22px!important;
+  margin:10px 0!important;
+  padding:0 8px 9px!important;
+  overflow:hidden!important;
+  background:rgba(255,255,255,.035)!important;
+}
+#constructionPanel .tool-group summary{
+  border:0!important;background:transparent!important;
+  border-radius:20px!important;padding:14px 14px!important;
+}
+#constructionPanel .tool-grid{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(52px,auto)!important;
+  justify-items:center!important;align-items:center!important;
+  gap:12px 8px!important;padding:14px 12px 16px!important;
+  margin:0!important;box-sizing:border-box!important;
+}
+#constructionPanel .tool-grid button,
+#constructionPanel .tool-grid .sb-tool-slot-empty{
+  box-sizing:border-box!important;width:46px!important;height:46px!important;
+  min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;
+  margin:0!important;padding:0!important;justify-self:center!important;align-self:center!important;
+  border-radius:50%!important;display:grid!important;place-items:center!important;
+}
+#constructionPanel .tool-grid button svg{width:27px!important;height:27px!important;display:block!important;pointer-events:none!important}
+/* Remove the old blue/cyan placement and drag halos. Keep markers crisp and readable. */
+.sb-station-marker,.sb-station-marker.is-dragging,
+.sb-station-marker.is-crosshair-target,.sb-placement-preview{
+  filter:none!important;box-shadow:none!important;
+}
+.sb-station-marker{
+  box-sizing:border-box!important;width:24px!important;height:24px!important;
+  border-radius:50%!important;background:transparent!important;
+  border:0!important;transform:none!important;
+}
+#map .sb-station-marker .sb-station-node{
+  display:block!important;width:20px!important;height:20px!important;
+  box-sizing:border-box!important;border-radius:50%!important;
+  background:#f7fbff!important;border:2px solid rgba(255,255,255,.95)!important;
+  box-shadow:0 1px 4px rgba(0,0,0,.85)!important;
+}
+#map .sb-station-marker.is-selected .sb-station-node{
+  background:#fff!important;border-color:#fff!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.95)!important;
+}
+#map .sb-station-marker.is-track-target .sb-station-node{background:#fff!important}
+#map .sb-station-marker.is-dragging .sb-station-node{background:#fff!important;box-shadow:none!important}
+/* Crosshair is centered against Leaflet's actual map container, not the full device window. */
+#map{overflow:hidden!important}
+#map .sb-map-crosshair{
+  position:absolute!important;left:50%!important;top:50%!important;
+  width:32px!important;height:32px!important;margin:0!important;padding:0!important;
+  transform:translate3d(-50%,-50%,0)!important;pointer-events:none!important;
+  z-index:1200!important;filter:none!important;
+}
+@media(max-width:560px){
+ #constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px 6px!important;padding:12px 9px 14px!important}
+ #constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;max-height:44px!important}
+ #sb-action-dock #trashModeBtn,#sb-action-dock #sb-build-dock-btn{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;flex-basis:46px!important}
+}
+</style>
+<script id="sb-nov06-center-crosshair-sync">
+(function(){
+ function syncMapCrosshair(){
+  if(typeof map==='undefined'||!map)return;
+  const cross=document.querySelector('#map .sb-map-crosshair');
+  if(!cross)return;
+  const size=map.getSize();
+  cross.style.left=(size.x/2)+'px';
+  cross.style.top=(size.y/2)+'px';
+ }
+ function centerPlacementPoint(){
+  return map.containerPointToLatLng(map.getSize().divideBy(2));
+ }
+ window.sbGetCrosshairLatLng=centerPlacementPoint;
+ if(typeof map!=='undefined'&&map){
+  map.on('resize moveend zoomend',syncMapCrosshair);
+  window.addEventListener('resize',syncMapCrosshair,{passive:true});
+  requestAnimationFrame(()=>requestAnimationFrame(syncMapCrosshair));
+ }
+})();
+</script>
+
 </body>
 </html>
+<style id="sb-nov06-track-hitbox-and-dock-polish">
+#constructionPanel .tool-grid{box-sizing:border-box!important;width:100%!important;min-width:0!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;justify-items:center!important;align-items:center!important;gap:12px 8px!important;padding:12px 8px 14px!important;overflow:visible!important}
+#constructionPanel .tool-grid>*{box-sizing:border-box!important;min-width:0!important}
+#constructionPanel .tool-grid button{box-sizing:border-box!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;margin:0!important;padding:0!important;justify-self:center!important;align-self:center!important;border-radius:50%!important;overflow:visible!important}
+#constructionPanel .tool-grid button svg{width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important}
+#constructionPanel .tool-group{box-sizing:border-box!important;min-width:0!important;overflow:hidden!important}
+#constructionPanel .tool-group summary{box-sizing:border-box!important;max-width:100%!important;white-space:normal!important}
+#map .leaflet-sbTrack-pane path{stroke-linecap:round!important;stroke-linejoin:round!important}
+#map .sb-station-marker.is-track-target .sb-station-node{box-shadow:0 0 0 5px rgba(255,255,255,.16),0 0 0 8px var(--sb-station-line-color,#76ddff),0 0 20px var(--sb-station-line-color,#76ddff)!important}
+#sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,35,58,.34)!important;border:1px solid rgba(255,105,122,.96)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(255,65,86,.24),0 0 16px rgba(255,35,65,.82),0 0 30px rgba(255,35,65,.58),inset 0 0 14px rgba(255,45,68,.32)!important;text-shadow:0 0 5px #fff,0 0 11px #ff334f,0 0 20px #ff334f!important}
+@media(max-width:560px){#constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px 6px!important;padding:10px 6px 12px!important}#constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important}}
+</style>
