@@ -4181,8 +4181,8 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const undoButton=document.getElementById('undoBtn');
   const redoButton=document.getElementById('redoBtn');
   if(!undoButton||!redoButton)return;
-  const canUndo=Number.isFinite(window.historyIndex)&&window.historyIndex>0;
-  const canRedo=Array.isArray(window.history)&&window.historyIndex<window.history.length-1;
+  const canUndo=Number.isFinite(historyIndex)&&historyIndex>0;
+  const canRedo=Array.isArray(history)&&historyIndex<history.length-1;
   undoButton.disabled=!canUndo;
   redoButton.disabled=!canRedo;
   undoButton.setAttribute('aria-disabled',String(!canUndo));
