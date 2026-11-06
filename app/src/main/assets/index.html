@@ -3074,7 +3074,7 @@ function setMode(newMode){
  const constructionPanel=document.getElementById('constructionPanel');
  if(constructionPanel){
   if(mode!=='delete'){
-   const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':null;
+   const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':mode==='waypoint'?'mode-waypoint':null;
    constructionPanel.querySelectorAll('[data-panel-action]').forEach(button=>{
     const active=button.dataset.panelAction===selectedAction;
     button.classList.toggle('active',active);
@@ -5511,11 +5511,11 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #map .leaflet-marker-pane .sb-station-marker.is-selected .sb-station-node,#map .leaflet-marker-pane .sb-station-marker.is-crosshair-target .sb-station-node{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 0 0 8px rgba(255,255,255,.65),0 0 16px rgba(255,255,255,.95),0 0 30px rgba(255,255,255,.72)!important}
 </style>
 <style id="sb-construction-drawer-right-side-spacing">
-#sb-panel-toggle.menu-hamburger{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 10px)!important}
-#sb-construction-menu[open]>#constructionPanel{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 72px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 87px)!important;width:min(310px,calc(100vw - 20px))!important;max-height:none!important;height:auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+#sb-panel-toggle.menu-hamburger{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 70px)!important}
+#sb-construction-menu[open]>#constructionPanel{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 126px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 87px)!important;width:min(310px,calc(100vw - 20px))!important;max-height:none!important;height:auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
 @media(max-width:560px){
- #sb-panel-toggle.menu-hamburger{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 10px)!important}
- #sb-construction-menu[open]>#constructionPanel{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 68px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 82px)!important;width:min(290px,calc(100vw - 16px))!important}
+ #sb-panel-toggle.menu-hamburger{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 68px)!important}
+ #sb-construction-menu[open]>#constructionPanel{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 122px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 82px)!important;width:min(290px,calc(100vw - 16px))!important}
 }
 </style>
 
