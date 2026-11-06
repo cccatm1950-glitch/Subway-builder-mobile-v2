@@ -2808,6 +2808,9 @@ function renderNetwork(){
   map.removeLayer(window.networkLayer);
  }
  window.networkLayer=L.layerGroup().addTo(map);
+  /* Keep committed station nodes in their own layer so track redraws cannot clear them. */
+  if(!window.stationNodeLayer)window.stationNodeLayer=L.layerGroup().addTo(map);
+  else window.stationNodeLayer.clearLayers();
 
  tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
@@ -2965,7 +2968,7 @@ if(mode==='delete'){
   iconSize:[34,34],
   iconAnchor:[17,17]
  })
-}).addTo(window.networkLayer);
+}).addTo(window.stationNodeLayer);
 
 marker.bindTooltip(s.name);
   if(running){
@@ -3883,12 +3886,28 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 </script>
 
 <script>
+/* Delete is click-only to prevent duplicate pointer/touch activation in Android WebView. */
+(function(){
+ function bindDelete(){
+  const button=document.getElementById('trashModeBtn');
+  if(!button||button.dataset.deleteClickBound==='true')return;
+  button.dataset.deleteClickBound='true';
+  button.removeAttribute('onclick');
+  button.addEventListener('click',function(event){
+   event.preventDefault();event.stopPropagation();
+   if(typeof window.activateDeleteMode==='function')window.activateDeleteMode();
+   if(typeof window.syncConstructionControls==='function')window.syncConstructionControls();
+  });
+ }
+ document.addEventListener('DOMContentLoaded',bindDelete,{once:true});
+ bindDelete();
+})();
 /* Android WebView control bridge.
    Remember the pressed control on pointer/touch down because some WebViews
    retarget pointerup to the document/map. Activate on release and suppress
    the synthetic click that follows. Native click remains a final fallback. */
 (function(){
- const selector='#sb-game-menu-toggle,#sb-panel-toggle,#trashModeBtn,#undoBtn,#redoBtn,#constructionPanel button[data-panel-action]';
+ const selector='#sb-game-menu-toggle,#sb-panel-toggle,#undoBtn,#redoBtn,#constructionPanel button[data-panel-action]';
  let pressed=null,lastHandled=null,lastAt=0;
  function findButton(target){return target&&target.closest?target.closest(selector):null;}
  function activate(button){
@@ -4431,7 +4450,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  function syncCrosshairStation(){
   if(typeof map==='undefined'||!map||!window.networkLayer)return;
   const center=map.getSize().divideBy(2),radius=19;
-  window.networkLayer.eachLayer(marker=>{
+  (window.stationNodeLayer||window.networkLayer).eachLayer(marker=>{
    if(!marker.getLatLng||!marker.getElement)return;
    const p=map.latLngToContainerPoint(marker.getLatLng());
    const el=marker.getElement(),node=el&&el.querySelector('.sb-station-marker');
