@@ -2942,7 +2942,7 @@ if(mode==='delete'){
 
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
   const selectedCurve=!!(t.curve&&selectedTrackIndex===trackIndex);
-  L.polyline(shifted,{pane:'sbTrackPane',color:selectedCurve?'#76ddff':routeColor,weight:selectedCurve?17:14,opacity:selectedCurve?.24:.22,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  L.polyline(shifted,{pane:'sbTrackPane',color:selectedCurve?'#76ddff':routeColor,weight:selectedCurve?17:14,opacity:selectedCurve ? .24 : .22,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   if(elevation==='below'){
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
    [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:.22}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
@@ -5737,7 +5737,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #constructionPanel .tool-group{box-sizing:border-box!important;min-width:0!important;overflow:hidden!important}
 #constructionPanel .tool-group summary{box-sizing:border-box!important;max-width:100%!important;white-space:normal!important}
 #map .leaflet-sbTrack-pane path{stroke-linecap:round!important;stroke-linejoin:round!important}
-#map .sb-station-marker.is-track-target .sb-station-node{box-shadow:0 0 0 5px color-mix(in srgb,var(--sb-station-line-color,#76ddff) 22%,transparent),0 0 0 8px var(--sb-station-line-color,#76ddff),0 0 20px var(--sb-station-line-color,#76ddff)!important}
+#map .sb-station-marker.is-track-target .sb-station-node{box-shadow:0 0 0 5px rgba(255,255,255,.16),0 0 0 8px var(--sb-station-line-color,#76ddff),0 0 20px var(--sb-station-line-color,#76ddff)!important}
 #sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,35,58,.34)!important;border:1px solid rgba(255,105,122,.96)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(255,65,86,.24),0 0 16px rgba(255,35,65,.82),0 0 30px rgba(255,35,65,.58),inset 0 0 14px rgba(255,45,68,.32)!important;text-shadow:0 0 5px #fff,0 0 11px #ff334f,0 0 20px #ff334f!important}
 @media(max-width:560px){#constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px 6px!important;padding:10px 6px 12px!important}#constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important}}
 </style>
