@@ -5012,48 +5012,7 @@ body.sb-theme-dragging #sb-top-dock #sb-map-theme-toggle{cursor:grabbing!importa
 }
 #sb-terms-card input[type="checkbox"]{border-radius:5px!important}
 </style>
-<script id="sb-theme-button-long-press-drag">
-(function(){
- const HOLD_MS=420;
- function bind(){
-  const button=document.getElementById('sb-map-theme-toggle');if(!button||button.dataset.dragBound)return;
-  button.dataset.dragBound='true';
-  let timer=null,startX=0,startY=0,dragging=false,pointerId=null,offsetX=0,offsetY=0;
-  const clear=()=>{if(timer){clearTimeout(timer);timer=null;}};
-  button.addEventListener('pointerdown',event=>{
-   if(event.pointerType==='mouse'&&event.button!==0)return;
-   clear();pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragging=false;
-   timer=setTimeout(()=>{
-    dragging=true;button.setPointerCapture?.(pointerId);
-    const rect=button.getBoundingClientRect();offsetX=startX-rect.left;offsetY=startY-rect.top;
-    button.style.position='fixed';button.style.left=rect.left+'px';button.style.top=rect.top+'px';
-    button.style.right='auto';button.style.bottom='auto';button.style.margin='0';
-    button.style.zIndex='3000';button.dataset.dragMoved='true';
-    document.body.classList.add('sb-theme-dragging');
-   },HOLD_MS);
-  });
-  button.addEventListener('pointermove',event=>{
-   if(event.pointerId!==pointerId)return;
-   if(!dragging){if(Math.hypot(event.clientX-startX,event.clientY-startY)>10)clear();return;}
-   const rect=button.getBoundingClientRect();
-   const x=Math.max(6,Math.min(innerWidth-rect.width-6,event.clientX-offsetX));
-   const y=Math.max(6,Math.min(innerHeight-rect.height-6,event.clientY-offsetY));
-   button.style.left=x+'px';button.style.top=y+'px';
-  });
-  const finish=event=>{
-   if(event.pointerId!==pointerId)return;clear();
-   if(dragging){event.preventDefault();event.stopPropagation();button.dataset.suppressClick='true';}
-   dragging=false;pointerId=null;document.body.classList.remove('sb-theme-dragging');
-  };
-  button.addEventListener('pointerup',finish);
-  button.addEventListener('pointercancel',finish);
-  button.addEventListener('click',event=>{
-   if(button.dataset.suppressClick==='true'){event.preventDefault();event.stopImmediatePropagation();button.dataset.suppressClick='false';}
-  },true);
- }
- document.addEventListener('DOMContentLoaded',bind,{once:true});bind();
-})();
-</script>
+
 
 <style id="sb-crosshair-4x2-dark-pill-refresh">
 :root{color-scheme:dark}
@@ -5141,5 +5100,84 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  #constructionPanel .tool-grid button svg{width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important}
 }
 </style>
+
+<style id="sb-dock-glass-match-and-construction-panel-drag">
+/* The left and right action groups use the exact top dock glass treatment. */
+#sb-action-dock{
+ position:fixed!important;left:10px!important;right:10px!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:10px!important;padding:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ pointer-events:none!important;overflow:visible!important;
+}
+#sb-action-dock .sb-dock-panel{
+ display:flex!important;align-items:center!important;gap:8px!important;
+ min-height:68px!important;height:68px!important;box-sizing:border-box!important;
+ padding:9px 14px!important;border-radius:999px!important;
+ background:linear-gradient(110deg,rgba(23,48,67,.88),rgba(75,91,88,.78))!important;
+ border:1px solid rgba(205,232,239,.34)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.16)!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ pointer-events:auto!important;flex:0 0 auto!important;
+}
+#sb-action-dock .sb-dock-panel-left{justify-content:flex-start!important}
+#sb-action-dock .sb-dock-panel-right{justify-content:flex-end!important;margin-left:auto!important}
+#sb-action-dock .sb-dock-panel button{
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ flex:0 0 46px!important;border-radius:50%!important;margin:0!important;
+}
+#sb-action-dock .sb-dock-panel button svg{width:26px!important;height:26px!important}
+#constructionPanel{
+ touch-action:pan-y!important;user-select:none!important;-webkit-user-select:none!important;
+}
+#constructionPanel .panel-heading{cursor:grab!important;touch-action:none!important}
+#constructionPanel.sb-panel-dragging .panel-heading{cursor:grabbing!important}
+#constructionPanel.sb-panel-dragging{transition:none!important}
+#constructionPanel.sb-panel-dragging *{user-select:none!important;-webkit-user-select:none!important}
+</style>
+<script id="sb-construction-panel-long-press-drag">
+(function(){
+ const HOLD_MS=480, SNAP_DISTANCE=34;
+ function bind(){
+  const panel=document.getElementById('constructionPanel');
+  const handle=panel&&panel.querySelector('.panel-heading');
+  if(!panel||!handle||handle.dataset.dragBound)return;
+  handle.dataset.dragBound='true';
+  let timer=null,pointerId=null,startX=0,startY=0,offsetX=0,offsetY=0,dragging=false,origin=null;
+  const clear=()=>{if(timer){clearTimeout(timer);timer=null;}};
+  handle.addEventListener('pointerdown',event=>{
+   if(event.pointerType==='mouse'&&event.button!==0)return;
+   clear();pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragging=false;
+   const rect=panel.getBoundingClientRect();origin={left:rect.left,top:rect.top,width:rect.width,height:rect.height};
+   timer=setTimeout(()=>{
+    dragging=true;handle.setPointerCapture?.(pointerId);
+    offsetX=startX-origin.left;offsetY=startY-origin.top;
+    panel.style.position='fixed';panel.style.left=origin.left+'px';panel.style.top=origin.top+'px';
+    panel.style.right='auto';panel.style.bottom='auto';panel.style.width=origin.width+'px';
+    panel.style.margin='0';panel.style.zIndex='1800';panel.classList.add('sb-panel-dragging');
+   },HOLD_MS);
+  });
+  handle.addEventListener('pointermove',event=>{
+   if(event.pointerId!==pointerId)return;
+   if(!dragging){if(Math.hypot(event.clientX-startX,event.clientY-startY)>10)clear();return;}
+   const rect=panel.getBoundingClientRect();
+   let x=Math.max(6,Math.min(innerWidth-rect.width-6,event.clientX-offsetX));
+   let y=Math.max(6,Math.min(innerHeight-rect.height-6,event.clientY-offsetY));
+   if(Math.hypot(x-origin.left,y-origin.top)<=SNAP_DISTANCE){x=origin.left;y=origin.top;}
+   panel.style.left=x+'px';panel.style.top=y+'px';
+  });
+  const finish=event=>{
+   if(event.pointerId!==pointerId)return;clear();
+   if(dragging){event.preventDefault();event.stopPropagation();panel.classList.remove('sb-panel-dragging');}
+   dragging=false;pointerId=null;
+  };
+  handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',finish);
+ }
+ document.addEventListener('DOMContentLoaded',bind,{once:true});bind();
+})();
+</script>
 </body>
 </html>
