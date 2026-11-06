@@ -6186,4 +6186,57 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 }
 @media(prefers-reduced-motion:reduce){#sb-line-name-editor,#sb-line-color-options{transition:none!important}}
 </style>
+
+<style id="sb-service-toggle-dock-inset-alignment">
+/* Service toggle mirrors the right-hand dock button: same 46px circle,
+   matching inset ring, and a compact dock that hugs the toggle when closed. */
+#sb-service-dock{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;
+ justify-content:center!important;gap:8px!important;
+ min-height:60px!important;height:60px!important;
+ padding:7px!important;margin:0 4px!important;
+ border:1px solid rgba(205,232,239,.25)!important;border-radius:999px!important;
+ background:rgba(23,48,67,.72)!important;background-image:none!important;
+ box-shadow:0 10px 30px rgba(0,0,0,.20)!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+ overflow:hidden!important;
+}
+#sb-service-dock #sb-service-dock-toggle{
+ box-sizing:border-box!important;position:relative!important;isolation:isolate!important;
+ display:inline-flex!important;flex:0 0 46px!important;
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;aspect-ratio:1!important;
+ align-items:center!important;justify-content:center!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;
+ border:1px solid rgba(235,245,255,.28)!important;
+ background:rgba(30,43,60,.48)!important;color:#f4f8fc!important;
+ box-shadow:none!important;outline:0!important;filter:none!important;
+ -webkit-backdrop-filter:blur(20px) saturate(170%)!important;
+ backdrop-filter:blur(20px) saturate(170%)!important;
+}
+#sb-service-dock #sb-service-dock-toggle:before{
+ content:""!important;position:absolute!important;inset:3px!important;
+ display:block!important;border:1px solid rgba(255,255,255,.36)!important;
+ border-radius:50%!important;box-shadow:none!important;pointer-events:none!important;
+}
+#sb-service-dock #sb-service-dock-toggle:after{content:none!important;display:none!important}
+#sb-service-dock:not(.is-expanded){
+ flex:0 0 60px!important;width:60px!important;min-width:60px!important;max-width:60px!important;
+ padding:6px!important;gap:0!important;justify-content:center!important;
+}
+#sb-service-dock:not(.is-expanded) #sb-service-lines{
+ display:none!important;flex:0 0 0!important;width:0!important;min-width:0!important;
+}
+#sb-service-dock.is-expanded{
+ flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;
+ padding:6px 8px!important;gap:8px!important;justify-content:flex-start!important;
+}
+#sb-service-dock.is-expanded #sb-service-dock-toggle{flex:0 0 46px!important}
+#sb-service-dock.is-expanded #sb-service-lines{min-width:0!important;flex:1 1 0!important}
+@media(max-width:700px){
+ #sb-service-dock:not(.is-expanded){flex-basis:60px!important;width:60px!important;min-width:60px!important;max-width:60px!important}
+ #sb-service-dock.is-expanded{flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important}
+}
+</style>
 </html>
