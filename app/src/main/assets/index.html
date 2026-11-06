@@ -2965,8 +2965,8 @@ if(mode==='delete'){
   /* Station platform slabs are intentionally disabled until their orientation
      can follow connected track geometry reliably. Keep the station node only. */
   let marker=L.marker([s.lat,s.lng],{
- /* Keep the actual station node above platform/halo graphics; disable drag while deleting. */
- pane:'sbStationNodePane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:10000,
+ /* Use Leaflet's persistent built-in marker pane; keep nodes above track SVGs. */
+ pane:'markerPane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:10000,
  icon:L.divIcon({
   className:'sb-station-leaflet-icon',
   html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"><span class="sb-station-node"></span></div>',
@@ -3483,6 +3483,8 @@ map.on('move zoom',function(){if(mode==='station'&&stationPlacementPreview)stati
 
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
+ /* Curve and waypoint placement is handled exclusively by the crosshair router. */
+ if(mode==='curve'||mode==='waypoint')return;
  const now=Date.now();
  if(now-lastTouchPlacementAt<120)return;
  lastTouchPlacementAt=now;
@@ -5412,10 +5414,29 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  }
  map.on('click',function(){
   if(document.getElementById('sb-3d-map')?.classList.contains('active'))return;
+  const center=map.getCenter();
   const target=stationAtCrosshair();
   if(mode==='track'){
    if(target){handleStationClick(target.index);}
    else message('Move the map until a station is under the crosshair, then tap to select it.');
+   return;
+  }
+  if(mode==='curve'||mode==='waypoint'){
+   if(selectedTrackIndex===null||!tracks[selectedTrackIndex]){
+    const trackTarget=trackAtCrosshair();
+    if(!trackTarget){message('Move the map until a track is under the crosshair to select it.');return;}
+    selectedTrackIndex=trackTarget.index;
+    renderNetwork();
+    message('Track selected. Move the map crosshair to a point and tap to add '+(mode==='curve'?'a curve point.':'a waypoint.'));
+    return;
+   }
+   const track=tracks[selectedTrackIndex];
+   if(!Array.isArray(track.waypoints))track.waypoints=[];
+   if(mode==='curve')track.curve=true;
+   track.waypoints.push({lat:center.lat,lng:center.lng,elevation:'at'});
+   saveHistory();
+   renderNetwork();
+   message(mode==='curve'?'Curve point added at crosshair.':'Waypoint added at crosshair.');
    return;
   }
   if(mode==='inspect'){
@@ -5481,6 +5502,22 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  sync();
 })();
 </script>
+
+
+<style id="sb-station-marker-built-in-pane-visibility">
+#map .leaflet-marker-pane .sb-station-leaflet-icon,
+#map .leaflet-marker-pane .sb-station-marker{display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+#map .leaflet-marker-pane .sb-station-marker .sb-station-node{display:block!important;width:14px!important;height:14px!important;border-radius:50%!important;background:#fff!important;border:1px solid rgba(255,255,255,.95)!important;box-shadow:0 0 0 5px rgba(255,255,255,.12),0 0 10px rgba(255,255,255,.88),0 0 22px rgba(255,255,255,.55)!important}
+#map .leaflet-marker-pane .sb-station-marker.is-selected .sb-station-node,#map .leaflet-marker-pane .sb-station-marker.is-crosshair-target .sb-station-node{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 0 0 8px rgba(255,255,255,.65),0 0 16px rgba(255,255,255,.95),0 0 30px rgba(255,255,255,.72)!important}
+</style>
+<style id="sb-construction-drawer-right-side-spacing">
+#sb-panel-toggle.menu-hamburger{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 10px)!important}
+#sb-construction-menu[open]>#constructionPanel{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 72px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 87px)!important;width:min(310px,calc(100vw - 20px))!important;max-height:none!important;height:auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+@media(max-width:560px){
+ #sb-panel-toggle.menu-hamburger{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 10px)!important}
+ #sb-construction-menu[open]>#constructionPanel{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 68px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 82px)!important;width:min(290px,calc(100vw - 16px))!important}
+}
+</style>
 
 </body>
 </html>
