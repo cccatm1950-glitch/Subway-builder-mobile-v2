@@ -502,7 +502,7 @@ button:active{transform:scale(.96)}
 
 
 /* Transparent San Francisco start screen: same glass language as the live game. */
-#startMenu{background:rgba(4,11,21,.16)!important;backdrop-filter:blur(3px) saturate(115%)!important;-webkit-backdrop-filter:blur(3px) saturate(115%)!important}
+#startMenu{display:none!important;visibility:hidden!important;pointer-events:none!important}
 .start-card{width:min(88vw,350px)!important;max-height:calc(100dvh - 10px)!important;padding:clamp(14px,3vh,24px) clamp(16px,4vw,24px)!important;gap:clamp(7px,1.4vh,12px)!important;border-radius:28px!important;background:rgba(15,25,40,.46)!important;border:1px solid rgba(255,255,255,.22)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
 .start-card img{width:44px!important;height:44px!important;object-fit:contain!important;margin:0 auto 2px!important}
 .start-card h1{color:#f5f8fc!important;font-size:clamp(17px,4.8vw,22px)!important;font-weight:700!important;letter-spacing:1.5px!important;margin:2px 0!important}
@@ -2439,15 +2439,15 @@ button.sb-flat-close,[data-flat-close="true"]{
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+   
+   
+   
+   
+   
+   
+   
+   
+   
   </div>
  </details>
 </nav>
@@ -3467,7 +3467,7 @@ else if(mode==='delete'){
   message('Waypoint added.');
  }
 }
-map.on('click',function(e){handleMapPlacement(e.latlng);});
+map.on('click',function(e){handleMapPlacement(map.getCenter());});
 /* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
@@ -5054,5 +5054,92 @@ body.sb-theme-dragging #sb-top-dock #sb-map-theme-toggle{cursor:grabbing!importa
  document.addEventListener('DOMContentLoaded',bind,{once:true});bind();
 })();
 </script>
+
+<style id="sb-crosshair-4x2-dark-pill-refresh">
+:root{color-scheme:dark}
+html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
+#sb-top-dock,#sb-action-dock,#sb-construction-menu,#constructionPanel{
+ border-radius:999px!important;
+}
+#sb-top-dock{
+ border-radius:999px!important;
+}
+#sb-action-dock{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:center!important;gap:6px!important;padding:6px!important;
+ border:0!important;border-radius:999px!important;
+ background:rgba(12,23,39,.58)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.14)!important;
+ backdrop-filter:blur(26px) saturate(180%)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+}
+#sb-action-dock .sb-dock-pair{
+ display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;
+ padding:0!important;border-radius:999px!important;background:transparent!important;
+}
+#sb-action-dock button{
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ flex:0 0 46px!important;border-radius:50%!important;margin:0!important;
+}
+#sb-construction-menu{border-radius:999px!important}
+#sb-construction-menu #sb-panel-toggle{
+ width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;
+ border-radius:50%!important;display:grid!important;place-items:center!important;
+ background:rgba(12,23,39,.64)!important;border:1px solid rgba(255,255,255,.2)!important;
+ backdrop-filter:blur(24px) saturate(180%)!important;-webkit-backdrop-filter:blur(24px) saturate(180%)!important;
+}
+#constructionPanel{
+ position:fixed!important;left:6px!important;right:6px!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + 76px)!important;
+ top:auto!important;width:auto!important;max-width:calc(100vw - 12px)!important;
+ max-height:calc(100dvh - 160px)!important;box-sizing:border-box!important;
+ padding:10px!important;border:0!important;border-radius:26px!important;
+ background:rgba(10,22,38,.64)!important;color:#f4f8ff!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.12)!important;
+ backdrop-filter:blur(28px) saturate(180%)!important;-webkit-backdrop-filter:blur(28px) saturate(180%)!important;
+}
+#constructionPanel .panel-heading,#constructionPanel .tool-group{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#constructionPanel .tool-grid{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,56px)!important;
+ justify-items:center!important;align-items:center!important;justify-content:stretch!important;
+ gap:8px 6px!important;padding:8px 6px!important;
+}
+#constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{
+ width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;
+ justify-self:center!important;align-self:center!important;margin:0!important;
+}
+#constructionPanel .tool-grid button{
+ display:grid!important;place-items:center!important;border-radius:50%!important;
+ background:rgba(255,255,255,.10)!important;border:1px solid rgba(220,240,255,.16)!important;
+}
+#constructionPanel .tool-grid button svg{
+ width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+ max-width:32px!important;max-height:32px!important;display:block!important;margin:auto!important;
+ overflow:visible!important;
+}
+/* Shared iOS-style outline icon geometry: 24-unit viewBox, centered 2px rounded strokes. */
+#constructionPanel .tool-grid button svg path,
+#constructionPanel .tool-grid button svg circle,
+#constructionPanel .tool-grid button svg rect,
+#constructionPanel .tool-grid button svg line,
+#constructionPanel .tool-grid button svg polyline{
+ vector-effect:non-scaling-stroke!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#constructionPanel .tool-grid button svg{overflow:visible!important}
+#map .sb-map-crosshair{pointer-events:none!important;z-index:1200!important}
+#map .sb-map-crosshair:before,#map .sb-map-crosshair:after{background:#f6fbff!important}
+#map .sb-map-crosshair:before{height:32px!important}
+#map .sb-map-crosshair:after{width:32px!important}
+#sb-terms-overlay{z-index:4000!important}
+@media(max-width:560px){
+ #constructionPanel{left:6px!important;right:6px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 76px)!important}
+ #constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-template-rows:repeat(2,54px)!important;gap:6px!important;padding:6px!important}
+ #constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important}
+ #constructionPanel .tool-grid button svg{width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important}
+}
+</style>
 </body>
 </html>
