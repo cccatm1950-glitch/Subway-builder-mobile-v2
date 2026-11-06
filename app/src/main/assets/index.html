@@ -3622,7 +3622,10 @@ function openInGameMenu(){
  sbSaveMenuState();
  menu.classList.add('open');menu.setAttribute('aria-hidden','false');
  const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+ const card=document.getElementById('sb-game-menu-card'),gear=document.getElementById('sb-game-menu-settings'),back=document.getElementById('sb-game-menu-back'),title=document.getElementById('sb-game-menu-title');
+ if(card)card.classList.remove('settings-active');
  if(main)main.hidden=false;if(settings)settings.hidden=true;
+ if(gear)gear.hidden=false;if(back)back.hidden=true;if(title)title.textContent='GAME MENU';
  const toggle=document.getElementById('sb-game-menu-toggle');
  if(toggle)toggle.setAttribute('aria-expanded','true');
  const runButton=document.getElementById('runBtn');
@@ -3980,7 +3983,10 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   if(success){
    if(typeof map!=='undefined'&&map){map.setView(DEFAULT_CENTER,DEFAULT_ZOOM,{animate:false});persistGameState();}
    const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+   const card=document.getElementById('sb-game-menu-card'),gear=document.getElementById('sb-game-menu-settings'),back=document.getElementById('sb-game-menu-back'),title=document.getElementById('sb-game-menu-title');
+   if(card)card.classList.remove('settings-active');
    if(main)main.hidden=false;if(settings)settings.hidden=true;
+   if(gear)gear.hidden=false;if(back)back.hidden=true;if(title)title.textContent='GAME MENU';
   }
  };
 })();
