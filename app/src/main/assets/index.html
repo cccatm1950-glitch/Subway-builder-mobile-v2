@@ -5896,16 +5896,116 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 </style>
 
 </body>
-</html>
-<style id="sb-nov06-track-hitbox-and-dock-polish">
-#constructionPanel .tool-grid{box-sizing:border-box!important;width:100%!important;min-width:0!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;justify-items:center!important;align-items:center!important;gap:12px 8px!important;padding:12px 8px 14px!important;overflow:visible!important}
-#constructionPanel .tool-grid>*{box-sizing:border-box!important;min-width:0!important}
-#constructionPanel .tool-grid button{box-sizing:border-box!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;margin:0!important;padding:0!important;justify-self:center!important;align-self:center!important;border-radius:50%!important;overflow:visible!important}
-#constructionPanel .tool-grid button svg{width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important}
-#constructionPanel .tool-group{box-sizing:border-box!important;min-width:0!important;overflow:hidden!important}
-#constructionPanel .tool-group summary{box-sizing:border-box!important;max-width:100%!important;white-space:normal!important}
+<style id="sb-nov06-final-dock-layout">
+/* The 128px construction dock must be a true 2-column x 4-row grid.
+   This final rule intentionally overrides older 4/8-column declarations. */
+#sb-construction-menu[open]>#constructionPanel{
+ position:fixed!important;left:auto!important;right:10px!important;top:auto!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + 91px)!important;
+ width:128px!important;min-width:128px!important;max-width:128px!important;
+ height:auto!important;min-height:0!important;max-height:none!important;
+ box-sizing:border-box!important;overflow:visible!important;padding:10px 8px!important;
+}
+#constructionPanel .panel-heading,#constructionPanel .tool-group summary{display:none!important}
+#constructionPanel .tool-group{display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+#constructionPanel .tool-grid{
+ box-sizing:border-box!important;display:grid!important;
+ grid-template-columns:repeat(2,44px)!important;
+ grid-template-rows:repeat(4,44px)!important;
+ grid-auto-flow:row!important;justify-content:center!important;align-content:center!important;
+ justify-items:center!important;align-items:center!important;
+ width:100%!important;min-width:0!important;gap:8px 6px!important;
+ padding:0!important;margin:0!important;background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#constructionPanel .tool-grid button{
+ box-sizing:border-box!important;display:grid!important;place-items:center!important;
+ width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+ max-width:44px!important;max-height:44px!important;flex:none!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;
+ background:rgba(255,255,255,.11)!important;color:#f3f8ff!important;
+ border:1px solid rgba(225,240,250,.13)!important;box-shadow:none!important;
+}
+#constructionPanel .tool-grid button svg{width:24px!important;height:24px!important;display:block!important}
+#constructionPanel .tool-grid button.active,#constructionPanel .tool-grid button[aria-pressed="true"]{
+ background:rgba(40,210,177,.27)!important;border-color:rgba(111,255,225,.82)!important;
+ box-shadow:0 0 0 1px rgba(76,240,205,.16),0 0 13px rgba(53,231,208,.24)!important;
+}
+/* Center service-line dock uses the same outer height as the flanking docks. */
+#sb-action-dock{display:flex!important;align-items:stretch!important;gap:10px!important}
+#sb-action-dock .sb-dock-panel-service{
+ box-sizing:border-box!important;display:flex!important;flex:1 1 0!important;
+ min-width:0!important;max-width:none!important;width:auto!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ align-self:stretch!important;overflow:hidden!important;
+ padding:8px 24px!important;margin:0!important;
+ align-items:center!important;justify-content:flex-start!important;
+ border-radius:18px!important;background:rgba(15,25,40,.58)!important;
+ border:0!important;box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+}
+#sb-service-lines{
+ box-sizing:border-box!important;display:flex!important;flex-direction:row!important;
+ align-items:center!important;gap:12px!important;width:100%!important;min-width:0!important;
+ height:100%!important;margin:0!important;padding:0!important;border:0!important;color:#edf7ff!important;
+}
+#sb-service-lines .sb-service-lines-heading{
+ flex:0 0 auto!important;margin:0!important;white-space:nowrap!important;
+ font-size:10px!important;letter-spacing:1.2px!important;color:#b5c9d9!important;
+}
+#sb-service-lines-content{
+ box-sizing:border-box!important;display:flex!important;flex:1 1 auto!important;
+ flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+ gap:10px!important;min-width:0!important;max-width:100%!important;height:100%!important;
+ overflow-x:auto!important;overflow-y:hidden!important;padding:0 12px 0 0!important;
+ scroll-padding-inline:12px!important;overscroll-behavior-x:contain!important;
+ scrollbar-width:thin!important;scrollbar-color:rgba(190,220,235,.35) transparent!important;
+}
+#sb-service-lines-content::-webkit-scrollbar{height:3px!important}
+#sb-service-lines-content::-webkit-scrollbar-thumb{background:rgba(190,220,235,.35)!important;border-radius:4px!important}
+#sb-service-lines .sb-line-create{order:-1!important;display:flex!important;align-items:center!important;flex:0 0 auto!important;gap:6px!important;margin:0!important;white-space:nowrap!important}
+#sb-service-lines .sb-line-row{display:flex!important;align-items:center!important;flex:0 0 auto!important;gap:6px!important;margin:0!important;white-space:nowrap!important}
+#sb-service-lines .sb-line-add{display:inline-flex!important;flex:0 0 34px!important;width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;visibility:visible!important;opacity:1!important}
+#sb-service-lines .sb-line-create input{box-sizing:border-box!important;width:96px!important;min-width:72px!important;max-width:120px!important;flex:0 1 96px!important}
+#sb-service-lines .sb-line-create select{flex:0 0 66px!important;width:66px!important;min-width:66px!important}
+#sb-service-lines .sb-line-hint{display:none!important}
+#sb-service-lines .sb-line-link{flex:0 0 36px!important;margin:0!important}
+#sb-service-lines .sb-line-label{max-width:90px!important}
+@media(max-width:700px){
+ #sb-construction-menu[open]>#constructionPanel{right:8px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 78px)!important;width:124px!important;min-width:124px!important;max-width:124px!important}
+ #constructionPanel .tool-grid{grid-template-columns:repeat(2,42px)!important;grid-template-rows:repeat(4,42px)!important;gap:7px 5px!important}
+ #constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important}
+ #sb-action-dock{left:8px!important;right:8px!important;gap:6px!important}
+ #sb-action-dock .sb-dock-panel-service{flex:1 1 0!important;min-width:0!important;padding:8px 12px!important;margin:0!important}
+ #sb-service-lines{gap:8px!important}
+ #sb-service-lines .sb-service-lines-heading{font-size:9px!important;letter-spacing:.8px!important}
+ #sb-service-lines-content{gap:8px!important}
+ #sb-service-lines .sb-line-label{max-width:64px!important}
+ #sb-service-lines .sb-line-create input{width:66px!important;min-width:56px!important;flex-basis:66px!important}
+ #sb-service-lines .sb-line-create select{width:54px!important;min-width:54px!important;flex-basis:54px!important}
+ #sb-service-lines .sb-line-add{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;flex-basis:30px!important}
+}
+@media(max-width:420px){
+ #sb-action-dock .sb-dock-panel{min-height:54px!important;height:54px!important;padding:6px!important}
+ #sb-action-dock .sb-dock-panel-service{height:54px!important;min-height:54px!important;max-height:54px!important;padding:6px 8px!important}
+ #sb-service-lines{gap:6px!important}
+ #sb-service-lines .sb-service-lines-heading{font-size:8px!important;letter-spacing:.5px!important}
+ #sb-service-lines .sb-line-create input{width:56px!important;min-width:48px!important;flex-basis:56px!important}
+ #sb-service-lines .sb-line-create select{width:46px!important;min-width:46px!important;flex-basis:46px!important}
+}
+
+
+
+
+
+
+
 #map .leaflet-sbTrack-pane path{stroke-linecap:round!important;stroke-linejoin:round!important}
 #map .sb-station-marker.is-track-target .sb-station-node{box-shadow:0 0 0 5px rgba(255,255,255,.16),0 0 0 8px var(--sb-station-line-color,#76ddff),0 0 20px var(--sb-station-line-color,#76ddff)!important}
 #sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,35,58,.34)!important;border:1px solid rgba(255,105,122,.96)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(255,65,86,.24),0 0 16px rgba(255,35,65,.82),0 0 30px rgba(255,35,65,.58),inset 0 0 14px rgba(255,45,68,.32)!important;text-shadow:0 0 5px #fff,0 0 11px #ff334f,0 0 20px #ff334f!important}
-@media(max-width:560px){#constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px 6px!important;padding:10px 6px 12px!important}#constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important}}
+@media(max-width:560px){}
+
 </style>
+
+</body>
+</html>
