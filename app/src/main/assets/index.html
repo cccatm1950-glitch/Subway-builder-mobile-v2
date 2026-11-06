@@ -1538,7 +1538,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  -webkit-overflow-scrolling:touch!important;
  scrollbar-gutter:stable;
 }
-/* Unified bottom glass action rail: history left, construction + delete right. */
+/* Unified bottom glass action rail: sbEditHistory left, construction + delete right. */
 #sb-action-dock{position:fixed!important;z-index:900!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;width:auto!important;box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:7px 61px 7px 8px!important;border-radius:25px!important;background:rgba(15,25,40,.42)!important;border:1px solid rgba(255,255,255,.22)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
 #sb-action-dock button{width:43px!important;height:43px!important;min-height:43px!important;flex:0 0 43px!important;margin:0!important;padding:0!important;border-radius:50%!important;font-size:18px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 #sb-action-dock #trashModeBtn{margin-left:auto!important;background:rgba(255,90,110,.18)!important;border-color:rgba(255,140,155,.4)!important;color:#ff9aa8!important}
@@ -1547,7 +1547,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-construction-menu[open]>#sb-panel-toggle{background:rgba(80,226,205,.28)!important;border-color:rgba(132,255,231,.65)!important}
 @media(max-width:380px){#sb-action-dock{left:6px!important;right:6px!important;gap:6px!important;padding-left:6px!important}#sb-action-dock button,#sb-panel-toggle{width:40px!important;height:40px!important;min-height:40px!important;flex-basis:40px!important}}
 
-/* PR#49 — split bottom glass dock: history left, construction/delete right */
+/* PR#49 — split bottom glass dock: sbEditHistory left, construction/delete right */
 #sb-action-dock{
  position:fixed!important;z-index:1600!important;left:12px!important;right:12px!important;
  bottom:max(8px,env(safe-area-inset-bottom,0px))!important;top:auto!important;
@@ -2229,7 +2229,7 @@ button.sb-menu-close,
 }
 
 
-/* PR #69 follow-up: normalize flat close controls and history dock states. */
+/* PR #69 follow-up: normalize flat close controls and sbEditHistory dock states. */
 button.sb-menu-close,
 #constructionPanel .panel-heading button.sb-menu-close,
 button.sb-flat-close,[data-flat-close="true"]{
@@ -2563,7 +2563,7 @@ let simulation=null;
 let trainMarkers=[];
 let trainMovementTimers=[];
 var platformCrowdMarkers=[];
-var history=[];
+var sbEditHistory=[];
 var historyIndex=0;
 
 var sbMessageTimer=null;
@@ -2613,9 +2613,9 @@ function snapshot(){
 }
 
 function saveHistory(){
- history=history.slice(0,historyIndex+1);
- history.push(snapshot());
- historyIndex=history.length-1;
+ sbEditHistory=sbEditHistory.slice(0,historyIndex+1);
+ sbEditHistory.push(snapshot());
+ historyIndex=sbEditHistory.length-1;
  updateUI();
  persistGameState();
 }
@@ -2646,11 +2646,11 @@ const SB_GAME_SAVE_KEY='sbGameSaveV1';
 function persistGameState(){
  try{
   const center=map.getCenter();
-  const historyStart=Math.max(0,history.length-40);
+  const historyStart=Math.max(0,sbEditHistory.length-40);
   const payload={
    version:1,savedAt:Date.now(),game:snapshot(),
    viewport:{lat:center.lat,lng:center.lng,zoom:map.getZoom()},
-   history:history.slice(historyStart),historyIndex:Math.max(0,historyIndex-historyStart)
+   sbEditHistory:sbEditHistory.slice(historyStart),historyIndex:Math.max(0,historyIndex-historyStart)
   };
   localStorage.setItem(SB_GAME_SAVE_KEY,JSON.stringify(payload));
  }catch(error){console.warn('Game autosave unavailable:',error);}
@@ -2665,10 +2665,10 @@ function restoreSavedGame(){
   if(saved.viewport&&Number.isFinite(saved.viewport.lat)&&Number.isFinite(saved.viewport.lng)&&Number.isFinite(saved.viewport.zoom)){
    map.setView([saved.viewport.lat,saved.viewport.lng],saved.viewport.zoom,{animate:false});
   }
-  if(Array.isArray(saved.history)&&saved.history.length){
-   history=saved.history.slice(-40);
-   historyIndex=Math.max(0,Math.min(history.length-1,Number(saved.historyIndex)||history.length-1));
-  }else{history=[snapshot()];historyIndex=0;}
+  if(Array.isArray(saved.sbEditHistory)&&saved.sbEditHistory.length){
+   sbEditHistory=saved.sbEditHistory.slice(-40);
+   historyIndex=Math.max(0,Math.min(sbEditHistory.length-1,Number(saved.historyIndex)||sbEditHistory.length-1));
+  }else{sbEditHistory=[snapshot()];historyIndex=0;}
   running=false;
   return true;
  }catch(error){console.warn('Could not restore saved game:',error);return false;}
@@ -2684,17 +2684,17 @@ function undo(){
   return;
  }
  historyIndex--;
- restoreSnapshot(history[historyIndex]);
+ restoreSnapshot(sbEditHistory[historyIndex]);
  message('Last construction action undone.');
 }
 
 function redo(){
- if(historyIndex>=history.length-1){
+ if(historyIndex>=sbEditHistory.length-1){
   message('Nothing to redo.');
   return;
  }
  historyIndex++;
- restoreSnapshot(history[historyIndex]);
+ restoreSnapshot(sbEditHistory[historyIndex]);
  message('Construction action restored.');
 }
 
@@ -2965,7 +2965,7 @@ function updateUI(){
  const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
  const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
  const undoEl=document.getElementById('undoBtn');if(undoEl)undoEl.disabled=historyIndex<=0;
- const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=history.length-1;
+ const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=sbEditHistory.length-1;
 }
 function setMode(newMode){
  mode=newMode;
@@ -3516,7 +3516,7 @@ function toggleSimulation(){
 }
 
 bindConstructionPanelControls();
-if(!restoreSavedGame()){history=[snapshot()];historyIndex=0;}
+if(!restoreSavedGame()){sbEditHistory=[snapshot()];historyIndex=0;}
 updateUI();
 renderNetwork();
 persistGameState();
@@ -4167,7 +4167,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 </script>
 
 <script>
-/* PR #69 follow-up: keep undo/redo visual state synchronized with the history cursor. */
+/* PR #69 follow-up: keep undo/redo visual state synchronized with the sbEditHistory cursor. */
 (function(){
  const originalUpdateUI=window.updateUI;
  function syncHistoryDock(){
@@ -4175,13 +4175,13 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const redoButton=document.getElementById('redoBtn');
   if(!undoButton||!redoButton)return;
   const canUndo=Number.isFinite(historyIndex)&&historyIndex>0;
-  const canRedo=Array.isArray(history)&&historyIndex<history.length-1;
+  const canRedo=Array.isArray(sbEditHistory)&&historyIndex<sbEditHistory.length-1;
   undoButton.disabled=!canUndo;
   redoButton.disabled=!canRedo;
   undoButton.setAttribute('aria-disabled',String(!canUndo));
   redoButton.setAttribute('aria-disabled',String(!canRedo));
-  undoButton.classList.toggle('sb-history-available',canUndo);
-  redoButton.classList.toggle('sb-history-available',canRedo);
+  undoButton.classList.toggle('sb-sbEditHistory-available',canUndo);
+  redoButton.classList.toggle('sb-sbEditHistory-available',canRedo);
  }
  if(typeof originalUpdateUI==='function'){
   window.updateUI=function(){
@@ -4344,7 +4344,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 </script>
 
 
-<style id="sb-dock-history-delete-theme-fix">
+<style id="sb-dock-sbEditHistory-delete-theme-fix">
 #sb-top-dock{border-radius:16px!important}
 #sb-action-dock{border-radius:16px!important}
 #sb-top-dock #sb-map-theme-toggle,
@@ -4369,13 +4369,13 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 }
 #sb-top-dock .sb-theme-menu-pair{display:flex!important;align-items:center!important;gap:8px!important;flex:0 0 auto!important}
 </style>
-<script id="sb-theme-slot-and-history-sync">
+<script id="sb-theme-slot-and-sbEditHistory-sync">
 (function(){
  function syncHistory(){
   const u=document.getElementById('undoBtn'),r=document.getElementById('redoBtn');
   if(!u||!r)return;
   const canUndo=typeof historyIndex==='number'&&historyIndex>0;
-  const canRedo=Array.isArray(history)&&historyIndex<history.length-1;
+  const canRedo=Array.isArray(sbEditHistory)&&historyIndex<sbEditHistory.length-1;
   u.disabled=!canUndo;r.disabled=!canRedo;
   u.setAttribute('aria-disabled',String(!canUndo));
   r.setAttribute('aria-disabled',String(!canRedo));
@@ -4405,6 +4405,92 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  document.addEventListener('DOMContentLoaded',init,{once:true});
  init();
  if(typeof map!=='undefined'&&map)map.on('layeradd layerremove',syncHistory);
+})();
+</script>
+
+
+<style id="sb-build-delete-paired-neon">
+/* Construction and Delete share one paired, mutually exclusive neon treatment. */
+#sb-action-dock #trashModeBtn,
+#sb-action-dock #sb-build-dock-btn{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.07)!important;transform:none!important;filter:none!important;
+ transition:background .16s ease,box-shadow .16s ease!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ color:#ff9aa8!important;background:rgba(255,55,78,.24)!important;
+ box-shadow:0 0 0 1px rgba(255,90,110,.58),0 0 10px rgba(255,45,70,.45),0 0 20px rgba(255,45,70,.24)!important;
+}
+#sb-action-dock #sb-build-dock-btn.active,
+#sb-action-dock #sb-build-dock-btn[aria-pressed="true"]{
+ color:#9affdf!important;background:rgba(25,210,150,.22)!important;
+ box-shadow:0 0 0 1px rgba(80,255,190,.58),0 0 10px rgba(35,235,155,.42),0 0 20px rgba(35,235,155,.22)!important;
+}
+#sb-action-dock #trashModeBtn:not(.active):not([aria-pressed="true"]),
+#sb-action-dock #sb-build-dock-btn:not(.active):not([aria-pressed="true"]){
+ color:#eef6fc!important;background:rgba(255,255,255,.07)!important;box-shadow:none!important;
+}
+#sb-action-dock #sb-build-dock-btn{font-size:22px!important}
+#sb-action-dock .sb-dock-divider,#sb-action-dock .dock-divider,
+#sb-action-dock #sb-build-dock-btn:before{border:0!important;display:none!important;content:none!important}
+#sb-panel-toggle.menu-hamburger{display:none!important}
+</style>
+<script id="sb-history-and-build-dock-repair">
+(function(){
+ function syncHistoryButtons(){
+  const undoButton=document.getElementById('undoBtn'),redoButton=document.getElementById('redoBtn');
+  if(!undoButton||!redoButton)return;
+  const canUndo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex>0;
+  const canRedo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex<sbEditHistory.length-1;
+  undoButton.disabled=!canUndo;redoButton.disabled=!canRedo;
+  undoButton.setAttribute('aria-disabled',String(!canUndo));
+  redoButton.setAttribute('aria-disabled',String(!canRedo));
+ }
+ function addBuildButton(){
+  const dock=document.getElementById('sb-action-dock'),original=document.getElementById('sb-panel-toggle');
+  if(!dock||dock.querySelector('#sb-build-dock-btn'))return;
+  const button=document.createElement('button');
+  button.type='button';button.id='sb-build-dock-btn';
+  button.className='sb-build-dock-btn';
+  button.setAttribute('aria-label','Construction tools');
+  button.title='Construction tools';
+  button.setAttribute('aria-pressed','false');
+  button.textContent='⚒';
+  button.addEventListener('click',function(){
+   if(typeof toggleToolsPanel==='function')toggleToolsPanel();
+   syncBuildState();
+  });
+  dock.appendChild(button);
+  if(original)original.setAttribute('aria-hidden','true');
+ }
+ function syncBuildState(){
+  const button=document.getElementById('sb-build-dock-btn');
+  const menu=document.getElementById('sb-construction-menu');
+  const del=document.getElementById('trashModeBtn');
+  if(!button)return;
+  const open=!!(menu&&menu.open);
+  button.classList.toggle('active',open);
+  button.setAttribute('aria-pressed',String(open));
+  if(del){
+   const isDelete=typeof mode!=='undefined'&&mode==='delete';
+   del.classList.toggle('active',isDelete);
+   del.setAttribute('aria-pressed',String(isDelete));
+   if(isDelete)button.classList.remove('active');
+  }
+ }
+ const oldUpdateUI=window.updateUI;
+ if(typeof oldUpdateUI==='function')window.updateUI=function(){const result=oldUpdateUI.apply(this,arguments);syncHistoryButtons();syncBuildState();return result;};
+ const oldSaveHistory=window.saveHistory;
+ if(typeof oldSaveHistory==='function')window.saveHistory=function(){const result=oldSaveHistory.apply(this,arguments);syncHistoryButtons();return result;};
+ const oldUndo=window.undo;
+ if(typeof oldUndo==='function')window.undo=function(){const result=oldUndo.apply(this,arguments);syncHistoryButtons();return result;};
+ const oldRedo=window.redo;
+ if(typeof oldRedo==='function')window.redo=function(){const result=oldRedo.apply(this,arguments);syncHistoryButtons();return result;};
+ document.addEventListener('DOMContentLoaded',function(){addBuildButton();syncHistoryButtons();syncBuildState();},{once:true});
+ addBuildButton();syncHistoryButtons();syncBuildState();
+ const menu=document.getElementById('sb-construction-menu');
+ if(menu){new MutationObserver(syncBuildState).observe(menu,{attributes:true,attributeFilter:['open']});}
 })();
 </script>
 
