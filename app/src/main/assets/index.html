@@ -2187,6 +2187,46 @@ button.sb-menu-close,
 
 /* The game-menu back control uses the same tiny red glass circle, with a left arrow. */
 #sb-game-menu-back{font-size:9px!important;line-height:6px!important;font-weight:700!important}
+
+/* PR #69 station reticle: camera-centered placement, flat node, black inset and white neon ring. */
+#map .leaflet-marker-pane .sb-placement-preview{
+ position:relative!important;box-sizing:border-box!important;
+ width:48px!important;height:48px!important;border:2px solid #fff!important;
+ border-radius:50%!important;background:transparent!important;
+ box-shadow:0 0 0 2px rgba(255,255,255,.8),0 0 12px #fff,0 0 26px rgba(255,255,255,.9)!important;
+ animation:none!important;display:grid!important;place-items:center!important;
+}
+#map .leaflet-marker-pane .sb-placement-preview .sb-placement-node{
+ display:block!important;box-sizing:border-box!important;
+ width:18px!important;height:18px!important;border-radius:50%!important;
+ background:#18cdb5!important;border:0!important;
+ box-shadow:0 0 0 8px #05090f!important;
+}
+#map .leaflet-marker-pane .sb-station-marker{
+ position:relative!important;box-sizing:border-box!important;
+ display:grid!important;place-items:center!important;
+ width:34px!important;height:34px!important;
+ border:0!important;border-radius:50%!important;
+ background:transparent!important;box-shadow:none!important;
+}
+#map .leaflet-marker-pane .sb-station-marker .sb-station-node{
+ display:block!important;box-sizing:border-box!important;
+ width:18px!important;height:18px!important;border:0!important;border-radius:50%!important;
+ background:#16cbb2!important;box-shadow:0 0 0 8px #05090f!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected{
+ background:transparent!important;border:0!important;box-shadow:none!important;transform:none!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected .sb-station-node{
+ background:#16cbb2!important;
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #fff,0 0 14px #fff,0 0 26px rgba(255,255,255,.95)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-track-target .sb-station-node{
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 20px rgba(85,234,255,.85)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-dragging .sb-station-node{
+ background:#fff!important;box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 22px #55eaff!important;
+}
 </style>
 
 /* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
@@ -2801,7 +2841,7 @@ if(mode==='delete'){
  pane:'markerPane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:5000,
  icon:L.divIcon({
   className:'sb-station-leaflet-icon',
-  html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"></div>',
+  html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"><span class="sb-station-node"></span></div>',
   iconSize:[34,34],
   iconAnchor:[17,17]
  })
@@ -3286,14 +3326,15 @@ window.addEventListener('resize',function(){if(stationMenuIndex!==null)positionS
 
 // Live placement ghost follows the pointer in station construction mode.
 let stationPlacementPreview=null;
-map.on('mousemove touchmove',function(e){
+map.on('mousemove touchmove',function(){
  if(mode!=='station'||document.getElementById('sb-3d-map').classList.contains('active')){
   if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
   return;
  }
+ const center=map.getCenter();
  if(!stationPlacementPreview){
-  stationPlacementPreview=L.marker(e.latlng,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"></div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);
- }else stationPlacementPreview.setLatLng(e.latlng);
+  stationPlacementPreview=L.marker(center,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
+ }else stationPlacementPreview.setLatLng(center);
 });
 map.on('mouseout',function(){if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}});
 
@@ -3303,7 +3344,8 @@ function handleMapPlacement(latlng){
  if(now-lastTouchPlacementAt<80)return;
  lastTouchPlacementAt=now;
  if(mode==='station'){
-  /* The live placement ghost can sit directly over the newly-created marker. */
+  /* Station placement is locked to the map/camera center, matching the fixed preview reticle. */
+  latlng=map.getCenter();
   if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
   if(money<500){
    message('Not enough money for a station.');
@@ -3897,7 +3939,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   }
   if(!stationPreview){
    stationPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1000,
-    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview sb-station-preview-visible"></div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
+    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview sb-station-preview-visible"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
   }
  }
  function clearStationMoveMode(){
@@ -3959,8 +4001,8 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   if(mode==='station')ensurePreview();
  };
  map.on('move zoom',function(){if(stationPreview&&mode==='station')stationPreview.setLatLng(map.getCenter());});
- map.on('mousemove touchmove',function(e){if(stationPreview&&mode==='station')stationPreview.setLatLng(e.latlng);});
- map.on('click',function(e){if(mode==='station'&&stationPreview)stationPreview.setLatLng(e.latlng);});
+ map.on('mousemove touchmove',function(){if(stationPreview&&mode==='station')stationPreview.setLatLng(map.getCenter());});
+ map.on('click',function(){if(stationPreview&&mode==='station')stationPreview.setLatLng(map.getCenter());});
  ensurePreview();
  
  window.exportGameStateToDevice=function(){
