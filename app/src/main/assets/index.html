@@ -502,7 +502,7 @@ button:active{transform:scale(.96)}
 
 
 /* Transparent San Francisco start screen: same glass language as the live game. */
-#startMenu{background:rgba(4,11,21,.16)!important;backdrop-filter:blur(3px) saturate(115%)!important;-webkit-backdrop-filter:blur(3px) saturate(115%)!important}
+#startMenu{display:none!important;visibility:hidden!important;pointer-events:none!important}
 .start-card{width:min(88vw,350px)!important;max-height:calc(100dvh - 10px)!important;padding:clamp(14px,3vh,24px) clamp(16px,4vw,24px)!important;gap:clamp(7px,1.4vh,12px)!important;border-radius:28px!important;background:rgba(15,25,40,.46)!important;border:1px solid rgba(255,255,255,.22)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
 .start-card img{width:44px!important;height:44px!important;object-fit:contain!important;margin:0 auto 2px!important}
 .start-card h1{color:#f5f8fc!important;font-size:clamp(17px,4.8vw,22px)!important;font-weight:700!important;letter-spacing:1.5px!important;margin:2px 0!important}
@@ -1137,6 +1137,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-top-dock .stat{font-size:9px!important;letter-spacing:.8px!important}
 #sb-top-dock .stat strong{font-size:clamp(11px,1.2vw,14px)!important}
 #sb-top-dock #sb-pointer-toggle{flex:0 0 42px!important;width:42px!important;height:42px!important;min-height:42px!important;margin:0!important;padding:0!important}
+#sb-top-dock #sb-map-theme-toggle{flex:0 0 42px!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(225,245,255,.28)!important;color:#f4fbff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 5px 16px rgba(0,0,0,.16)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;font-size:20px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;order:0!important}
 #sb-panel-toggle.menu-hamburger{position:fixed!important;z-index:1501!important;top:calc(max(9px,env(safe-area-inset-top,0px)) + 11px)!important;left:clamp(220px,25vw,390px)!important;right:auto!important;appearance:none!important;-webkit-appearance:none!important;list-style:none!important;flex:0 0 46px!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;margin:0!important;padding:0!important;border-radius:50%!important;display:flex!important;align-items:center!important;justify-content:center!important;color:#f2ffff!important;background:rgba(38,75,91,.62)!important;border:1.5px solid rgba(139,255,235,.62)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 0 0 1px rgba(90,240,215,.12),0 4px 15px rgba(0,0,0,.2)!important;backdrop-filter:blur(16px) saturate(165%)!important;-webkit-backdrop-filter:blur(16px) saturate(165%)!important;cursor:pointer!important;touch-action:manipulation!important;transition:transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease!important}
 #sb-panel-toggle.menu-hamburger::-webkit-details-marker{display:none!important}
 #sb-panel-toggle.menu-hamburger svg{width:22px!important;height:22px!important;pointer-events:none!important}
@@ -1145,7 +1146,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-construction-menu:not([open])>#constructionPanel{display:none!important}
 #sb-construction-menu[open]>#constructionPanel{position:fixed!important;display:block!important;left:max(10px,env(safe-area-inset-left,0px))!important;right:auto!important;top:calc(env(safe-area-inset-top,0px) + 84px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 145px)!important;width:min(310px,calc(100vw - 92px))!important;height:auto!important;min-height:0!important;max-height:none!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;box-sizing:border-box!important;border-radius:24px!important;border:1px solid var(--ios-line,rgba(255,255,255,.22))!important;background:var(--ios-glass,rgba(15,25,40,.46))!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important;z-index:1400!important;transform:none!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
 #sb-action-dock{z-index:1500!important;pointer-events:auto!important}
-@media(max-width:560px){#sb-top-dock{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;min-height:60px!important;padding:7px 9px!important;gap:8px!important;border-radius:25px!important}#sb-top-dock .brand{font-size:clamp(9px,2.6vw,12px)!important;letter-spacing:.6px!important}#sb-top-dock .stats{gap:clamp(4px,1.5vw,8px)!important}#sb-top-dock .stat{font-size:7px!important;letter-spacing:.35px!important}#sb-top-dock .stat strong{font-size:clamp(9px,2.4vw,11px)!important}#sb-top-dock #sb-pointer-toggle{flex-basis:34px!important;width:34px!important;height:34px!important;min-height:34px!important}#sb-panel-toggle.menu-hamburger{top:calc(max(7px,env(safe-area-inset-top,0px)) + 9px)!important;left:clamp(145px,24vw,230px)!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}#sb-construction-menu[open]>#constructionPanel{left:max(7px,env(safe-area-inset-left,0px))!important;top:calc(env(safe-area-inset-top,0px) + 76px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 145px)!important;width:min(290px,calc(100vw - 82px))!important;border-radius:22px!important}}
+@media(max-width:560px){#sb-top-dock{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;min-height:60px!important;padding:7px 9px!important;gap:8px!important;border-radius:25px!important}#sb-top-dock .brand{font-size:clamp(9px,2.6vw,12px)!important;letter-spacing:.6px!important}#sb-top-dock .stats{gap:clamp(4px,1.5vw,8px)!important}#sb-top-dock .stat{font-size:7px!important;letter-spacing:.35px!important}#sb-top-dock .stat strong{font-size:clamp(9px,2.4vw,11px)!important}#sb-top-dock #sb-pointer-toggle{flex-basis:34px!important;width:34px!important;height:34px!important;min-height:34px!important}#sb-top-dock #sb-map-theme-toggle{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}#sb-panel-toggle.menu-hamburger{top:calc(max(7px,env(safe-area-inset-top,0px)) + 9px)!important;left:clamp(145px,24vw,230px)!important;width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important}#sb-construction-menu[open]>#constructionPanel{left:max(7px,env(safe-area-inset-left,0px))!important;top:calc(env(safe-area-inset-top,0px) + 76px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 145px)!important;width:min(290px,calc(100vw - 82px))!important;border-radius:22px!important}}
 @media(max-height:520px){#sb-construction-menu[open]>#constructionPanel{bottom:calc(env(safe-area-inset-bottom,0px) + 132px)!important}}
 
 
@@ -1537,7 +1538,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  -webkit-overflow-scrolling:touch!important;
  scrollbar-gutter:stable;
 }
-/* Unified bottom glass action rail: history left, construction + delete right. */
+/* Unified bottom glass action rail: sbEditHistory left, construction + delete right. */
 #sb-action-dock{position:fixed!important;z-index:900!important;left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;width:auto!important;box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:9px!important;padding:7px 61px 7px 8px!important;border-radius:25px!important;background:rgba(15,25,40,.42)!important;border:1px solid rgba(255,255,255,.22)!important;backdrop-filter:blur(26px) saturate(180%)!important;-webkit-backdrop-filter:blur(26px) saturate(180%)!important;box-shadow:0 10px 32px rgba(0,0,0,.2)!important}
 #sb-action-dock button{width:43px!important;height:43px!important;min-height:43px!important;flex:0 0 43px!important;margin:0!important;padding:0!important;border-radius:50%!important;font-size:18px!important;display:flex!important;align-items:center!important;justify-content:center!important}
 #sb-action-dock #trashModeBtn{margin-left:auto!important;background:rgba(255,90,110,.18)!important;border-color:rgba(255,140,155,.4)!important;color:#ff9aa8!important}
@@ -1546,7 +1547,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
 #sb-construction-menu[open]>#sb-panel-toggle{background:rgba(80,226,205,.28)!important;border-color:rgba(132,255,231,.65)!important}
 @media(max-width:380px){#sb-action-dock{left:6px!important;right:6px!important;gap:6px!important;padding-left:6px!important}#sb-action-dock button,#sb-panel-toggle{width:40px!important;height:40px!important;min-height:40px!important;flex-basis:40px!important}}
 
-/* PR#49 — split bottom glass dock: history left, construction/delete right */
+/* PR#49 — split bottom glass dock: sbEditHistory left, construction/delete right */
 #sb-action-dock{
  position:fixed!important;z-index:1600!important;left:12px!important;right:12px!important;
  bottom:max(8px,env(safe-area-inset-bottom,0px))!important;top:auto!important;
@@ -1558,7 +1559,7 @@ body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!impor
  -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
  box-shadow:0 9px 30px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.12)!important;
 }
-#sb-action-dock::after{content:"";position:absolute;right:57px;top:11px;bottom:11px;width:1px;background:rgba(220,240,255,.22);pointer-events:none}
+#sb-action-dock::after{display:none!important;content:none!important}
 #sb-action-dock button{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;max-height:44px!important;flex:0 0 44px!important;border-radius:50%!important;border:1px solid rgba(220,240,255,.28)!important;background:rgba(150,205,235,.14)!important;color:#eff9ff!important;backdrop-filter:blur(18px) saturate(180%)!important;-webkit-backdrop-filter:blur(18px) saturate(180%)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 4px 14px rgba(0,0,0,.16)!important}
 #sb-action-dock #trashModeBtn{margin-left:auto!important;background:rgba(255,90,110,.17)!important;border-color:rgba(255,150,165,.4)!important;color:#ffb0ba!important}
 #sb-construction-menu>summary#sb-panel-toggle{position:fixed!important;left:auto!important;right:21px!important;top:auto!important;bottom:calc(max(8px,env(safe-area-inset-bottom,0px)) + 8px)!important;z-index:1602!important;width:44px!important;min-width:44px!important;max-width:44px!important;height:44px!important;min-height:44px!important;max-height:44px!important;border-radius:50%!important;margin:0!important}
@@ -1881,74 +1882,538 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  box-shadow:0 0 0 2px rgba(255,55,82,.2),0 0 18px rgba(255,35,68,.72),inset 0 0 12px rgba(255,60,82,.28)!important;
 }
 
-/* PR #62 — authoritative 4×2 build-tool grid and layered Delete glow.
-   Keep this block last so older responsive rules cannot override the layout. */
-#constructionPanel .tool-group .tool-grid,
-#constructionPanel .tool-grid{
- display:grid!important;
- grid-template-columns:repeat(4,minmax(0,1fr))!important;
- grid-template-rows:repeat(2,48px)!important;
- grid-auto-flow:row!important;
- gap:12px 8px!important;
- width:100%!important;max-width:100%!important;min-width:0!important;
- box-sizing:border-box!important;
- justify-content:stretch!important;justify-items:center!important;
- align-content:center!important;align-items:center!important;
- padding:12px 8px!important;margin:0!important;
+
+/* PR #69 follow-up: authoritative collision-safe glass menus and visible build markers. */
+#sb-top-dock{z-index:1450!important}
+#sb-action-dock{z-index:1600!important}
+#sb-construction-menu[open]>#constructionPanel{
+  z-index:1400!important;
+  top:calc(env(safe-area-inset-top,0px) + 78px)!important;
+  bottom:calc(env(safe-area-inset-bottom,0px) + var(--sb-dock-height,64px) + 16px)!important;
+  max-height:none!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
 }
-#constructionPanel .tool-grid button,
-#constructionPanel .tool-grid .sb-tool-slot-empty{
- width:46px!important;height:46px!important;
- min-width:46px!important;min-height:46px!important;
- max-width:46px!important;max-height:46px!important;
- margin:0!important;padding:5px!important;box-sizing:border-box!important;
- justify-self:center!important;align-self:center!important;border-radius:50%!important;
+#sb-panel-toggle.menu-hamburger{
+  z-index:1460!important;
+  width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+  flex:0 0 46px!important;border-radius:50%!important;
+  background:rgba(255,255,255,.11)!important;
+  border:1px solid rgba(225,245,255,.28)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 5px 16px rgba(0,0,0,.18)!important;
+  backdrop-filter:blur(20px) saturate(180%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(180%)!important;
 }
-#constructionPanel .tool-grid button{
- display:grid!important;place-items:center!important;
- pointer-events:auto!important;touch-action:manipulation!important;
+#sb-panel-toggle.menu-hamburger svg{width:22px!important;height:22px!important}
+#constructionPanel .tool-group[open]{position:relative;z-index:1}
+#constructionPanel .tool-group summary{position:relative;z-index:2}
+#stationContextMenu{
+  z-index:2200!important;
+  display:none;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  justify-items:center!important;
+  align-items:center!important;
+  gap:8px!important;
+  width:min(232px,calc(100vw - 24px))!important;
+  max-height:calc(100dvh - 176px)!important;
+  overflow-y:auto!important;
+  padding:12px!important;
+  border-radius:24px!important;
+  background:rgba(15,25,40,.58)!important;
+  border:1px solid rgba(255,255,255,.22)!important;
+  backdrop-filter:blur(26px) saturate(180%)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+  box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.12)!important;
 }
-#constructionPanel .tool-grid button svg{
- display:block!important;width:26px!important;height:26px!important;
- max-width:26px!important;max-height:26px!important;margin:auto!important;
+#stationContextMenu.sb-station-menu-open{display:grid!important}
+#stationContextMenu h3{grid-column:1/-1!important;width:100%;margin:2px 0 5px!important;text-align:center!important}
+#stationContextMenu button{
+  box-sizing:border-box!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;
+  max-width:58px!important;max-height:58px!important;flex:0 0 58px!important;
+  margin:0!important;padding:5px!important;border-radius:50%!important;
+  white-space:normal!important;text-align:center!important;
+  font-size:9px!important;line-height:1.15!important;letter-spacing:0!important;
+  color:#f5fbff!important;background:rgba(255,255,255,.10)!important;
+  border:1px solid rgba(225,245,255,.24)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 4px 12px rgba(0,0,0,.16)!important;
+  backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;
 }
-#constructionPanel .tool-grid .sb-tool-slot-empty{
- display:block!important;pointer-events:none!important;
- border:1px dashed rgba(205,229,250,.12)!important;
- background:rgba(255,255,255,.01)!important;
+#stationContextMenu button:active{background:rgba(60,205,180,.24)!important;border-color:rgba(125,255,225,.6)!important}
+#sb-game-menu-card{background:rgba(15,25,40,.58)!important;border:1px solid rgba(255,255,255,.22)!important;border-radius:26px!important;backdrop-filter:blur(28px) saturate(180%)!important;-webkit-backdrop-filter:blur(28px) saturate(180%)!important}
+#sb-game-menu .sb-game-menu-view{display:flex;flex-direction:column;align-items:center;gap:12px}
+#sb-game-menu .sb-game-menu-view p,#sb-game-menu .sb-game-menu-view h3{align-self:stretch;text-align:center}
+#sb-game-menu .sb-game-menu-action{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  width:72px!important;height:72px!important;min-width:72px!important;min-height:72px!important;
+  max-width:72px!important;max-height:72px!important;flex:0 0 72px!important;
+  margin:0 auto!important;padding:7px!important;border-radius:50%!important;
+  white-space:normal!important;text-align:center!important;font-size:10px!important;line-height:1.15!important;
+  color:#f5fbff!important;background:rgba(255,255,255,.10)!important;
+  border:1px solid rgba(225,245,255,.25)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 4px 14px rgba(0,0,0,.18)!important;
 }
-#sb-action-dock #trashModeBtn{
- box-shadow:
-  0 0 0 2px rgba(255,75,95,.22),
-  0 0 13px rgba(255,45,70,.62),
-  0 0 26px rgba(255,45,70,.34),
-  inset 0 0 10px rgba(255,60,82,.18)!important;
+#sb-game-menu-settings{border-radius:50%!important;background:rgba(255,255,255,.10)!important;border:1px solid rgba(225,245,255,.25)!important}
+#sb-terms-card button{
+  width:62px!important;height:62px!important;min-width:62px!important;min-height:62px!important;
+  flex:0 0 62px!important;margin:8px auto 0!important;padding:6px!important;border-radius:50%!important;
+  white-space:normal!important;text-align:center!important;font-size:9px!important;line-height:1.1!important;
+  background:rgba(255,255,255,.10)!important;border:1px solid rgba(225,245,255,.25)!important;
+  backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;
 }
-#sb-action-dock #trashModeBtn.active,
-#sb-action-dock #trashModeBtn[aria-pressed="true"]{
- box-shadow:
-  0 0 0 2px rgba(255,75,95,.32),
-  0 0 15px rgba(255,45,70,.86),
-  0 0 30px rgba(255,45,70,.55),
-  inset 0 0 12px rgba(255,60,82,.28)!important;
+.sb-station-leaflet-icon{background:transparent!important;border:0!important;overflow:visible!important;z-index:3000!important}
+#map .leaflet-marker-pane .sb-station-marker{
+  display:block!important;position:relative!important;box-sizing:border-box!important;
+  width:34px!important;height:34px!important;opacity:1!important;visibility:visible!important;
+  border:3px solid #fff!important;border-radius:50%!important;
+  background:radial-gradient(circle at 35% 28%,#f0fffc 0 8%,#35f0d1 23%,#087f79 68%,#03423f 100%)!important;
+  box-shadow:0 2px 10px rgba(0,0,0,.95),0 0 0 5px rgba(53,240,209,.42),0 0 22px rgba(38,220,190,.92)!important;
+  pointer-events:auto!important;
 }
+#map .leaflet-marker-pane .sb-station-marker.is-track-target{
+  box-shadow:0 0 0 5px rgba(60,220,255,.48),0 0 0 10px rgba(60,220,255,.18),0 0 24px rgba(60,220,255,.9),0 2px 10px #000!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected{
+  background:radial-gradient(circle at 35% 28%,#fff8d9 0 8%,#ffd36c 25%,#e99b16 72%,#8b4c08 100%)!important;
+  border-color:#fff!important;
+  box-shadow:0 0 0 6px rgba(255,196,75,.52),0 0 0 13px rgba(255,196,75,.2),0 0 26px rgba(255,196,75,.95),0 2px 12px #000!important;
+  transform:scale(1.12)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-dragging{background:#fff!important;box-shadow:0 0 0 7px rgba(64,207,255,.5),0 0 0 15px rgba(64,207,255,.2),0 0 28px #40cfff!important}
+#map .leaflet-marker-icon.sb-preview-icon{z-index:4000!important;pointer-events:none!important}
+#map .sb-placement-preview{width:30px!important;height:30px!important;border:3px solid #fff!important;background:rgba(38,220,190,.5)!important;box-shadow:0 0 0 8px rgba(38,220,190,.22),0 0 28px #26dcbe!important}
 @media(max-width:560px){
- #constructionPanel .tool-group .tool-grid,
- #constructionPanel .tool-grid{
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  grid-template-rows:repeat(2,46px)!important;
-  gap:10px 6px!important;padding:10px 4px!important;
+ #sb-construction-menu[open]>#constructionPanel{left:max(8px,env(safe-area-inset-left,0px))!important;width:min(290px,calc(100vw - 24px))!important}
+ #stationContextMenu{width:min(224px,calc(100vw - 20px))!important}
+ #stationContextMenu button{width:54px!important;height:54px!important;min-width:54px!important;min-height:54px!important;max-width:54px!important;max-height:54px!important;flex-basis:54px!important}
+}
+
+
+
+/* PR #69 stability follow-up: prevent launch-state blur regressions and normalize touch controls. */
+#startMenu .play-launch{
+ width:min(88vw,320px)!important;min-width:0!important;max-width:320px!important;
+ box-sizing:border-box!important;align-items:center!important;justify-content:center!important;
+ padding:20px!important;gap:18px!important;transform:none!important;
+}
+#startMenu #sb-play-button{
+ box-sizing:border-box!important;display:grid!important;place-items:center!important;
+ flex:0 0 104px!important;width:104px!important;min-width:104px!important;max-width:104px!important;
+ height:104px!important;min-height:104px!important;max-height:104px!important;aspect-ratio:1/1!important;
+ padding:0!important;margin:0 auto!important;border-radius:50%!important;align-self:center!important;
+ transform-origin:center center!important;line-height:1!important;
+}
+#startMenu #sb-play-button span{display:block!important;line-height:1!important;margin:0 0 0 4px!important}
+#sb-top-dock #sb-map-theme-toggle,
+#sb-top-dock #sb-game-menu-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 36px!important;width:36px!important;min-width:36px!important;max-width:36px!important;
+ height:36px!important;min-height:36px!important;max-height:36px!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;line-height:1!important;
+ font-size:17px!important;vertical-align:middle!important;align-self:center!important;
+}
+#sb-top-dock #sb-map-theme-toggle{font-size:18px!important}
+#map .leaflet-marker-pane .sb-station-marker{
+ position:relative!important;isolation:isolate!important;
+}
+#map .leaflet-marker-pane .sb-station-marker::after{
+ content:""!important;position:absolute!important;left:50%!important;top:50%!important;
+ width:9px!important;height:9px!important;transform:translate(-50%,-50%)!important;
+ border-radius:50%!important;background:#f7fffd!important;
+ border:1px solid rgba(0,65,60,.85)!important;
+ box-shadow:0 0 5px rgba(255,255,255,.95),0 0 10px rgba(25,255,220,.75)!important;
+ pointer-events:none!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected::after{
+ background:#fff8dc!important;border-color:#8b4c08!important;
+}
+#sb-game-menu .sb-game-menu-action#sb-touch-trace-toggle{
+ flex:0 0 72px!important;width:72px!important;height:72px!important;
+ min-width:72px!important;min-height:72px!important;max-width:72px!important;max-height:72px!important;
+ padding:7px!important;border-radius:50%!important;white-space:normal!important;
+}
+#sb-touch-trace-hud{
+ position:fixed!important;z-index:6000!important;
+ left:max(8px,env(safe-area-inset-left,0px))!important;right:auto!important;
+ top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 182px)!important;
+ width:min(360px,calc(100vw - 82px))!important;max-width:calc(100vw - 82px)!important;
+ max-height:min(24dvh,170px)!important;overflow:auto!important;
+ padding:8px 10px!important;border:1px solid rgba(125,235,213,.48)!important;
+ border-radius:12px!important;background:rgba(2,10,20,.48)!important;
+ color:rgba(231,255,251,.92)!important;font:10px/1.35 monospace!important;
+ pointer-events:auto!important;touch-action:none!important;cursor:grab!important;
+ user-select:none!important;-webkit-user-select:none!important;
+ white-space:pre-wrap!important;overflow-wrap:anywhere!important;
+ box-shadow:0 2px 10px rgba(0,0,0,.2)!important;
+ backdrop-filter:blur(3px)!important;-webkit-backdrop-filter:blur(3px)!important;
+}
+#sb-touch-trace-hud:active{cursor:grabbing!important}
+#sb-touch-trace-hud[hidden]{display:none!important}
+#sb-touch-trace-hud[hidden]{display:none!important}
+@media(max-width:560px){
+ #sb-top-dock #sb-map-theme-toggle,
+ #sb-top-dock #sb-game-menu-toggle{
+  flex-basis:34px!important;width:34px!important;min-width:34px!important;max-width:34px!important;
+  height:34px!important;min-height:34px!important;max-height:34px!important;font-size:16px!important;
  }
- #constructionPanel .tool-grid button,
- #constructionPanel .tool-grid .sb-tool-slot-empty{
-  width:44px!important;height:44px!important;
-  min-width:44px!important;min-height:44px!important;
-  max-width:44px!important;max-height:44px!important;
+ #sb-top-dock #sb-map-theme-toggle{font-size:17px!important}
+ #sb-touch-trace-hud{
+  width:min(320px,calc(100vw - 76px))!important;max-width:calc(100vw - 76px)!important;
+  bottom:calc(env(safe-area-inset-bottom,0px) + 184px)!important;
+  max-height:min(22dvh,150px)!important;
  }
- #constructionPanel .tool-grid button svg{width:24px!important;height:24px!important}
+}
+
+/* PR #69 recording fixes: compact construction close control and station-anchored dock menu. */
+#constructionPanel .panel-heading{position:sticky!important;display:flex!important;align-items:center!important;gap:8px!important}
+#constructionPanel .panel-heading button{
+ width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;
+ flex:0 0 24px!important;margin:0 0 0 auto!important;padding:0!important;font-size:14px!important;line-height:1!important;
+}
+#stationContextMenu{
+ position:absolute!important;z-index:10000!important;left:0;top:0;
+ transform:translate(-50%,-100%)!important;
+ width:min(230px,calc(100vw - 20px))!important;max-width:calc(100vw - 16px)!important;
+ max-height:min(62dvh,420px)!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+ padding:42px 12px 12px!important;
+ border-radius:22px!important;
+ background:linear-gradient(145deg,rgba(5,13,25,.76),rgba(11,25,42,.70))!important;
+ border:1px solid rgba(174,205,231,.2)!important;
+ color:#f5f8fc!important;
+ backdrop-filter:blur(26px) saturate(175%)!important;-webkit-backdrop-filter:blur(26px) saturate(175%)!important;
+ box-shadow:0 14px 38px rgba(0,0,0,.34)!important;
+ pointer-events:auto!important;
+}
+#stationContextMenu h3{margin:8px 4px;color:#a9c2dc;font-size:10px;letter-spacing:1.4px}
+#stationContextMenu>button:not(.sb-menu-close){
+ display:flex!important;width:100%!important;min-height:38px!important;margin:5px 0!important;
+ align-items:center!important;justify-content:flex-start!important;padding:9px 13px!important;
+ text-align:left!important;border-radius:999px!important;
+ background:rgba(255,255,255,.085)!important;border:1px solid rgba(174,205,231,.18)!important;
+}
+#stationContextMenu>.sb-menu-close{position:absolute!important;top:7px!important;right:7px!important;width:25px!important;height:25px!important;min-height:25px!important;padding:0!important;font-size:15px!important}
+#stationContextMenu:after{
+ content:"";position:absolute;left:50%;bottom:-8px;width:14px;height:14px;
+ transform:translateX(-50%) rotate(45deg);background:rgba(8,19,33,.82);
+ border-right:1px solid rgba(174,205,231,.2);border-bottom:1px solid rgba(174,205,231,.2);
+}
+
+
+/* PR #69 visual refinement: tiny red flat-glass close controls and flush construction menu. */
+button.sb-menu-close,
+#constructionPanel .panel-heading button.sb-menu-close{
+ box-sizing:border-box!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:8px!important;min-width:8px!important;max-width:8px!important;
+ height:8px!important;min-height:8px!important;max-height:8px!important;
+ flex:0 0 8px!important;aspect-ratio:1/1!important;
+ margin:0 0 0 auto!important;padding:0!important;
+ border-radius:50%!important;
+ color:#fff!important;
+ background:rgba(255,72,86,.72)!important;
+ border:1px solid rgba(255,255,255,.24)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.16)!important;
+ backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important;
+ font-family:Arial,sans-serif!important;font-size:6px!important;font-weight:500!important;
+ line-height:6px!important;letter-spacing:0!important;text-align:center!important;
+ text-indent:0!important;overflow:hidden!important;
+}
+#constructionPanel .panel-heading{
+ background:transparent!important;background-image:none!important;
+ box-shadow:none!important;border:0!important;
+ padding:2px 0 8px!important;
+}
+#constructionPanel .panel-title{background:transparent!important}
+#constructionPanel .tool-group,
+#constructionPanel .tool-group[open]{
+ background:transparent!important;background-image:none!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ margin:5px 0!important;overflow:visible!important;
+}
+#constructionPanel .tool-group summary,
+#constructionPanel .tool-group[open] summary{
+ background:transparent!important;background-image:none!important;
+ border:0!important;box-shadow:none!important;
+ padding:10px 0!important;margin:0!important;
+}
+#constructionPanel .tool-group[open] summary{border-bottom:0!important}
+#constructionPanel .tool-grid{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ padding:2px 0!important;margin:0!important;
+}
+#constructionPanel .tool-group>button,
+#constructionPanel button[data-panel-action],
+#constructionPanel #mapMenu button{
+ box-shadow:none!important;
+}
+#constructionPanel .tool-group>button{
+ margin:3px 0!important;
+}
+
+
+/* PR #69 follow-up: draggable translucent touch trace and contained sliding settings card. */
+#sb-touch-trace-hud{opacity:.94!important}
+#sb-game-menu-card{
+ position:relative!important;display:flex!important;flex-direction:column!important;
+ width:min(90vw,370px)!important;max-height:calc(100dvh - 36px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+ overflow:hidden!important;isolation:isolate!important;
+}
+#sb-game-menu-card .sb-game-menu-header{position:relative!important;z-index:2!important;flex:0 0 auto!important}
+#sb-game-menu-card .sb-game-menu-view{
+ flex:0 1 auto!important;min-height:0!important;max-height:calc(100dvh - 150px)!important;
+ overflow-y:auto!important;overscroll-behavior:contain!important;
+ transition:transform .28s cubic-bezier(.2,.75,.25,1),opacity .2s ease!important;
+}
+#sb-game-menu-card.settings-active #sb-game-menu-main{display:none!important}
+#sb-game-menu-card.settings-active #sb-game-menu-settings-view{
+ display:block!important;animation:sb-settings-slide-in .28s cubic-bezier(.2,.75,.25,1) both!important;
+}
+@keyframes sb-settings-slide-in{from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:translateX(0)}}
+#sb-game-menu-settings-view[hidden]{display:none!important}
+#sb-game-menu-card .sb-menu-header-actions{display:flex!important;align-items:center!important;gap:9px!important}
+#sb-game-menu-card .sb-menu-close{
+ width:8px!important;min-width:8px!important;max-width:8px!important;
+ height:8px!important;min-height:8px!important;max-height:8px!important;
+ flex:0 0 8px!important;padding:0!important;margin:0!important;
+ font-size:7px!important;line-height:6px!important;
+ background:rgba(255,65,78,.76)!important;color:#fff!important;
+ border:1px solid rgba(255,255,255,.24)!important;box-shadow:none!important;
+}
+#sb-game-menu-back{font-family:Arial,sans-serif!important;font-size:9px!important;font-weight:700!important}
+#sb-game-menu-back[hidden],#sb-game-menu-settings[hidden]{display:none!important}
+#sb-game-menu-settings-view h3{margin-top:2px!important}
+
+/* The game-menu back control uses the same tiny red glass circle, with a left arrow. */
+#sb-game-menu-back{font-size:9px!important;line-height:6px!important;font-weight:700!important}
+
+/* PR #69 station reticle: camera-centered placement, flat node, black inset and white neon ring. */
+#map .leaflet-marker-pane .sb-placement-preview{
+ position:relative!important;box-sizing:border-box!important;
+ width:48px!important;height:48px!important;border:2px solid #fff!important;
+ border-radius:50%!important;background:transparent!important;
+ box-shadow:0 0 0 2px rgba(255,255,255,.8),0 0 12px #fff,0 0 26px rgba(255,255,255,.9)!important;
+ animation:none!important;display:grid!important;place-items:center!important;
+}
+#map .leaflet-marker-pane .sb-placement-preview .sb-placement-node{
+ display:block!important;box-sizing:border-box!important;
+ width:18px!important;height:18px!important;border-radius:50%!important;
+ background:#18cdb5!important;border:0!important;
+ box-shadow:0 0 0 8px #05090f!important;
+}
+#map .leaflet-marker-pane .sb-station-marker{
+ position:relative!important;box-sizing:border-box!important;
+ display:grid!important;place-items:center!important;
+ width:34px!important;height:34px!important;
+ border:0!important;border-radius:50%!important;
+ background:transparent!important;box-shadow:none!important;
+}
+#map .leaflet-marker-pane .sb-station-marker::after{display:none!important;content:none!important}
+#map .leaflet-marker-pane .sb-station-marker .sb-station-node{
+ display:block!important;box-sizing:border-box!important;
+ width:18px!important;height:18px!important;border:0!important;border-radius:50%!important;
+ background:#16cbb2!important;box-shadow:0 0 0 8px #05090f!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected{
+ background:transparent!important;border:0!important;box-shadow:none!important;transform:none!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected .sb-station-node{
+ background:#16cbb2!important;
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #fff,0 0 14px #fff,0 0 26px rgba(255,255,255,.95)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-track-target .sb-station-node{
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 20px rgba(85,234,255,.85)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-dragging .sb-station-node{
+ background:#fff!important;box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 22px #55eaff!important;
+}
+
+
+/* PR #69 follow-up: normalize flat close controls and sbEditHistory dock states. */
+button.sb-menu-close,
+#constructionPanel .panel-heading button.sb-menu-close,
+button.sb-flat-close,[data-flat-close="true"]{
+ box-sizing:border-box!important;
+ width:16px!important;min-width:16px!important;max-width:16px!important;
+ height:16px!important;min-height:16px!important;max-height:16px!important;
+ flex:0 0 16px!important;aspect-ratio:1/1!important;
+ padding:0!important;margin:0 0 0 auto!important;
+ border-radius:50%!important;overflow:hidden!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ font-size:11px!important;line-height:14px!important;font-weight:700!important;
+ color:#fff!important;background:rgba(255,72,86,.76)!important;
+ border:1px solid rgba(255,255,255,.3)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 0 7px rgba(255,65,82,.18)!important;
+}
+#sb-action-dock button:disabled,
+#sb-action-dock button[aria-disabled="true"]{
+ opacity:.28!important;filter:grayscale(1)!important;
+ background:rgba(150,165,180,.08)!important;
+ border-color:rgba(190,205,220,.12)!important;
+ color:rgba(225,235,245,.38)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.05)!important;
+}
+#sb-action-dock #undoBtn:not(:disabled),
+#sb-action-dock #redoBtn:not(:disabled){
+ opacity:1!important;filter:none!important;
+ color:#fff!important;
+ background:rgba(255,255,255,.13)!important;
+ border-color:rgba(255,255,255,.72)!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.34),0 0 9px rgba(255,255,255,.42),0 0 18px rgba(255,255,255,.22),inset 0 0 8px rgba(255,255,255,.12)!important;
+}
+#sb-action-dock #undoBtn:disabled,
+#sb-action-dock #redoBtn:disabled{
+ opacity:.28!important;filter:grayscale(1)!important;
+ background:rgba(150,165,180,.08)!important;
+ border-color:rgba(190,205,220,.12)!important;
+ color:rgba(225,235,245,.38)!important;
+ box-shadow:none!important;
+}
+
+
+
+/* PR #69 follow-up: strip dock framing and reset UI interaction highlights. */
+#sb-top-dock,#sb-action-dock{
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ background:transparent!important;
+ background-image:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+#sb-top-dock{border-radius:0!important}
+#sb-action-dock{border-radius:0!important}
+#sb-top-dock button,
+#sb-action-dock button,
+#constructionPanel button,
+#sb-game-menu button{
+ box-shadow:none!important;
+ outline:none!important;
+}
+#sb-top-dock button:hover,
+#sb-top-dock button:focus,
+#sb-top-dock button:focus-visible,
+#sb-top-dock button:active,
+#sb-top-dock button.active,
+#sb-action-dock button:hover,
+#sb-action-dock button:focus,
+#sb-action-dock button:focus-visible,
+#sb-action-dock button:active,
+#sb-action-dock button.active,
+#constructionPanel button:hover,
+#constructionPanel button:focus,
+#constructionPanel button:focus-visible,
+#constructionPanel button:active,
+#constructionPanel button.active,
+#sb-game-menu button:hover,
+#sb-game-menu button:focus,
+#sb-game-menu button:focus-visible,
+#sb-game-menu button:active,
+#sb-game-menu button.active{
+ box-shadow:none!important;
+ outline:none!important;
+ filter:none!important;
+}
+#sb-action-dock #undoBtn:not(:disabled),
+#sb-action-dock #redoBtn:not(:disabled),
+#sb-action-dock #undoBtn:disabled,
+#sb-action-dock #redoBtn:disabled{
+ box-shadow:none!important;
 }
 
 </style>
+
+/* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
+#sb-game-menu{padding: max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))!important;box-sizing:border-box!important;overflow:hidden!important}
+#sb-game-menu-card{position:relative!important;display:flex!important;flex-direction:column!important;width:min(92vw,390px)!important;max-width:calc(100vw - 24px)!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 24px)!important;min-height:0!important;box-sizing:border-box!important;overflow:hidden!important;padding:16px!important;gap:8px!important}
+#sb-game-menu-card .sb-game-menu-header{flex:0 0 auto!important;margin:0!important}
+#sb-game-menu-card .sb-game-menu-view{min-height:0!important;max-height:calc(100dvh - 150px)!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;padding:2px 4px 10px!important;width:100%!important;box-sizing:border-box!important}
+.sb-menu-header-actions{display:flex;align-items:center;gap:7px}
+.sb-menu-close{display:inline-flex!important;align-items:center!important;justify-content:center!important;flex:0 0 32px!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;max-width:32px!important;max-height:32px!important;padding:0!important;margin:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;border:1px solid rgba(225,245,255,.3)!important;color:#f5fbff!important;font-size:21px!important;line-height:1!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 4px 12px rgba(0,0,0,.18)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
+#constructionPanel .panel-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important}
+#stationContextMenu{box-sizing:border-box!important;max-width:calc(100vw - 20px)!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding-top:44px!important}
+#stationContextMenu>.sb-menu-close{position:absolute!important;top:8px!important;right:8px!important}
+#sb-game-menu-card .sb-game-menu-action{flex:0 0 auto!important;min-height:54px!important}
+#sb-station-move-toggle[aria-pressed="true"]{background:rgba(42,210,180,.28)!important;border-color:rgba(105,255,225,.8)!important;box-shadow:0 0 16px rgba(55,235,205,.32)!important}
+.sb-station-move-active{cursor:move!important}
+@media(max-width:560px){#sb-game-menu-card{width:calc(100vw - 24px)!important;max-width:calc(100vw - 24px)!important;padding:13px!important}#sb-game-menu-card .sb-game-menu-view{max-height:calc(100dvh - 132px)!important}#stationContextMenu{max-width:calc(100vw - 16px)!important}}
+
+
+#sb-terms-card{position:relative!important;box-sizing:border-box!important;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;overflow-y:auto!important;background:rgba(15,25,40,.68)!important;border:1px solid rgba(225,245,255,.26)!important;backdrop-filter:blur(28px) saturate(180%)!important;-webkit-backdrop-filter:blur(28px) saturate(180%)!important}
+#sb-terms-card>.sb-menu-close{position:absolute!important;right:10px!important;top:10px!important;z-index:2!important}
+#sb-terms-card h2{padding:0 36px!important}
+
+
+<style id="sb-dock-glass-parity-refresh">
+/* Bottom dock surfaces: match the top dock's translucent glass, without gradients or borders. */
+#sb-action-dock .sb-dock-panel{
+ background:rgba(23,48,67,.58)!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+}
+#sb-action-dock{
+ background:transparent!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+#sb-action-dock .sb-dock-panel button{
+ background:rgba(255,255,255,.12)!important;
+ background-image:none!important;
+ border:0!important;
+ box-shadow:none!important;
+ color:#f4fbff!important;
+ filter:none!important;
+}
+/* Undo/redo have no idle glow or persistent muted highlight; feedback is interaction-only. */
+#sb-action-dock #undoBtn,
+#sb-action-dock #redoBtn,
+#sb-action-dock #undoBtn:not(:disabled),
+#sb-action-dock #redoBtn:not(:disabled),
+#sb-action-dock #undoBtn:disabled,
+#sb-action-dock #redoBtn:disabled{
+ background:rgba(255,255,255,.12)!important;
+ border:0!important;
+ box-shadow:none!important;
+ outline:0!important;
+ filter:none!important;
+ opacity:1!important;
+ color:#f4fbff!important;
+}
+#sb-action-dock #undoBtn:hover,
+#sb-action-dock #redoBtn:hover,
+#sb-action-dock #undoBtn:focus-visible,
+#sb-action-dock #redoBtn:focus-visible{
+ background:rgba(255,255,255,.18)!important;
+ box-shadow:none!important;
+ outline:none!important;
+}
+#sb-action-dock #undoBtn:active,
+#sb-action-dock #redoBtn:active{
+ background:rgba(67,218,190,.3)!important;
+ box-shadow:none!important;
+}
+#sb-action-dock #trashModeBtn{
+ background:rgba(255,255,255,.12)!important;
+ border:0!important;
+ box-shadow:none!important;
+ color:#f4fbff!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,42,68,.30)!important;
+ border:0!important;
+ box-shadow:0 0 0 1px rgba(255,75,95,.38),0 0 12px rgba(255,45,70,.28)!important;
+ color:#ffd5dc!important;
+}
+</style>
+
 </head>
 <body class="sb-start-menu-open">
 
@@ -1974,7 +2439,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><button class="sb-game-menu-action" type="button" onclick="toggleInGameMenuSettings()">Back to menu</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -1995,8 +2460,10 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  border:1px solid rgba(255,255,255,0.2);
  box-shadow:0 12px 35px rgba(0,0,0,0.4);
 ">
+ <button class="sb-menu-close" type="button" aria-label="Close station menu" onclick="closeStationMenu()">×</button>
  <h3 id="stationMenuTitle">STATION OPTIONS</h3>
  <button onclick="renameSelectedStation()">Rename Station</button>
+ <button id="sb-station-move-toggle" aria-pressed="false" onclick="toggleStationMoveMode()">Move Station: Off</button>
  <h3>ELEVATION</h3>
  <button onclick="setStationElevation('above')">Above Grade</button>
  <button onclick="setStationElevation('at')">At Grade</button>
@@ -2011,6 +2478,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 <div id="sb-top-dock" class="topbar" role="group" aria-label="City status">
  <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
  <div class="stats">
+  <button id="sb-map-theme-toggle" type="button" aria-label="Switch map to dark mode" title="Toggle map appearance" aria-pressed="false">◐</button>
   <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu">☰</button>
   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
@@ -2028,6 +2496,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  <nav id="constructionPanel" class="panel" aria-label="Construction tools" aria-hidden="true">
  <div class="panel-heading">
   <span class="panel-title">CONSTRUCTION</span>
+  <button class="sb-menu-close" type="button" aria-label="Close construction menu" onclick="toggleToolsPanel(false)">×</button>
  </div>
  <details class="tool-group" open>
   <summary>BUILD TOOLS</summary>
@@ -2056,7 +2525,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
-<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
+<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">×</button></div>
 
 
 
@@ -2071,6 +2540,7 @@ map.createPane('sbTrackPane');map.getPane('sbTrackPane').style.zIndex=410;
 map.createPane('sbPlatformPane');map.getPane('sbPlatformPane').style.zIndex=430;
 map.createPane('sbStationPane');map.getPane('sbStationPane').style.zIndex=460;
 map.createPane('sbInteractionPane');map.getPane('sbInteractionPane').style.zIndex=480;
+map.createPane('sbStationNodePane');map.getPane('sbStationNodePane').style.zIndex=650;
 
 /* =========================================================
    SECTION 10 — MAP INITIALIZATION
@@ -2093,7 +2563,7 @@ const darkTiles = L.tileLayer(
  }
 );
 
-let currentTheme=localStorage.getItem('mapTheme')||'light';
+let currentTheme=localStorage.getItem('sbDefaultDarkOnStart')===null?(localStorage.getItem('mapTheme')||'light'):(localStorage.getItem('sbDefaultDarkOnStart')==='true'?'dark':'light');
 
 function setMapTheme(theme){
  if(theme!=='light'&&theme!=='dark')return;
@@ -2117,8 +2587,16 @@ function toggleMapMenu(){
  const menu=document.getElementById('mapMenu');
  menu.style.display=menu.style.display==='none'?'block':'none';
 }
-// Map-theme clicks are handled by the delegated construction-panel listener.
+
+function toggleMapTheme(){
+ const next=currentTheme==='dark'?'light':'dark';
+ setMapTheme(next);
+ const button=document.getElementById('sb-map-theme-toggle');
+ if(button){button.setAttribute('aria-label',next==='dark'?'Switch map to light mode':'Switch map to dark mode');button.title=next==='dark'?'Switch to light map':'Switch to dark map';button.textContent=next==='dark'?'☼':'◐';}
+}
+// Theme button stays visually neutral; only its map tile action changes.
 setMapTheme(currentTheme);
+ document.addEventListener('DOMContentLoaded',()=>{const button=document.getElementById('sb-map-theme-toggle');if(button){button.textContent=currentTheme==='dark'?'☼':'◐';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleMapTheme();});}});
 
 /* Default map zoom and attribution controls are intentionally hidden. */
 
@@ -2145,8 +2623,11 @@ let curveMode=false;
 let tunnelMode=false;
 let money=25000;
 let passengers=0;
-let stations=[];
-let tracks=[];
+var stations=[];
+var tracks=[];
+var lines=[];
+var activeLineId=null;
+var nextLineId=1;
 var selected=null;
 var selectedTrackIndex=null;
 let stationMenuTimer=null;
@@ -2156,11 +2637,12 @@ let simulation=null;
 let trainMarkers=[];
 let trainMovementTimers=[];
 var platformCrowdMarkers=[];
-var history=[];
+var sbEditHistory=[];
 var historyIndex=0;
 
-let sbMessageTimer=null;
+var sbMessageTimer=null;
 var sbPressedButton='';
+var sbStartMapPanTimer=null;
 function message(t){
  const box=document.getElementById('sb-dashboard-dialog');
  if(!box)return;
@@ -2198,16 +2680,17 @@ function snapshot(){
   })),
   tracks:tracks.map(t=>({
    a:t.a,b:t.b,style:t.style||'single',curve:!!t.curve,
-   elevation:t.elevation||'at',
+   elevation:t.elevation||'at',lineIds:Array.isArray(t.lineIds)?t.lineIds.slice():[],
    waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
-  }))
+  })),
+  lines:lines.map(line=>({id:line.id,name:line.name,color:line.color}))
  };
 }
 
 function saveHistory(){
- history=history.slice(0,historyIndex+1);
- history.push(snapshot());
- historyIndex=history.length-1;
+ sbEditHistory=sbEditHistory.slice(0,historyIndex+1);
+ sbEditHistory.push(snapshot());
+ historyIndex=sbEditHistory.length-1;
  updateUI();
  persistGameState();
 }
@@ -2228,8 +2711,12 @@ function restoreSnapshot(data){
  })).filter(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lng));
  tracks=data.tracks.map(t=>({
   a:t.a,b:t.b,style:t.style||'single',curve:!!t.curve,elevation:t.elevation||'at',
+  lineIds:Array.isArray(t.lineIds)?t.lineIds.filter(id=>typeof id==='string'):[],
   waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
  })).filter(t=>Number.isInteger(t.a)&&Number.isInteger(t.b)&&stations[t.a]&&stations[t.b]);
+ lines=Array.isArray(data.lines)?data.lines.filter(x=>x&&typeof x.id==='string').map(x=>({id:x.id,name:String(x.name||'Line'),color:/^#[0-9a-f]{6}$/i.test(x.color)?x.color:'#42d69a'})):[];
+ nextLineId=lines.reduce((m,x)=>Math.max(m,Number(x.id.replace(/\\D/g,''))||0),0)+1;
+ if(!lines.some(x=>x.id===activeLineId))activeLineId=lines[0]?.id||null;
  selected=null;selectedTrackIndex=null;
  renderNetwork();updateUI();
 }
@@ -2238,11 +2725,11 @@ const SB_GAME_SAVE_KEY='sbGameSaveV1';
 function persistGameState(){
  try{
   const center=map.getCenter();
-  const historyStart=Math.max(0,history.length-40);
+  const historyStart=Math.max(0,sbEditHistory.length-40);
   const payload={
    version:1,savedAt:Date.now(),game:snapshot(),
    viewport:{lat:center.lat,lng:center.lng,zoom:map.getZoom()},
-   history:history.slice(historyStart),historyIndex:Math.max(0,historyIndex-historyStart)
+   sbEditHistory:sbEditHistory.slice(historyStart),historyIndex:Math.max(0,historyIndex-historyStart)
   };
   localStorage.setItem(SB_GAME_SAVE_KEY,JSON.stringify(payload));
  }catch(error){console.warn('Game autosave unavailable:',error);}
@@ -2257,10 +2744,10 @@ function restoreSavedGame(){
   if(saved.viewport&&Number.isFinite(saved.viewport.lat)&&Number.isFinite(saved.viewport.lng)&&Number.isFinite(saved.viewport.zoom)){
    map.setView([saved.viewport.lat,saved.viewport.lng],saved.viewport.zoom,{animate:false});
   }
-  if(Array.isArray(saved.history)&&saved.history.length){
-   history=saved.history.slice(-40);
-   historyIndex=Math.max(0,Math.min(history.length-1,Number(saved.historyIndex)||history.length-1));
-  }else{history=[snapshot()];historyIndex=0;}
+  if(Array.isArray(saved.sbEditHistory)&&saved.sbEditHistory.length){
+   sbEditHistory=saved.sbEditHistory.slice(-40);
+   historyIndex=Math.max(0,Math.min(sbEditHistory.length-1,Number(saved.historyIndex)||sbEditHistory.length-1));
+  }else{sbEditHistory=[snapshot()];historyIndex=0;}
   running=false;
   return true;
  }catch(error){console.warn('Could not restore saved game:',error);return false;}
@@ -2276,17 +2763,17 @@ function undo(){
   return;
  }
  historyIndex--;
- restoreSnapshot(history[historyIndex]);
+ restoreSnapshot(sbEditHistory[historyIndex]);
  message('Last construction action undone.');
 }
 
 function redo(){
- if(historyIndex>=history.length-1){
+ if(historyIndex>=sbEditHistory.length-1){
   message('Nothing to redo.');
   return;
  }
  historyIndex++;
- restoreSnapshot(history[historyIndex]);
+ restoreSnapshot(sbEditHistory[historyIndex]);
  message('Construction action restored.');
 }
 
@@ -2320,6 +2807,14 @@ function renderNetwork(){
   map.removeLayer(window.networkLayer);
  }
  window.networkLayer=L.layerGroup().addTo(map);
+  /* Keep committed station nodes in their own layer so track redraws cannot clear them. */
+  if(!window.stationNodeLayer)window.stationNodeLayer=L.layerGroup();
+  else window.stationNodeLayer.clearLayers();
+  /* Re-attach the dedicated node layer on every redraw. This guards against
+     map/theme/3D transitions detaching the layer while tracks are rebuilt. */
+  if(!map.hasLayer(window.stationNodeLayer))window.stationNodeLayer.addTo(map);
+  const stationPane=map.getPane('sbStationNodePane');
+  if(stationPane){stationPane.style.zIndex='650';stationPane.style.pointerEvents='auto';}
 
  tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
@@ -2327,7 +2822,7 @@ function renderNetwork(){
   if(!a||!b)return;
 
   let start=L.latLng(a.lat,a.lng);
-  if(mode==='waypoint'||mode==='delete'){
+  if(mode==='waypoint'||mode==='curve'||mode==='delete'){
  L.polyline([
   [a.lat,a.lng],
   [b.lat,b.lng]
@@ -2343,7 +2838,11 @@ function renderNetwork(){
  }).addTo(window.networkLayer).on('click',function(e){
   L.DomEvent.stopPropagation(e);
 
-  if(mode==='delete'){
+  if(mode==='curve'){
+   selectedTrackIndex=trackIndex;
+   renderNetwork();
+   message('Track selected. Tap the map to add a curve point.');
+  }else if(mode==='delete'){
    tracks.splice(trackIndex,1);
    selectedTrackIndex=null;
    saveHistory();
@@ -2389,35 +2888,33 @@ if(mode==='delete'){
  });
 }
 
-  if(t.curve){
- let route=[
-  [start.lat,start.lng],
-  ...(t.waypoints||[]).map(w=>[w.lat,w.lng]),
-  [end.lat,end.lng]
- ];
-
+  if(t.curve&&(t.waypoints||[]).length){
+ // Centripetal Catmull-Rom in projected map space. Parameterizing by chord
+ // length reduces loops/overshoot when waypoints are unevenly spaced, while
+ // the projected coordinates keep curve shape consistent across latitudes.
+ const route=[[start.lat,start.lng],...(t.waypoints||[]).map(w=>[w.lat,w.lng]),[end.lat,end.lng]]
+  .map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
+ const alpha=.5,stepsPerSegment=20;
+ const distance=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
+ const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
  for(let segment=0;segment<route.length-1;segment++){
-  let p1=route[segment];
-  let p2=route[segment+1];
-
-  let dx=p2[1]-p1[1];
-  let dy=p2[0]-p1[0];
-
-  let control=[
-   (p1[0]+p2[0])/2-dx*0.25,
-   (p1[1]+p2[1])/2+dy*0.25
-  ];
-
-  for(let i=0;i<=10;i++){
-   if(segment>0&&i===0)continue;
-
-   let p=i/10;
-   let q=1-p;
-
-   points.push([
-    q*q*p1[0]+2*q*p*control[0]+p*p*p2[0],
-    q*q*p1[1]+2*q*p*control[1]+p*p*p2[1]
-   ]);
+  const p0=route[Math.max(0,segment-1)],p1=route[segment];
+  const p2=route[segment+1],p3=route[Math.min(route.length-1,segment+2)];
+  const t0=0,t1=t0+Math.max(1e-4,Math.pow(distance(p0,p1),alpha));
+  const t2=t1+Math.max(1e-4,Math.pow(distance(p1,p2),alpha));
+  const t3=t2+Math.max(1e-4,Math.pow(distance(p2,p3),alpha));
+  const blend=(a,b,ta,tb,t)=>mix(a,b,(t-ta)/(tb-ta));
+  for(let step=0;step<=stepsPerSegment;step++){
+   if(segment>0&&step===0)continue;
+   const u=step/stepsPerSegment,t=t1+u*(t2-t1);
+   const A1=blend(p0,p1,t0,t1,t);
+   const A2=blend(p1,p2,t1,t2,t);
+   const A3=blend(p2,p3,t2,t3,t);
+   const B1=blend(A1,A2,t0,t2,t);
+   const B2=blend(A2,A3,t1,t3,t);
+   const C=blend(B1,B2,t1,t2,t);
+   const ll=map.unproject(C,18);
+   points.push([ll.lat,ll.lng]);
   }
  }
 }else{
@@ -2428,6 +2925,8 @@ if(mode==='delete'){
  ];
 }
 
+  const assignedLines=lines.filter(line=>(t.lineIds||[]).includes(line.id));
+  const routeColor=assignedLines[0]?.color||['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
       let prev=points[Math.max(0,i-1)];
@@ -2443,13 +2942,12 @@ if(mode==='delete'){
     });
 
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
-  const routeColor=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
+  const selectedCurve=!!(t.curve&&selectedTrackIndex===trackIndex);
+  L.polyline(shifted,{pane:'sbTrackPane',color:selectedCurve?'#76ddff':routeColor,weight:selectedCurve?17:14,opacity:selectedCurve ? .24 : .22,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   if(elevation==='below'){
-   L.polyline(shifted,{pane:'sbTrackPane',color:'#020914',weight:14,opacity:1,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer);
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
-   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:'#d8f5ff',weight:2,fillColor:'#0c2638',fillOpacity:1}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
+   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:.22}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
   }else{
-   L.polyline(shifted,{pane:'sbTrackPane',color:'#06101d',weight:12,opacity:.96,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer);
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:elevation==='at'?null:'10 8'}).addTo(window.networkLayer);
   }
 }  
@@ -2460,6 +2958,17 @@ if(mode==='delete'){
   }else{
     drawLine(0);
   }
+  // Keep shared service routes visually distinct while retaining one physical track edge.
+  assignedLines.slice(1).forEach((line,lineIndex)=>{
+   const offset=(lineIndex-(assignedLines.length-2)/2)*5;
+   const overlay=points.map((p,index)=>{
+    const prev=points[Math.max(0,index-1)],next=points[Math.min(points.length-1,index+1)];
+    const dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180),dy=next[0]-prev[0];
+    const length=Math.sqrt(dx*dx+dy*dy)||1;
+    return [p[0]+(dx/length)*offset/111320,p[1]-(dy/length)*offset/(111320*Math.cos(p[0]*Math.PI/180))];
+   });
+   L.polyline(overlay,{pane:'sbTrackPane',color:line.color,weight:4,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  });
 });
 
  stations.forEach((s,i)=>{
@@ -2467,7 +2976,20 @@ if(mode==='delete'){
   let other=connected
     ? stations[connected.a===i?connected.b:connected.a]
     : null;
-
+  // Before a new station is connected, align it with the nearest existing
+  // station so the platform does not default to north/south. Once connected,
+  // the actual track bearing takes precedence on every render.
+  if(!other&&stations.length>1){
+   let nearest=null,nearestDistance=Infinity;
+   stations.forEach((candidate,j)=>{
+    if(j===i)return;
+    const east=(candidate.lng-s.lng)*Math.cos(s.lat*Math.PI/180);
+    const north=candidate.lat-s.lat;
+    const distance=east*east+north*north;
+    if(distance<nearestDistance){nearestDistance=distance;nearest=candidate;}
+   });
+   other=nearest;
+  }
   let dx=other?(other.lng-s.lng)*Math.cos(s.lat*Math.PI/180):0;
   let dy=other?other.lat-s.lat:1;
   let len=Math.sqrt(dx*dx+dy*dy)||1;
@@ -2523,16 +3045,18 @@ if(mode==='delete'){
     drawPlatform(0);
   }
   L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:9,color:'#f4fbff',weight:2,fillColor:'#087f79',fillOpacity:1,interactive:false}).addTo(window.networkLayer);
+  /* Station platform slabs are intentionally disabled until their orientation
+     can follow connected track geometry reliably. Keep the station node only. */
   let marker=L.marker([s.lat,s.lng],{
- /* Use Leaflet's marker pane (above vector overlays) so station icons remain visible over OSM tiles and track/platform layers. */
- draggable:true,keyboard:false,zIndexOffset:1000,
+ /* Use Leaflet's persistent built-in marker pane; keep nodes above track SVGs. */
+ pane:'sbStationNodePane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:10000,
  icon:L.divIcon({
-  className:'',
-  html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+'"></div>',
-  iconSize:[22,22],
-  iconAnchor:[11,11]
+  className:'sb-station-leaflet-icon',
+  html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"><span class="sb-station-node"></span></div>',
+  iconSize:[28,28],
+  iconAnchor:[14,14]
  })
-}).addTo(window.networkLayer);
+}).addTo(window.stationNodeLayer);
 
 marker.bindTooltip(s.name);
   if(running){
@@ -2547,6 +3071,7 @@ let stationHoldTriggered=false;
 marker.on('mousedown touchstart',function(e){
  clearTimeout(stationMenuTimer);
  stationHoldTriggered=false;
+ if(mode==='delete')return;
  stationMenuTimer=setTimeout(function(){
   stationHoldTriggered=true;
   showStationMenu(i);
@@ -2556,9 +3081,16 @@ marker.on('mousedown touchstart',function(e){
 marker.on('mouseup touchend touchcancel mouseout',function(){
  clearTimeout(stationMenuTimer);
 });
-marker.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(stationMenuTimer);stationHoldTriggered=true;showStationMenu(i);});
+marker.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(stationMenuTimer);if(mode==='delete'){stationHoldTriggered=false;return;}stationHoldTriggered=true;showStationMenu(i);});
 marker.on('click',function(e){
  L.DomEvent.stopPropagation(e);
+ /* Delete is a one-tap action: never let the station long-press/context menu consume it. */
+ if(mode==='delete'){
+  stationHoldTriggered=false;
+  if(stationMenuIndex===i)closeStationMenu();
+  handleStationClick(i);
+  return;
+ }
  if(stationHoldTriggered||stationMenuIndex===i){stationHoldTriggered=false;return;}
  handleStationClick(i);
 });
@@ -2607,20 +3139,35 @@ function updateUI(){
  const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
  const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
  const undoEl=document.getElementById('undoBtn');if(undoEl)undoEl.disabled=historyIndex<=0;
- const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=history.length-1;
+ const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=sbEditHistory.length-1;
 }
 function setMode(newMode){
+ const previousMode=mode;
  mode=newMode;
+ // A completed tool choice closes expanded submenus and the construction drawer.
+ const constructionMenu=document.getElementById('sb-construction-menu');
+ if(constructionMenu)constructionMenu.open=false;
+ document.querySelectorAll('#constructionPanel details.tool-group').forEach(group=>{group.open=false;});
  selected=null;
-  if(mode!=='waypoint')selectedTrackIndex=null;
+ if(mode!=='waypoint'&&mode!=='curve')selectedTrackIndex=null;
+ if(mode!=='delete'){
+  const deleteButton=document.getElementById('trashModeBtn');
+  if(deleteButton){deleteButton.classList.remove('active');deleteButton.setAttribute('aria-pressed','false');}
+ }
+ if(mode==='delete'){
+  const buildButton=document.getElementById('sb-build-dock-btn');
+  if(buildButton){buildButton.classList.remove('active');buildButton.setAttribute('aria-pressed','false');}
+ }
  const constructionPanel=document.getElementById('constructionPanel');
  if(constructionPanel){
-  const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':null;
-  constructionPanel.querySelectorAll('[data-panel-action]').forEach(button=>{
-   const active=button.dataset.panelAction===selectedAction;
-   button.classList.toggle('active',active);
-   button.setAttribute('aria-pressed',String(active));
-  });
+  if(mode!=='delete'){
+   const selectedAction=mode==='station'?'mode-station':mode==='track'?'draw-track':mode==='curve'?'curve-track':mode==='waypoint'?'mode-waypoint':null;
+   constructionPanel.querySelectorAll('[data-panel-action]').forEach(button=>{
+    const active=button.dataset.panelAction===selectedAction;
+    button.classList.toggle('active',active);
+    button.setAttribute('aria-pressed',String(active));
+   });
+  }
  }
  const modeButtons={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
  document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(btn=>{
@@ -2864,6 +3411,8 @@ function bindConstructionPanelControls(){
      else if(action==='platform-type')setPlatformType(button.dataset.platformType);
      else if(typeof actions[action]==='function')await actions[action]();
      else{console.warn('Unwired construction action:',action);message('This construction tool is not connected yet.');}
+     const group=button.closest('details.tool-group');
+     if(group&&['track-single','track-parallel','curve','tunnel','platform-width','platform-type','theme-dark','theme-light'].includes(action))group.open=false;
      syncConstructionControls();
     }catch(error){
      console.error('Construction tool action failed:',action,error);
@@ -2893,8 +3442,13 @@ function resetSelection(){
  message('Selection cleared.');
 }
 function activateDeleteMode(){
- if(document.getElementById('sb-3d-map').classList.contains('active'))toggle3DCityView();
- setMode('delete');
+ if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
+ if(typeof closeStationMenu==='function')closeStationMenu();
+ const entering=mode!=='delete';
+ if(entering&&typeof toggleToolsPanel==='function')toggleToolsPanel(false);
+ setMode(entering?'delete':'station');
+ const build=document.getElementById('sb-build-dock-btn');
+ if(build){build.classList.remove('active');build.setAttribute('aria-pressed','false');}
 }
  function setWaypointElevation(trackIndex,waypointIndex,level){
  let track=tracks[trackIndex];
@@ -2973,7 +3527,8 @@ function handleStationClick(index){
   style:trackStyle,
   curve:curveMode,
   elevation:tunnelMode?"below":"at",
-  waypoints:[]
+  waypoints:[],
+  lineIds:activeLineId?[activeLineId]:[]
 });
   selected=null;
   saveHistory();
@@ -3002,23 +3557,32 @@ window.addEventListener('resize',function(){if(stationMenuIndex!==null)positionS
 
 // Live placement ghost follows the pointer in station construction mode.
 let stationPlacementPreview=null;
-map.on('mousemove',function(e){
+map.on('mousemove touchmove',function(){
  if(mode!=='station'||document.getElementById('sb-3d-map').classList.contains('active')){
   if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
   return;
  }
+ const center=map.getCenter();
  if(!stationPlacementPreview){
-  stationPlacementPreview=L.marker(e.latlng,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"></div>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);
- }else stationPlacementPreview.setLatLng(e.latlng);
+  stationPlacementPreview=L.marker(center,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
+ }else stationPlacementPreview.setLatLng(center);
 });
 map.on('mouseout',function(){if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}});
+map.on('move zoom',function(){if(mode==='station'&&stationPlacementPreview)stationPlacementPreview.setLatLng(map.getCenter());});
 
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
+ /* Curve and waypoint placement is handled exclusively by the crosshair router. */
+ if(mode==='curve'||mode==='waypoint')return;
  const now=Date.now();
- if(now-lastTouchPlacementAt<80)return;
+ if(now-lastTouchPlacementAt<120)return;
  lastTouchPlacementAt=now;
+ // Build placements always use the fixed map-center reticle, never the raw touch coordinate.
+ if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
  if(mode==='station'){
+  /* Station placement is locked to the map/camera center, matching the fixed preview reticle. */
+  latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
+  if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
   if(money<500){
    message('Not enough money for a station.');
    return;
@@ -3042,6 +3606,14 @@ else if(mode==='delete'){
  else if(mode==='track'){
   message('Tap an existing station marker, not the map, to select it.');
  }
+ else if(mode==='curve'){
+  if(selectedTrackIndex===null){message('Select a track first.');return;}
+  const curveTrack=tracks[selectedTrackIndex];if(!curveTrack)return;
+  curveTrack.waypoints=Array.isArray(curveTrack.waypoints)?curveTrack.waypoints:[];
+  curveTrack.curve=true;
+  curveTrack.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
+  saveHistory();renderNetwork();message('Curve point added.');
+ }
  else if(mode==='waypoint'){
   if(selectedTrackIndex===null){
    message('Select a track first.');
@@ -3064,7 +3636,7 @@ else if(mode==='delete'){
   message('Waypoint added.');
  }
 }
-map.on('click',function(e){handleMapPlacement(e.latlng);});
+map.on('click',function(e){handleMapPlacement(map.containerPointToLatLng(map.getSize().divideBy(2)));});
 /* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
@@ -3150,7 +3722,7 @@ function toggleSimulation(){
 }
 
 bindConstructionPanelControls();
-if(!restoreSavedGame()){history=[snapshot()];historyIndex=0;}
+if(!restoreSavedGame()){sbEditHistory=[snapshot()];historyIndex=0;}
 updateUI();
 renderNetwork();
 persistGameState();
@@ -3159,13 +3731,15 @@ persistGameState();
    SECTION 19 — STARTUP AND SPLASH SCREEN
    ========================================================= */
 
-let sbStartMapPanTimer=null;
+var sbStartupDismissed=false;
 function startStartMenuMapPan(){
+ if(sbStartupDismissed)return;
  document.body.classList.add('sb-start-menu-open');
  document.getElementById('map')?.classList.add('sb-start-blur');
  document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
 }
 function dismissStartupOverlays(){
+ sbStartupDismissed=true;
  const menu=document.getElementById('startMenu');
  if(menu){menu.style.display='none';menu.setAttribute('aria-hidden','true');}
  const terms=document.getElementById('sb-terms-overlay');
@@ -3187,7 +3761,11 @@ function closeStartMenu(){
  setTouchPointerEnabled(false);
  message('Tap the map to build your first station.');
 }
-function showTermsDialog(){const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');}
+function showTermsDialog(){
+ startStartMenuMapPan();
+ const start=document.getElementById('startMenu');if(start){start.style.display='none';start.setAttribute('aria-hidden','true');}
+ const overlay=document.getElementById('sb-terms-overlay');if(overlay)overlay.classList.add('open');
+}
 function acceptTerms(){
  const check=document.getElementById('sb-terms-agree');
  if(!check||!check.checked)return;
@@ -3196,16 +3774,14 @@ function acceptTerms(){
  setTouchPointerEnabled(false);
  message('Tap the map to build your first station.');
 }
-function hideSplash(){
- startStartMenuMapPan();
+function initializeTermsGate(){
+ if(sbStartupDismissed)return;
  if(!localStorage.getItem('sbTermsAccepted'))showTermsDialog();
+ else dismissStartupOverlays();
 }
-
 window.addEventListener('load',function(){
- requestAnimationFrame(function(){requestAnimationFrame(hideSplash);});
+ requestAnimationFrame(function(){requestAnimationFrame(initializeTermsGate);});
 });
-/* Safety fallback for slow or stalled external map resources. */
-setTimeout(hideSplash,5000);
 </script>
 
 <script>
@@ -3334,7 +3910,10 @@ function openInGameMenu(){
  sbSaveMenuState();
  menu.classList.add('open');menu.setAttribute('aria-hidden','false');
  const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+ const card=document.getElementById('sb-game-menu-card'),gear=document.getElementById('sb-game-menu-settings'),back=document.getElementById('sb-game-menu-back'),title=document.getElementById('sb-game-menu-title');
+ if(card)card.classList.remove('settings-active');
  if(main)main.hidden=false;if(settings)settings.hidden=true;
+ if(gear)gear.hidden=false;if(back)back.hidden=true;if(title)title.textContent='GAME MENU';
  const toggle=document.getElementById('sb-game-menu-toggle');
  if(toggle)toggle.setAttribute('aria-expanded','true');
  const runButton=document.getElementById('runBtn');
@@ -3353,9 +3932,20 @@ function closeInGameMenu(){
  sbInGameMenuWasRunning=false;
 }
 function toggleInGameMenuSettings(){
- const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');if(!main||!settings)return;
- const show=settings.hidden;main.hidden=show;settings.hidden=!show;
- document.getElementById('sb-game-menu-settings')?.setAttribute('aria-label',show?'Back to game menu':'Open menu settings');
+ const card=document.getElementById('sb-game-menu-card');
+ const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+ const gear=document.getElementById('sb-game-menu-settings'),back=document.getElementById('sb-game-menu-back');
+ if(!card||!main||!settings)return;
+ const show=settings.hidden;
+ if(show){settings.hidden=false;requestAnimationFrame(()=>card.classList.add('settings-active'));}
+ else{card.classList.remove('settings-active');}
+ main.hidden=show;settings.hidden=!show;
+ if(gear)gear.hidden=show;
+ if(back)back.hidden=!show;
+ const title=document.getElementById('sb-game-menu-title');
+ if(title)title.textContent=show?'SETTINGS':'GAME MENU';
+ if(gear)gear.setAttribute('aria-label','Open menu settings');
+ if(back)back.setAttribute('aria-label','Back to game menu');
 }
 document.getElementById('sb-game-menu-toggle')?.addEventListener('click',function(event){
  event.preventDefault();event.stopPropagation();openInGameMenu();
@@ -3392,12 +3982,28 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 </script>
 
 <script>
+/* Delete is click-only to prevent duplicate pointer/touch activation in Android WebView. */
+(function(){
+ function bindDelete(){
+  const button=document.getElementById('trashModeBtn');
+  if(!button||button.dataset.deleteClickBound==='true')return;
+  button.dataset.deleteClickBound='true';
+  button.removeAttribute('onclick');
+  button.addEventListener('click',function(event){
+   event.preventDefault();event.stopPropagation();
+   if(typeof window.activateDeleteMode==='function')window.activateDeleteMode();
+   if(typeof window.syncConstructionControls==='function')window.syncConstructionControls();
+  });
+ }
+ document.addEventListener('DOMContentLoaded',bindDelete,{once:true});
+ bindDelete();
+})();
 /* Android WebView control bridge.
    Remember the pressed control on pointer/touch down because some WebViews
    retarget pointerup to the document/map. Activate on release and suppress
    the synthetic click that follows. Native click remains a final fallback. */
 (function(){
- const selector='#sb-game-menu-toggle,#sb-panel-toggle,#trashModeBtn,#undoBtn,#redoBtn,#constructionPanel button[data-panel-action]';
+ const selector='#sb-game-menu-toggle,#sb-panel-toggle,#undoBtn,#redoBtn,#constructionPanel button[data-panel-action]';
  let pressed=null,lastHandled=null,lastAt=0;
  function findButton(target){return target&&target.closest?target.closest(selector):null;}
  function activate(button){
@@ -3458,13 +4064,9 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 </script>
 
 <script>
+/* On-demand WebView touch trace; can also be enabled with ?sbdebug. */
 (function(){
- if(!new URLSearchParams(location.search).has('sbdebug'))return;
- const hud=document.createElement('aside');
- hud.style.cssText='position:fixed;z-index:99999;left:7px;bottom:7px;width:min(72vw,390px);max-height:34vh;overflow:hidden;padding:8px 10px;border:1px solid #7debd5;border-radius:12px;background:rgba(2,10,20,.92);color:#dff;font:10px/1.35 monospace;pointer-events:none;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 3px 18px #000a';
- hud.textContent='WEBVIEW TOUCH TRACE · waiting for input';
- document.body.appendChild(hud);
- const lines=[];
+ let hud=null,enabled=false,lines=[],listenersInstalled=false;
  function label(el){
   if(!el)return 'none';
   const id=el.id?'#'+el.id:'';
@@ -3472,34 +4074,1746 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const cls=typeof el.className==='string'?'.'+el.className.trim().replace(/\s+/g,'.').slice(0,55):'';
   return el.tagName.toLowerCase()+id+action+cls;
  }
+ function refresh(){
+  if(hud)hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
+  const button=document.getElementById('sb-touch-trace-toggle');
+  if(button){button.textContent=enabled?'Hide touch trace':'Show touch trace';button.setAttribute('aria-pressed',String(enabled));}
+ }
  function add(type,e){
-  const t=e&&e.target;
-  const touch=e&&e.changedTouches&&e.changedTouches[0];
+  const t=e&&e.target,touch=e&&e.changedTouches&&e.changedTouches[0];
   const x=e&&Number.isFinite(e.clientX)?e.clientX:(touch?touch.clientX:null);
   const y=e&&Number.isFinite(e.clientY)?e.clientY:(touch?touch.clientY:null);
   const hit=x!==null&&y!==null?document.elementFromPoint(x,y):null;
   lines.unshift(type+' target='+label(t)+' hit='+label(hit)+' mode='+String(window.mode||'n/a')+(x!==null?' @'+Math.round(x)+','+Math.round(y):''));
-  lines.splice(9);
-  hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
+  lines.splice(9);refresh();
  }
- ['pointerdown','pointerup','pointercancel','touchstart','touchend','touchcancel','click'].forEach(type=>{
-  window.addEventListener(type,e=>add(type,e),{capture:true,passive:true});
- });
- window.addEventListener('error',e=>{
-  lines.unshift('JS ERROR '+(e.message||'unknown')+' '+(e.filename||'')+':'+(e.lineno||''));
-  lines.splice(9);hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
- });
- window.addEventListener('unhandledrejection',e=>{
-  lines.unshift('PROMISE ERROR '+String(e.reason&&e.reason.message||e.reason));
-  lines.splice(9);hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');
- });
- const originalError=console.error;
- console.error=function(){
-  try{lines.unshift('CONSOLE ERROR '+Array.from(arguments).map(x=>String(x&&x.message||x)).join(' ').slice(0,180));lines.splice(9);hud.textContent='WEBVIEW TOUCH TRACE\n'+lines.join('\n');}catch(_){}
-  originalError.apply(console,arguments);
+ function installListeners(){
+  if(listenersInstalled)return;listenersInstalled=true;
+  ['pointerdown','pointerup','pointercancel','touchstart','touchend','touchcancel','click'].forEach(type=>window.addEventListener(type,e=>{if(enabled)add(type,e);},{capture:true,passive:true}));
+  window.addEventListener('error',e=>{if(!enabled)return;lines.unshift('JS ERROR '+(e.message||'unknown')+' '+(e.filename||'')+':'+(e.lineno||''));lines.splice(9);refresh();});
+  window.addEventListener('unhandledrejection',e=>{if(!enabled)return;lines.unshift('PROMISE ERROR '+String(e.reason&&e.reason.message||e.reason));lines.splice(9);refresh();});
+  const originalError=console.error;
+  console.error=function(){if(enabled){lines.unshift('CONSOLE ERROR '+Array.from(arguments).map(x=>String(x&&x.message||x)).join(' ').slice(0,180));lines.splice(9);refresh();}originalError.apply(console,arguments);};
+ }
+ function setEnabled(next){
+  enabled=!!next;
+  if(enabled){
+   if(!hud){hud=document.createElement('aside');hud.id='sb-touch-trace-hud';hud.setAttribute('aria-live','polite');hud.textContent='WEBVIEW TOUCH TRACE · waiting for input';document.body.appendChild(hud);}
+   hud.hidden=false;installListeners();
+  }else if(hud){hud.hidden=true;}
+  refresh();return enabled;
+ }
+ window.toggleWebViewTouchTrace=function(force){return setEnabled(typeof force==='boolean'?force:!enabled);};
+ window.isWebViewTouchTraceEnabled=function(){return enabled;};
+ if(new URLSearchParams(location.search).has('sbdebug'))setEnabled(true);
+})();
+</script>
+
+
+<script>
+/* PR #69 follow-up: keep transient menus mutually exclusive and close tool groups after selection. */
+(function(){
+ const panel=document.getElementById('constructionPanel');
+ const menu=document.getElementById('sb-construction-menu');
+ const mapMenu=document.getElementById('mapMenu');
+ function closeMapMenu(){const el=document.getElementById('mapMenu');if(el)el.style.display='none';}
+ function closeGameMenu(){const el=document.getElementById('sb-game-menu');if(el&&el.classList.contains('open')&&typeof window.closeInGameMenu==='function')window.closeInGameMenu();}
+ document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest?event.target.closest('#constructionPanel button[data-panel-action]'):null;
+  if(!button)return;
+  const group=button.closest('details.tool-group');
+  if(group)group.open=false;
+  if(panel)panel.querySelectorAll('details.tool-group[open]').forEach(function(other){other.open=false;});
+ },true);
+ document.addEventListener('toggle',function(event){
+  const opened=event.target;
+  if(!opened||!opened.matches||!opened.matches('details.tool-group')||!opened.open||!panel)return;
+  panel.querySelectorAll('details.tool-group[open]').forEach(function(other){if(other!==opened)other.open=false;});
+ },true);
+ if(window.toggleToolsPanel){
+  const originalToggle=window.toggleToolsPanel;
+  window.toggleToolsPanel=function(open){
+   const willOpen=typeof open==='boolean'?open:!(menu&&menu.open);
+   if(willOpen){if(typeof window.closeStationMenu==='function')window.closeStationMenu();closeMapMenu();closeGameMenu();}
+   return originalToggle.apply(this,arguments);
+  };
+ }
+ if(window.showStationMenu){
+  const originalShow=window.showStationMenu;
+  window.showStationMenu=function(index){
+   if(window.toggleToolsPanel)window.toggleToolsPanel(false);
+   closeMapMenu();closeGameMenu();
+   return originalShow.apply(this,arguments);
+  };
+ }
+ if(window.openInGameMenu){
+  const originalOpen=window.openInGameMenu;
+  window.openInGameMenu=function(){
+   if(window.toggleToolsPanel)window.toggleToolsPanel(false);
+   if(window.closeStationMenu)window.closeStationMenu();
+   closeMapMenu();
+   return originalOpen.apply(this,arguments);
+  };
+ }
+ if(window.toggleMapMenu){
+  const originalMapToggle=window.toggleMapMenu;
+  window.toggleMapMenu=function(){
+   if(window.closeStationMenu)window.closeStationMenu();
+   if(window.toggleToolsPanel)window.toggleToolsPanel(false);
+   closeGameMenu();
+   return originalMapToggle.apply(this,arguments);
+  };
+ }
+ if(window.positionStationMenu){
+  const originalPosition=window.positionStationMenu;
+  window.positionStationMenu=function(index){
+   originalPosition.apply(this,arguments);
+   const el=document.getElementById('stationContextMenu');
+   const dock=document.getElementById('sb-top-dock');
+   const actions=document.getElementById('sb-action-dock');
+   if(!el||el.style.display==='none')return;
+   const height=el.offsetHeight||190;
+   const width=el.offsetWidth||220;
+   const topEdge=dock?dock.getBoundingClientRect().bottom+10:84;
+   const bottomEdge=actions?actions.getBoundingClientRect().top-10:window.innerHeight-84;
+   let top=parseFloat(el.style.top)||topEdge;
+   top=Math.max(topEdge,Math.min(top,bottomEdge-height));
+   let left=parseFloat(el.style.left)||8;
+   left=Math.max(8,Math.min(left,window.innerWidth-width-8));
+   el.style.top=top+'px';el.style.left=left+'px';
+  };
+ }
+})();
+</script>
+
+
+<script>
+/* PR #69 follow-up runtime: station preview, opt-in dragging, and save-to-device. */
+(function(){
+ const DEFAULT_CENTER=[37.7749,-122.4194],DEFAULT_ZOOM=12;
+ let stationMoveIndex=null,stationMoveMarker=null,stationMoveOriginalDrag=null;
+ let stationPreview=null,previewHoldTimer=null,previewHoldTriggered=false,previewMenu=null;
+ function ensurePreview(){
+  if(typeof map==='undefined'||!map)return;
+  if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){
+   if(typeof stationPlacementPreview!=='undefined'&&stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
+   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}return;
+  }
+  /* Reuse the single camera-centered reticle created by the original placement layer. */
+  if(typeof stationPlacementPreview!=='undefined'&&!stationPlacementPreview){
+   stationPlacementPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1200,
+    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
+  }
+  if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+ }
+ function clearStationMoveMode(){
+  if(stationMoveMarker&&stationMoveMarker.dragging)stationMoveMarker.dragging.disable();
+  if(stationMoveMarker){const el=stationMoveMarker.getElement();el?.classList.remove('sb-station-move-active');}
+  stationMoveMarker=null;stationMoveIndex=null;
+  const b=document.getElementById('sb-station-move-toggle');
+  if(b){b.setAttribute('aria-pressed','false');b.textContent='Move Station: Off';}
+ }
+ window.toggleStationMoveMode=function(){
+  if(stationMoveIndex!==null){clearStationMoveMode();return;}
+  if(stationMenuIndex===null||!stations[stationMenuIndex])return;
+  const index=stationMenuIndex;
+  const marker=window.networkLayer&&window.networkLayer.getLayers().find(layer=>{
+   if(!layer.getLatLng||!layer.options||!layer.options.icon)return false;
+   const p=layer.getLatLng(),s=stations[index];
+   return Math.abs(p.lat-s.lat)<1e-9&&Math.abs(p.lng-s.lng)<1e-9;
+  });
+  if(!marker||!marker.dragging){message('Station marker is not ready to move.');return;}
+  stationMoveIndex=index;stationMoveMarker=marker;marker.dragging.enable();
+  marker.getElement()?.classList.add('sb-station-move-active');
+  const b=document.getElementById('sb-station-move-toggle');
+  if(b){b.setAttribute('aria-pressed','true');b.textContent='Move Station: On';}
+  message('Move mode enabled. Drag this station, then close the menu to turn move mode off.');
  };
+ const oldCloseStationMenu=window.closeStationMenu;
+ window.closeStationMenu=function(){
+  clearStationMoveMode();
+  if(previewMenu){previewMenu.remove();previewMenu=null;}
+  if(typeof oldCloseStationMenu==='function')oldCloseStationMenu();
+ };
+ const oldShowStationMenu=window.showStationMenu;
+ window.showStationMenu=function(index){
+  clearStationMoveMode();
+  if(typeof oldShowStationMenu==='function')oldShowStationMenu(index);
+  const menu=document.getElementById('stationContextMenu');
+  if(menu){
+   const button=document.getElementById('sb-station-move-toggle');
+   if(button){button.setAttribute('aria-pressed','false');button.textContent='Move Station: Off';}
+   const mapRect=map.getContainer().getBoundingClientRect();
+   const point=map.latLngToContainerPoint([stations[index].lat,stations[index].lng]);
+   const menuRect=menu.getBoundingClientRect();
+   let left=Math.max(8,Math.min(mapRect.left+point.x-menuRect.width/2,innerWidth-menuRect.width-8));
+   let top=Math.max(8,Math.min(mapRect.top+point.y-menuRect.height-12,innerHeight-menuRect.height-8));
+   menu.style.left=left+'px';menu.style.top=top+'px';
+  }
+ };
+ const oldSetMode=window.setMode;
+ window.setMode=function(next){
+  clearStationMoveMode();
+  if(typeof oldSetMode==='function')oldSetMode(next);
+  if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+  if(next!=='station'&&typeof stationPlacementPreview!=='undefined'&&stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
+  if(next==='station')ensurePreview();
+ };
+ const oldHandleMapPlacement=window.handleMapPlacement;
+ window.handleMapPlacement=function(latlng){
+  if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+  if(typeof oldHandleMapPlacement==='function')oldHandleMapPlacement(latlng);
+  if(mode==='station')ensurePreview();
+ };
+ map.on('move zoom',function(){if(stationPreview&&mode==='station')stationPreview.setLatLng(map.getCenter());});
+ map.on('mousemove touchmove',function(){if(stationPreview&&mode==='station')stationPreview.setLatLng(map.getCenter());});
+ map.on('click',function(){if(stationPreview&&mode==='station')stationPreview.setLatLng(map.getCenter());});
+ ensurePreview();
+ 
+ window.exportGameStateToDevice=function(){
+  try{
+   persistGameState();
+   const raw=localStorage.getItem(SB_GAME_SAVE_KEY);
+   if(!raw){message('No saved game state is available yet.');return;}
+   if(window.AndroidStorage&&typeof window.AndroidStorage.saveGameState==='function'){
+    window.AndroidStorage.saveGameState(raw);
+    const status=document.getElementById('sb-game-menu-save-status');if(status)status.textContent='Choose a location in the Android save dialog.';
+   }else{
+    const blob=new Blob([raw],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+    a.href=url;a.download='subway-builder-save.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    window.onDeviceGameSaveComplete(true);
+   }
+  }catch(error){console.error('Game export failed:',error);window.onDeviceGameSaveComplete(false);}
+ };
+ window.onDeviceGameSaveComplete=function(success){
+  const status=document.getElementById('sb-game-menu-save-status');
+  if(status)status.textContent=success?'Save exported successfully. Camera reset; game returned to menu.':'Save could not be exported. Your automatic local save is still available.';
+  if(success){
+   if(typeof map!=='undefined'&&map){map.setView(DEFAULT_CENTER,DEFAULT_ZOOM,{animate:false});persistGameState();}
+   const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+   const card=document.getElementById('sb-game-menu-card'),gear=document.getElementById('sb-game-menu-settings'),back=document.getElementById('sb-game-menu-back'),title=document.getElementById('sb-game-menu-title');
+   if(card)card.classList.remove('settings-active');
+   if(main)main.hidden=false;if(settings)settings.hidden=true;
+   if(gear)gear.hidden=false;if(back)back.hidden=true;if(title)title.textContent='GAME MENU';
+  }
+ };
+})();
+</script>
+
+
+<script>
+/* PR #69 recording fixes: keep Delete latched, keep the actual station node above its preview,
+   and attach the station options dropdown to the station's map coordinate. */
+(function(){
+ let modeBeforeDelete='station';
+ const priorActivateDelete=window.activateDeleteMode;
+ window.activateDeleteMode=function(){
+  if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
+  if(typeof window.closeStationMenu==='function')window.closeStationMenu();
+  if(mode==='delete'){
+   const restore=['station','track','curve','waypoint','inspect'].includes(modeBeforeDelete)?modeBeforeDelete:'station';
+   setMode(restore);
+  }else{
+   modeBeforeDelete=mode;
+   setMode('delete');
+  }
+ };
+ window.positionStationMenu=function(index){
+  const menu=document.getElementById('stationContextMenu');
+  const station=stations[index];
+  if(!menu||!station||!map)return;
+  const point=map.latLngToContainerPoint([station.lat,station.lng]);
+  /* Coordinates are map-container local, never viewport-clamped: panning carries
+     the menu with its station, including beyond the visible map edge. */
+  menu.style.left=point.x+'px';
+  menu.style.top=(point.y-16)+'px';
+ };
+ const priorShowStationMenu=window.showStationMenu;
+ window.showStationMenu=function(index){
+  if(typeof priorShowStationMenu==='function')priorShowStationMenu(index);
+  const menu=document.getElementById('stationContextMenu');
+  if(!menu||!stations[index]||!map)return;
+  stationMenuIndex=index;
+  const title=document.getElementById('stationMenuTitle');
+  if(title)title.textContent=stations[index].name||('Station '+(index+1));
+  if(menu.parentElement!==map.getContainer())map.getContainer().appendChild(menu);
+  menu.style.display='block';
+  menu.classList.add('sb-station-menu-open');
+  window.positionStationMenu(index);
+  const move=document.getElementById('sb-station-move-toggle');
+  if(move){move.setAttribute('aria-pressed','false');move.textContent='Move Station: Off';}
+ };
+ /* The marker pane must always win over the placement ghost. Refresh once after
+    the placement transaction so the committed station is immediately visible. */
+ const priorPlacement=window.handleMapPlacement;
+ window.handleMapPlacement=function(latlng){
+  const wasStation=mode==='station';
+  if(typeof priorPlacement==='function')priorPlacement(latlng);
+  if(wasStation&&mode==='station'){
+   /* Repaint the committed marker after the placement transaction. Keep the
+      lower-z placement ghost in place; the real station node now renders above it. */
+   requestAnimationFrame(function(){renderNetwork();});
+  }
+ };
+ map.on('move zoom',function(){if(stationMenuIndex!==null)window.positionStationMenu(stationMenuIndex);});
+ window.addEventListener('resize',function(){if(stationMenuIndex!==null)window.positionStationMenu(stationMenuIndex);});
+})();
+</script>
+
+
+<script>
+/* PR #69 follow-up: allow the touch trace HUD to be repositioned by touch or mouse. */
+(function(){
+ let drag=null;
+ const clamp=(v,min,max)=>Math.max(min,Math.min(v,max));
+ function start(e){
+  const hud=e.target.closest&&e.target.closest('#sb-touch-trace-hud');
+  if(!hud||e.button!==undefined&&e.button!==0)return;
+  const r=hud.getBoundingClientRect();
+  drag={hud,x:e.clientX,y:e.clientY,left:r.left,top:r.top};
+  hud.style.left=r.left+'px';hud.style.top=r.top+'px';hud.style.right='auto';hud.style.bottom='auto';
+  try{hud.setPointerCapture(e.pointerId);}catch(_){}
+  e.preventDefault();
+ }
+ function move(e){
+  if(!drag)return;
+  const w=drag.hud.offsetWidth,h=drag.hud.offsetHeight;
+  drag.hud.style.left=clamp(drag.left+e.clientX-drag.x,4,innerWidth-w-4)+'px';
+  drag.hud.style.top=clamp(drag.top+e.clientY-drag.y,4,innerHeight-h-4)+'px';
+ }
+ function end(){drag=null;}
+ document.addEventListener('pointerdown',start,{passive:false});
+ document.addEventListener('pointermove',move,{passive:true});
+ document.addEventListener('pointerup',end,{passive:true});
+ document.addEventListener('pointercancel',end,{passive:true});
+})();
+</script>
+
+<script>
+/* PR #69 follow-up: keep undo/redo visual state synchronized with the sbEditHistory cursor. */
+(function(){
+ const originalUpdateUI=window.updateUI;
+ function syncHistoryDock(){
+  const undoButton=document.getElementById('undoBtn');
+  const redoButton=document.getElementById('redoBtn');
+  if(!undoButton||!redoButton)return;
+  const canUndo=Number.isFinite(historyIndex)&&historyIndex>0;
+  const canRedo=Array.isArray(sbEditHistory)&&historyIndex<sbEditHistory.length-1;
+  undoButton.disabled=!canUndo;
+  redoButton.disabled=!canRedo;
+  undoButton.setAttribute('aria-disabled',String(!canUndo));
+  redoButton.setAttribute('aria-disabled',String(!canRedo));
+  undoButton.classList.toggle('sb-sbEditHistory-available',canUndo);
+  redoButton.classList.toggle('sb-sbEditHistory-available',canRedo);
+ }
+ if(typeof originalUpdateUI==='function'){
+  window.updateUI=function(){
+   const result=originalUpdateUI.apply(this,arguments);
+   syncHistoryDock();
+   return result;
+  };
+ }
+ window.addEventListener('DOMContentLoaded',syncHistoryDock,{once:true});
+ requestAnimationFrame(syncHistoryDock);
+})();
+</script>
+
+
+<style id="sb-dock-glass-no-border-reset">
+/* Dock refinement: restore translucent glass while removing all dock borders
+   and button outlines/glow/pressed or selected highlight effects. */
+#sb-top-dock,#sb-action-dock,.topbar,.bottom{
+  background:rgba(13,25,42,.58)!important;
+  background-image:none!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+  backdrop-filter:blur(24px) saturate(170%)!important;
+}
+#sb-top-dock button,#sb-action-dock button,
+.topbar button,.bottom button{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:rgba(255,255,255,.085)!important;
+  background-image:none!important;
+  text-shadow:none!important;
+  filter:none!important;
+  transform:none!important;
+  transition:none!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+#sb-top-dock button:hover,#sb-top-dock button:focus,
+#sb-top-dock button:focus-visible,#sb-top-dock button:active,
+#sb-top-dock button.active,
+#sb-action-dock button:hover,#sb-action-dock button:focus,
+#sb-action-dock button:focus-visible,#sb-action-dock button:active,
+#sb-action-dock button.active,
+.topbar button:hover,.topbar button:focus,.topbar button:focus-visible,
+.topbar button:active,.topbar button.active,
+.bottom button:hover,.bottom button:focus,.bottom button:focus-visible,
+.bottom button:active,.bottom button.active{
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:rgba(255,255,255,.085)!important;
+  filter:none!important;
+  transform:none!important;
+}
+</style>
+
+
+<style id="sb-dock-crosshair-pair-layout">
+/* Dock geometry and paired control groups */
+#sb-top-dock,#sb-action-dock{
+ border-radius:16px!important;overflow:visible!important;
+}
+#sb-top-dock .sb-dock-pair,#sb-action-dock .sb-dock-pair{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:8px!important;padding:0!important;margin:0!important;border:0!important;
+ background:transparent!important;box-shadow:none!important;
+}
+#sb-top-dock,#sb-action-dock{
+ display:flex!important;align-items:center!important;gap:12px!important;
+}
+#sb-top-dock button,#sb-action-dock button{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.09)!important;color:#f4f8fc!important;
+ margin:0!important;transform:none!important;filter:none!important;
+}
+#sb-top-dock button:hover,#sb-top-dock button:focus,#sb-top-dock button:focus-visible,
+#sb-top-dock button:active,#sb-top-dock button.active,
+#sb-action-dock button:hover,#sb-action-dock button:focus,#sb-action-dock button:focus-visible,
+#sb-action-dock button:active,#sb-action-dock button.active{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.09)!important;transform:none!important;filter:none!important;
+}
+#sb-action-dock{flex-direction:row!important;flex-wrap:nowrap!important}
+#sb-action-dock .sb-dock-pair{flex-direction:row!important}
+#map .sb-map-crosshair{
+ position:absolute;left:50%;top:50%;width:30px;height:30px;
+ transform:translate(-50%,-50%);z-index:1200;pointer-events:none;
+}
+#map .sb-map-crosshair:before,#map .sb-map-crosshair:after{
+ content:"";position:absolute;left:50%;top:50%;background:#fff;
+ transform:translate(-50%,-50%);border-radius:0;box-shadow:none;
+}
+#map .sb-map-crosshair:before{width:2px;height:30px}
+#map .sb-map-crosshair:after{width:30px;height:2px}
+#map .leaflet-marker-pane .sb-station-marker .sb-station-node{
+ width:20px!important;height:20px!important;border-radius:50%!important;
+ background:#fff!important;border:2px solid rgba(255,255,255,.7)!important;
+ box-shadow:none!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-selected .sb-station-node,
+#map .leaflet-marker-pane .sb-station-marker.is-track-target .sb-station-node,
+#map .leaflet-marker-pane .sb-station-marker.is-dragging .sb-station-node{
+ background:#fff!important;border:2px solid rgba(255,255,255,.7)!important;
+ box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 12px rgba(255,255,255,.95),0 0 24px rgba(255,255,255,.75)!important;
+}
+#map .leaflet-marker-pane .sb-station-marker.is-crosshair-target .sb-station-node{
+ background:#fff!important;border:2px solid rgba(255,255,255,.7)!important;
+ box-shadow:0 0 0 3px rgba(255,255,255,.95),0 0 12px rgba(255,255,255,.95),0 0 24px rgba(255,255,255,.75)!important;
+}
+#map .leaflet-marker-pane .sb-placement-preview{display:none!important;visibility:hidden!important;opacity:0!important}
+@media(max-width:560px){
+ #sb-action-dock{right:9px!important;bottom:10px!important;left:auto!important;
+  width:auto!important;padding:8px!important;gap:8px!important;border-radius:16px!important}
+ #sb-action-dock .sb-dock-pair{gap:7px!important}
+}
+</style>
+<script id="sb-crosshair-and-dock-pairs">
+(function(){
+ function groupDockButtons(dock){
+  if(!dock||dock.dataset.paired==='true')return;
+  const buttons=Array.from(dock.children).filter(el=>el.tagName==='BUTTON');
+  for(let i=0;i<buttons.length;i+=2){
+   const pair=document.createElement('div');pair.className='sb-dock-pair';
+   dock.insertBefore(pair,buttons[i]);
+   pair.appendChild(buttons[i]);if(buttons[i+1])pair.appendChild(buttons[i+1]);
+  }
+  dock.dataset.paired='true';
+ }
+ function setup(){
+  groupDockButtons(document.getElementById('sb-top-dock'));
+  groupDockButtons(document.getElementById('sb-action-dock'));
+  const mapEl=document.getElementById('map');
+  if(mapEl&&!mapEl.querySelector('.sb-map-crosshair')){
+   const cross=document.createElement('div');cross.className='sb-map-crosshair';cross.setAttribute('aria-hidden','true');mapEl.appendChild(cross);
+  }
+ }
+ function syncCrosshairStation(){
+  if(typeof map==='undefined'||!map||!window.networkLayer)return;
+  const center=map.getSize().divideBy(2),radius=19;
+  (window.stationNodeLayer||window.networkLayer).eachLayer(marker=>{
+   if(!marker.getLatLng||!marker.getElement)return;
+   const p=map.latLngToContainerPoint(marker.getLatLng());
+   const el=marker.getElement(),node=el&&el.querySelector('.sb-station-marker');
+   if(!node)return;
+   node.classList.toggle('is-crosshair-target',p.distanceTo(center)<=radius);
+  });
+ }
+ document.addEventListener('DOMContentLoaded',setup,{once:true});
+ setup();
+ if(typeof map!=='undefined'&&map){
+  map.on('move zoom moveend zoomend',syncCrosshairStation);
+  map.on('layeradd layerremove',syncCrosshairStation);
+  setTimeout(syncCrosshairStation,0);
+ }
+ const priorRender=window.renderNetwork;
+ if(typeof priorRender==='function')window.renderNetwork=function(){const r=priorRender.apply(this,arguments);syncCrosshairStation();return r;};
+})();
+</script>
+
+
+<style id="sb-dock-sbEditHistory-delete-theme-fix">
+#sb-top-dock{border-radius:16px!important}
+#sb-action-dock{border-radius:16px!important}
+#sb-top-dock #sb-map-theme-toggle,
+#sb-top-dock #sb-map-theme-toggle:hover,
+#sb-top-dock #sb-map-theme-toggle:focus,
+#sb-top-dock #sb-map-theme-toggle:focus-visible,
+#sb-top-dock #sb-map-theme-toggle:active,
+#sb-top-dock #sb-map-theme-toggle.active{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.085)!important;filter:none!important;transform:none!important;
+}
+#sb-action-dock #trashModeBtn{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ font-size:32px!important;line-height:1!important;font-weight:400!important;
+ padding:0!important;text-align:center!important;
+}
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{
+ opacity:.24!important;filter:grayscale(1)!important;
+}
+#sb-action-dock #undoBtn:not(:disabled),#sb-action-dock #redoBtn:not(:disabled){
+ opacity:1!important;filter:none!important;
+}
+#sb-top-dock .sb-theme-menu-pair{display:flex!important;align-items:center!important;gap:8px!important;flex:0 0 auto!important}
+</style>
+<script id="sb-theme-slot-and-sbEditHistory-sync">
+(function(){
+ function syncHistory(){
+  const u=document.getElementById('undoBtn'),r=document.getElementById('redoBtn');
+  if(!u||!r)return;
+  const canUndo=typeof historyIndex==='number'&&historyIndex>0;
+  const canRedo=Array.isArray(sbEditHistory)&&historyIndex<sbEditHistory.length-1;
+  u.disabled=!canUndo;r.disabled=!canRedo;
+  u.setAttribute('aria-disabled',String(!canUndo));
+  r.setAttribute('aria-disabled',String(!canRedo));
+ }
+ function placeThemeSlot(){
+  const dock=document.getElementById('sb-top-dock');
+  const theme=document.getElementById('sb-map-theme-toggle');
+  const menu=document.getElementById('sb-game-menu-toggle');
+  if(!dock||!theme||!menu||theme.dataset.slotPlaced==='true')return;
+  const pair=document.createElement('div');pair.className='sb-theme-menu-pair';
+  dock.insertBefore(pair,dock.querySelector('.stats'));
+  pair.appendChild(theme);pair.appendChild(menu);
+  theme.dataset.slotPlaced='true';
+ }
+ function init(){
+  placeThemeSlot();
+  const del=document.getElementById('trashModeBtn');
+  if(del)del.textContent='×';
+  syncHistory();
+ }
+ const oldUpdate=window.updateUI;
+ if(typeof oldUpdate==='function')window.updateUI=function(){const result=oldUpdate.apply(this,arguments);syncHistory();return result;};
+ for(const name of ['saveHistory','undo','redo']){
+  const fn=window[name];
+  if(typeof fn==='function')window[name]=function(){const result=fn.apply(this,arguments);syncHistory();return result;};
+ }
+ document.addEventListener('DOMContentLoaded',init,{once:true});
+ init();
+ if(typeof map!=='undefined'&&map)map.on('layeradd layerremove',syncHistory);
+})();
+</script>
+
+
+<style id="sb-build-delete-paired-neon">
+/* Construction and Delete share one paired, mutually exclusive neon treatment. */
+#sb-action-dock #trashModeBtn,
+#sb-action-dock #sb-build-dock-btn{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.07)!important;transform:none!important;filter:none!important;
+ transition:background .16s ease,box-shadow .16s ease!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ color:#ff9aa8!important;background:rgba(255,55,78,.24)!important;
+ box-shadow:0 0 0 1px rgba(255,90,110,.58),0 0 10px rgba(255,45,70,.45),0 0 20px rgba(255,45,70,.24)!important;
+}
+#sb-action-dock #sb-build-dock-btn.active,
+#sb-action-dock #sb-build-dock-btn[aria-pressed="true"]{
+ color:#9affdf!important;background:rgba(25,210,150,.22)!important;
+ box-shadow:0 0 0 1px rgba(80,255,190,.58),0 0 10px rgba(35,235,155,.42),0 0 20px rgba(35,235,155,.22)!important;
+}
+#sb-action-dock #trashModeBtn:not(.active):not([aria-pressed="true"]),
+#sb-action-dock #sb-build-dock-btn:not(.active):not([aria-pressed="true"]){
+ color:#eef6fc!important;background:rgba(255,255,255,.07)!important;box-shadow:none!important;
+}
+#sb-action-dock #sb-build-dock-btn{font-size:22px!important}
+#sb-action-dock .sb-dock-divider,#sb-action-dock .dock-divider,
+#sb-action-dock #sb-build-dock-btn:before{border:0!important;display:none!important;content:none!important}
+#sb-panel-toggle.menu-hamburger{display:none!important}
+</style>
+<script id="sb-history-and-build-dock-repair">
+(function(){
+ function syncHistoryButtons(){
+  const undoButton=document.getElementById('undoBtn'),redoButton=document.getElementById('redoBtn');
+  if(!undoButton||!redoButton)return;
+  const canUndo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex>0;
+  const canRedo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex<sbEditHistory.length-1;
+  undoButton.disabled=!canUndo;redoButton.disabled=!canRedo;
+  undoButton.setAttribute('aria-disabled',String(!canUndo));
+  redoButton.setAttribute('aria-disabled',String(!canRedo));
+ }
+ function addBuildButton(){
+  const dock=document.getElementById('sb-action-dock'),original=document.getElementById('sb-panel-toggle');
+  if(!dock||dock.querySelector('#sb-build-dock-btn'))return;
+  const button=document.createElement('button');
+  button.type='button';button.id='sb-build-dock-btn';
+  button.className='sb-build-dock-btn';
+  button.setAttribute('aria-label','Construction tools');
+  button.title='Construction tools';
+  button.setAttribute('aria-pressed','false');
+  button.innerHTML='<svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3.5 17.5a2.1 2.1 0 0 0 3 3l4.8-4.8a5 5 0 0 0 6.4-6.4l-3 3-3.5-3.5 3.5-3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  button.addEventListener('click',function(){
+   if(mode==='delete')setMode('station');
+   if(typeof toggleToolsPanel==='function')toggleToolsPanel();
+   syncBuildState();
+  });
+  dock.appendChild(button);
+  if(original)original.setAttribute('aria-hidden','true');
+ }
+ function syncBuildState(){
+  const button=document.getElementById('sb-build-dock-btn');
+  const menu=document.getElementById('sb-construction-menu');
+  const del=document.getElementById('trashModeBtn');
+  if(!button)return;
+  const open=!!(menu&&menu.open)&&mode!=='delete';
+  button.classList.toggle('active',open);
+  button.setAttribute('aria-pressed',String(open));
+  if(del){
+   const isDelete=typeof mode!=='undefined'&&mode==='delete';
+   del.classList.toggle('active',isDelete);
+   del.setAttribute('aria-pressed',String(isDelete));
+   if(isDelete)button.classList.remove('active');
+  }
+ }
+ const oldUpdateUI=window.updateUI;
+ if(typeof oldUpdateUI==='function')window.updateUI=function(){const result=oldUpdateUI.apply(this,arguments);syncHistoryButtons();syncBuildState();return result;};
+ const oldSaveHistory=window.saveHistory;
+ if(typeof oldSaveHistory==='function')window.saveHistory=function(){const result=oldSaveHistory.apply(this,arguments);syncHistoryButtons();return result;};
+ const oldUndo=window.undo;
+ if(typeof oldUndo==='function')window.undo=function(){const result=oldUndo.apply(this,arguments);syncHistoryButtons();return result;};
+ const oldRedo=window.redo;
+ if(typeof oldRedo==='function')window.redo=function(){const result=oldRedo.apply(this,arguments);syncHistoryButtons();return result;};
+ document.addEventListener('DOMContentLoaded',function(){addBuildButton();syncHistoryButtons();syncBuildState();},{once:true});
+ addBuildButton();syncHistoryButtons();syncBuildState();
+ const menu=document.getElementById('sb-construction-menu');
+ if(menu){new MutationObserver(syncBuildState).observe(menu,{attributes:true,attributeFilter:['open']});}
+})();
+</script>
+
+
+<style id="sb-action-dock-right-group">
+#sb-action-dock::after{display:none!important;content:none!important}
+#sb-action-dock #trashModeBtn{margin-left:0!important}
+#sb-action-dock #sb-build-dock-btn{margin-left:auto!important;flex:0 0 44px!important;width:44px!important;height:44px!important}
+#sb-action-dock #sb-build-dock-btn.active,
+#sb-action-dock #sb-build-dock-btn[aria-pressed="true"]{
+ background:rgba(25,210,150,.24)!important;
+ color:#9affdf!important;
+ box-shadow:0 0 0 1px rgba(80,255,190,.65),0 0 11px rgba(35,235,155,.48),0 0 22px rgba(35,235,155,.28)!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,55,78,.25)!important;color:#ff9aa8!important;
+ box-shadow:0 0 0 1px rgba(255,90,110,.62),0 0 11px rgba(255,45,70,.5),0 0 22px rgba(255,45,70,.28)!important;
+}
+</style>
+
+
+<style id="sb-two-panel-dock-and-startup-switch">
+#sb-action-dock{
+ left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;
+ display:flex!important;align-items:stretch!important;justify-content:space-between!important;
+ gap:10px!important;padding:0!important;background:transparent!important;border:0!important;
+ box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ pointer-events:none!important;overflow:visible!important;
+}
+#sb-action-dock .sb-dock-panel{
+ display:flex!important;align-items:center!important;gap:8px!important;
+ min-height:58px!important;padding:7px 10px!important;box-sizing:border-box!important;
+ border-radius:18px!important;background:rgba(15,25,40,.58)!important;
+ border:0!important;box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ pointer-events:auto!important;flex:0 0 auto!important;
+}
+#sb-action-dock .sb-dock-panel-left{justify-content:flex-start!important}
+#sb-action-dock .sb-dock-panel-right{justify-content:flex-end!important;margin-left:auto!important}
+#sb-action-dock .sb-dock-panel button{
+ pointer-events:auto!important;touch-action:manipulation!important;
+ width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+ flex:0 0 44px!important;border:0!important;border-radius:50%!important;
+}
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{opacity:1!important;color:#f4f8fc!important}
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{opacity:1!important;color:#f4f8fc!important}
+#sb-action-dock #trashModeBtn{margin:0!important}
+#sb-action-dock #sb-build-dock-btn{margin:0!important}
+#sb-construction-menu>summary#sb-panel-toggle{display:none!important}
+.sb-setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;margin:12px 0;border-top:1px solid rgba(230,245,255,.13);border-bottom:1px solid rgba(230,245,255,.13)}
+.sb-setting-row strong{display:block;color:#f4f8ff;font-size:13px}
+.sb-setting-row small{display:block;color:#aebfd1;font-size:11px;margin-top:4px}
+.sb-ios-switch{width:52px!important;height:32px!important;min-width:52px!important;min-height:32px!important;max-width:52px!important;max-height:32px!important;flex:0 0 52px!important;padding:3px!important;border:0!important;border-radius:999px!important;background:rgba(130,145,160,.48)!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)!important;position:relative!important;transition:background .2s ease!important}
+.sb-ios-switch span{display:block;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translateX(0);transition:transform .2s ease}
+.sb-ios-switch[aria-checked="true"]{background:#30d158!important}
+.sb-ios-switch[aria-checked="true"] span{transform:translateX(20px)}
+@media(max-width:420px){#sb-action-dock{left:6px!important;right:6px!important;gap:6px!important}#sb-action-dock .sb-dock-panel{gap:5px!important;padding:6px!important;min-height:54px!important}#sb-action-dock .sb-dock-panel button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex-basis:40px!important}}
+</style>
+<script id="sb-dock-panels-history-touch-startup">
+function toggleDefaultDarkOnStart(){
+ const button=document.getElementById('sb-default-dark-toggle');
+ const enabled=!(localStorage.getItem('sbDefaultDarkOnStart')==='true');
+ localStorage.setItem('sbDefaultDarkOnStart',String(enabled));
+ if(button)button.setAttribute('aria-checked',String(enabled));
+ localStorage.setItem('mapTheme',enabled?'dark':'light');
+}
+(function(){
+ function setupDockPanels(){
+  const dock=document.getElementById('sb-action-dock');
+  const undo=document.getElementById('undoBtn'),redo=document.getElementById('redoBtn');
+  const del=document.getElementById('trashModeBtn'),build=document.getElementById('sb-build-dock-btn');
+  if(!dock||!undo||!redo||!del||!build)return;
+  const left=document.createElement('div');left.className='sb-dock-panel sb-dock-panel-left';left.setAttribute('aria-label','Undo and redo');
+  const right=document.createElement('div');right.className='sb-dock-panel sb-dock-panel-right';right.setAttribute('aria-label','Construction and delete');
+  [undo,redo].forEach(el=>left.appendChild(el));
+  [del,build].forEach(el=>right.appendChild(el));
+  dock.replaceChildren(left,right);
+  const original=document.getElementById('sb-panel-toggle');
+  if(original){original.style.display='none';original.setAttribute('aria-hidden','true');}
+  const toggle=document.getElementById('sb-default-dark-toggle');
+  if(toggle)toggle.setAttribute('aria-checked',String(localStorage.getItem('sbDefaultDarkOnStart')==='true'));
+ }
+ function syncHistoryButtons(){
+  const undo=document.getElementById('undoBtn'),redo=document.getElementById('redoBtn');
+  if(!undo||!redo||!Array.isArray(sbEditHistory))return;
+  const canUndo=historyIndex>0,canRedo=historyIndex<sbEditHistory.length-1;
+  undo.disabled=!canUndo;redo.disabled=!canRedo;
+  undo.setAttribute('aria-disabled',String(!canUndo));redo.setAttribute('aria-disabled',String(!canRedo));
+ }
+ function bindHistoryTouch(){
+  const u=document.getElementById('undoBtn'),r=document.getElementById('redoBtn');
+  [[u,()=>undo()],[r,()=>redo()]].forEach(([button,action])=>{
+   if(!button||button.dataset.directHistoryBound==='true')return;
+   button.dataset.directHistoryBound='true';
+   button.removeAttribute('onclick');
+   button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();if(button.disabled)return;action();syncHistoryButtons();});
+  });
+ }
+ const previousSave=window.saveHistory;
+ if(typeof previousSave==='function'&&!previousSave.__dockWrapped){
+  const wrapped=function(){const result=previousSave.apply(this,arguments);syncHistoryButtons();return result;};
+  wrapped.__dockWrapped=true;window.saveHistory=wrapped;
+ }
+ const previousUndo=window.undo;
+ if(typeof previousUndo==='function'&&!previousUndo.__dockWrapped){
+  const wrapped=function(){const result=previousUndo.apply(this,arguments);syncHistoryButtons();return result;};
+  wrapped.__dockWrapped=true;window.undo=wrapped;
+ }
+ const previousRedo=window.redo;
+ if(typeof previousRedo==='function'&&!previousRedo.__dockWrapped){
+  const wrapped=function(){const result=previousRedo.apply(this,arguments);syncHistoryButtons();return result;};
+  wrapped.__dockWrapped=true;window.redo=wrapped;
+ }
+ function init(){setupDockPanels();bindHistoryTouch();syncHistoryButtons();}
+ document.addEventListener('DOMContentLoaded',init,{once:true});init();
+ const oldUpdate=window.updateUI;
+ if(typeof oldUpdate==='function')window.updateUI=function(){const result=oldUpdate.apply(this,arguments);syncHistoryButtons();return result;};
+})();
+</script>
+
+
+<style id="sb-construction-dock-glass-green-neon">
+/* Construction drawer uses the same two-panel dock glass material. */
+#constructionPanel{
+ background:rgba(15,25,40,.58)!important;
+ border:0!important;
+ border-radius:18px!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ overflow-x:hidden!important;
+}
+#constructionPanel .panel-heading{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#constructionPanel .panel-title,
+#constructionPanel .tool-group>summary{
+ color:#eef6fc!important;
+}
+#constructionPanel .tool-group{
+ background:rgba(255,255,255,.045)!important;
+ border:0!important;border-radius:14px!important;
+ box-shadow:none!important;
+}
+#constructionPanel .tool-grid button{
+ border:0!important;border-radius:50%!important;
+ background:rgba(255,255,255,.07)!important;
+ color:#eef6fc!important;box-shadow:none!important;
+ transition:background .16s ease,box-shadow .16s ease!important;
+}
+/* All selected construction tools share Delete's exact glow geometry. */
+#constructionPanel .tool-grid button.active,
+#constructionPanel .tool-grid button[aria-pressed="true"],
+#constructionPanel button[data-panel-action].active,
+#constructionPanel button[data-platform-width][aria-pressed="true"],
+#constructionPanel button[data-platform-type][aria-pressed="true"]{
+ background:rgba(25,210,150,.34)!important;
+ border:1px solid rgba(112,255,190,.98)!important;
+ color:#fff!important;
+ box-shadow:0 0 0 2px rgba(80,255,170,.25),
+            0 0 13px rgba(35,235,145,.78),
+            0 0 25px rgba(35,235,145,.48),
+            inset 0 0 12px rgba(35,235,145,.25)!important;
+ filter:none!important;opacity:1!important;
+}
+#constructionPanel .tool-grid button:active{
+ transform:none!important;
+}
+#constructionPanel button.sb-neon-pressed,
+#constructionPanel button.sb-neon-release{
+ --sb-neon:rgba(35,235,145,.99)!important;
+ box-shadow:0 0 0 2px rgba(80,255,170,.25),
+            0 0 13px rgba(35,235,145,.78),
+            0 0 25px rgba(35,235,145,.48),
+            inset 0 0 12px rgba(35,235,145,.25)!important;
+}
+</style>
+
+
+<style id="sb-final-dock-white-glow-and-start">
+/* Permanent white neon geometry identical to Delete: 2/13/25/12px. */
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled,
+#sb-action-dock #undoBtn:hover,#sb-action-dock #redoBtn:hover,
+#sb-action-dock #undoBtn:focus-visible,#sb-action-dock #redoBtn:focus-visible{
+ opacity:1!important;filter:none!important;color:#fff!important;
+ background:rgba(235,245,255,.16)!important;border:1px solid rgba(255,255,255,.98)!important;
+ box-shadow:0 0 0 2px rgba(255,255,255,.25),
+ 0 0 13px rgba(255,255,255,.78),
+ 0 0 25px rgba(255,255,255,.48),
+ inset 0 0 12px rgba(255,255,255,.25)!important;
+}
+/* Match touch trace to the bottom glass dock without changing monospace text. */
+#sb-touch-trace-hud{
+ background:rgba(15,25,40,.58)!important;
+ border:0!important;border-radius:18px!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+}
+/* Start screen: same glass material, circular control and white neon dimensions. */
+#startMenu .play-launch{
+ background:rgba(15,25,40,.58)!important;
+ border:0!important;border-radius:18px!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ max-width:calc(100vw - 32px)!important;
+ box-sizing:border-box!important;
+ pointer-events:auto!important;
+}
+#startMenu .play-brand{text-shadow:none!important}
+#startMenu #sb-play-button,
+#startMenu #sb-play-button:hover,
+#startMenu #sb-play-button:focus,
+#startMenu #sb-play-button:focus-visible,
+#startMenu #sb-play-button:active,
+#startMenu #sb-play-button.sb-pointer-hover{
+ width:88px!important;height:88px!important;min-width:88px!important;min-height:88px!important;
+ border-radius:50%!important;background:rgba(235,245,255,.16)!important;
+ border:1px solid rgba(255,255,255,.98)!important;
+ box-shadow:0 0 0 2px rgba(255,255,255,.25),
+ 0 0 13px rgba(255,255,255,.78),
+ 0 0 25px rgba(255,255,255,.48),
+ inset 0 0 12px rgba(255,255,255,.25)!important;
+ filter:none!important;transform:none!important;
+ transition:none!important;
+}
+#startMenu #sb-play-button span{color:#fff!important;text-shadow:none!important}
+</style>
+
+<script id="sb-service-lines">
+(function(){
+ const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff','#ff8bd1','#54d7e8'];
+ function draw(){
+  const host=document.getElementById('sb-service-lines-content');if(!host)return;host.replaceChildren();
+  lines.forEach(line=>{
+   const row=document.createElement('div');row.className='sb-line-row';
+   const sw=document.createElement('i');sw.className='sb-line-swatch';sw.style.background=line.color;
+   const pick=document.createElement('button');pick.className='sb-line-select'+(activeLineId===line.id?' active':'');pick.textContent='●';pick.title='Select '+line.name;pick.setAttribute('aria-label','Select '+line.name);
+   pick.addEventListener('click',()=>{activeLineId=line.id;draw();message(line.name+' selected for new track sections.');});
+   const label=document.createElement('span');label.className='sb-line-label';label.textContent=line.name;
+   const count=document.createElement('small');count.textContent=tracks.filter(t=>(t.lineIds||[]).includes(line.id)).length;
+   const remove=document.createElement('button');remove.className='sb-line-remove';remove.textContent='−';remove.title='Remove line';
+   remove.addEventListener('click',()=>{lines=lines.filter(x=>x.id!==line.id);tracks.forEach(t=>t.lineIds=(t.lineIds||[]).filter(id=>id!==line.id));if(activeLineId===line.id)activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();});
+   row.append(sw,pick,label,count,remove);host.append(row);
+  });
+  const create=document.createElement('div');create.className='sb-line-create';
+  const name=document.createElement('input');name.placeholder='New line name';name.maxLength=24;
+  const color=document.createElement('select');colors.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;color.append(o);});
+  const add=document.createElement('button');add.className='sb-line-add';add.textContent='+';add.setAttribute('aria-label','Create line');
+  add.addEventListener('click',()=>{if(!name.value.trim()){message('Enter a line name first.');return;}const line={id:'line-'+(nextLineId++),name:name.value.trim(),color:color.value};lines.push(line);activeLineId=line.id;saveHistory();draw();message(line.name+' created.');});
+  create.append(name,color,add);host.append(create);
+  const link=document.createElement('button');link.className='sb-line-link';link.textContent='↗';link.title='Link selected track to active line';link.setAttribute('aria-label','Link selected track to active line');
+  link.disabled=selectedTrackIndex===null||!activeLineId;
+  link.addEventListener('click',()=>{const t=tracks[selectedTrackIndex];if(!t||!activeLineId)return;t.lineIds=Array.isArray(t.lineIds)?t.lineIds:[];if(!t.lineIds.includes(activeLineId))t.lineIds.push(activeLineId);saveHistory();renderNetwork();draw();message('Track shared with '+(lines.find(x=>x.id===activeLineId)?.name||'line')+'.');});
+  host.append(link);
+  const hint=document.createElement('p');hint.className='sb-line-hint';hint.textContent='Select a line before drawing. To share an existing section, choose Waypoint, tap its track, then link it here.';host.append(hint);
+ }
+ function mount(){const panel=document.getElementById('constructionPanel');if(!panel||document.getElementById('sb-service-lines-content'))return;const section=document.createElement('section');section.id='sb-service-lines';section.innerHTML='<div class="sb-service-lines-heading">SERVICE LINES</div><div id="sb-service-lines-content"></div>';panel.append(section);draw();}
+ document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
+ const prior=window.updateUI;if(typeof prior==='function')window.updateUI=function(){const result=prior.apply(this,arguments);draw();return result;};
+})();
+</script>
+<style id="sb-service-lines-glass">
+#sb-service-lines{margin-top:12px;padding-top:10px;border-top:1px solid rgba(225,245,255,.14);color:#edf7ff}
+.sb-service-lines-heading{font-size:10px;font-weight:800;letter-spacing:1.5px;color:#a9bfd2;margin:0 2px 8px}
+.sb-line-row,.sb-line-create{display:flex;align-items:center;gap:6px;margin:6px 0}
+.sb-line-swatch{width:9px;height:9px;flex:0 0 9px;border-radius:50%}
+#sb-service-lines button{width:34px;height:34px;min-width:34px;min-height:34px;flex:0 0 34px;padding:0;border:0;border-radius:50%;margin:0;display:inline-flex;align-items:center;justify-content:center}
+#sb-service-lines .sb-line-select{width:30px;height:30px;min-width:30px;min-height:30px;flex:0 0 30px;padding:0;border-radius:50%;font-size:14px;color:#fff;background:rgba(255,255,255,.07)}
+#sb-service-lines .sb-line-label{min-width:0;flex:1 1 auto;font-size:11px;color:#eef6fc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sb-service-lines .sb-line-select.active{color:#a5ffe0;box-shadow:0 0 0 1px rgba(80,255,190,.65),0 0 12px rgba(35,235,155,.3)}
+#sb-service-lines small{font-size:9px;color:#9fb4c9}
+#sb-service-lines .sb-line-remove{color:#ff9aa8;background:rgba(255,55,78,.14)}
+#sb-service-lines input{min-width:0;width:0;flex:1 1 auto;height:34px;border:0;border-radius:17px;padding:0 10px;background:rgba(255,255,255,.09);color:#fff;font-size:11px}
+#sb-service-lines select{width:78px;min-width:78px;height:32px;border:0;border-radius:16px;background:#172638;color:#fff;font-size:10px}
+#sb-service-lines .sb-line-add{font-size:22px;color:#a5ffe0;background:rgba(35,235,155,.14)}
+#sb-service-lines .sb-line-link{width:36px;height:36px;min-height:36px;border-radius:50%;margin-top:8px;background:rgba(85,167,255,.13)}
+#sb-service-lines .sb-line-link:disabled{opacity:.35}
+#sb-service-lines .sb-line-hint{font-size:9px;line-height:1.45;color:#9fb4c9;margin:8px 2px 0}
+</style>
+
+<style id="sb-recording-fixes">
+#constructionPanel{background:rgba(15,25,40,.58)!important;border:0!important;outline:0!important;box-shadow:0 8px 24px rgba(0,0,0,.18)!important;backdrop-filter:blur(24px) saturate(170%)!important;-webkit-backdrop-filter:blur(24px) saturate(170%)!important}
+#constructionPanel .panel-heading,#constructionPanel .tool-group{border:0!important;background:transparent!important;box-shadow:none!important}
+#constructionPanel .tool-grid{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;justify-items:center!important;align-items:center!important;gap:10px!important;padding:8px 4px!important}
+#constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;border-radius:50%!important;justify-self:center!important;margin:0!important}
+#constructionPanel .sb-menu-close,#sb-game-menu .sb-menu-close,#sb-terms-overlay .sb-menu-close,#stationContextMenu .sb-menu-close{width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;padding:0!important;border:0!important;border-radius:50%!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;background:rgba(255,75,95,.2)!important;color:#fff!important;box-shadow:0 0 0 1px rgba(255,90,110,.55),0 0 10px rgba(255,55,80,.22)!important}
+.sb-ios-switch{box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;overflow:hidden!important;transform:none!important;appearance:none!important;-webkit-appearance:none!important}
+.sb-ios-switch span{flex:0 0 26px!important;transform:none!important}
+.sb-ios-switch[aria-checked="true"]{justify-content:flex-end!important}
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{border:0!important;box-shadow:none!important;background:rgba(235,245,255,.12)!important}
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{opacity:.42!important;color:rgba(245,250,255,.55)!important}
+#sb-action-dock #undoBtn:not(:disabled),#sb-action-dock #redoBtn:not(:disabled){opacity:1!important;color:#fff!important;box-shadow:0 0 0 1px rgba(255,255,255,.75),0 0 10px rgba(255,255,255,.38)!important}
+#stationContextMenu{width:auto!important;max-width:calc(100vw - 24px)!important;padding:7px!important;border:0!important;border-radius:22px!important;background:rgba(15,25,40,.68)!important;box-shadow:0 8px 22px rgba(0,0,0,.22)!important;backdrop-filter:blur(22px) saturate(170%)!important;-webkit-backdrop-filter:blur(22px) saturate(170%)!important;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:5px}
+#stationContextMenu h3{display:none!important}
+#stationContextMenu button:not(.sb-menu-close){width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;background:rgba(255,255,255,.12)!important;color:#f4f8ff!important}
+#stationContextMenu .sb-menu-close{position:absolute!important;right:-5px!important;top:-7px!important;z-index:2}
+.sb-station-leaflet-icon{z-index:9999!important}
+.sb-station-marker{display:grid!important;place-items:center!important;visibility:visible!important;opacity:1!important}
+.sb-station-node{display:block!important;width:13px!important;height:13px!important;border-radius:50%!important;background:#f5fbff!important;border:2px solid rgba(255,255,255,.85)!important;box-shadow:0 1px 5px rgba(0,0,0,.75)!important}
+</style>
+
+<style id="sb-followup-dock-centering-touch">
+/* Dock shells are horizontal capsules; button hit areas remain circular with a 4px inset. */
+#sb-action-dock .sb-dock-panel{
+ border-radius:999px!important;
+ padding:4px!important;
+ gap:4px!important;
+ min-height:56px!important;
+}
+#sb-action-dock .sb-dock-panel button{
+ margin:4px!important;
+ border-radius:50%!important;
+}
+#constructionPanel .tool-grid{
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ justify-items:center!important;
+ justify-content:center!important;
+ align-content:center!important;
+ gap:10px 8px!important;
+ padding:10px 8px!important;
+}
+#constructionPanel .tool-grid button{justify-self:center!important;margin:0!important}
+#constructionPanel .tool-grid{width:100%!important;max-width:100%!important}
+#constructionPanel .tool-group{width:100%!important}
+#sb-default-dark-toggle.sb-ios-switch{
+ border-radius:999px!important;
+ padding:3px!important;
+ overflow:hidden!important;
+}
+#sb-default-dark-toggle.sb-ios-switch span{
+ width:26px!important;height:26px!important;min-width:26px!important;
+ border-radius:50%!important;flex:0 0 26px!important;
+}
+#sb-default-dark-toggle.sb-ios-switch[aria-checked="true"]{justify-content:flex-end!important}
+html,body{
+ width:100%!important;height:100%!important;min-height:100%!important;
+ overflow:hidden!important;overscroll-behavior:none!important;
+}
+body,#map,#sb-3d-map{touch-action:none!important}
+#map .leaflet-container{touch-action:none!important;overscroll-behavior:none!important}
+#constructionPanel{
+ overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+}
+#constructionPanel button,#sb-action-dock button,#sb-top-dock button,
+#sb-game-menu button,#sb-terms-overlay button{touch-action:manipulation!important}
+.leaflet-marker-pane,.leaflet-marker-pane *,.leaflet-pane.sbStationNodePane,
+.leaflet-pane.sbStationNodePane *{pointer-events:auto}
+.leaflet-sbStationNode-pane{z-index:650!important}
+.sb-station-leaflet-icon{z-index:650!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+.sb-station-marker,.sb-station-marker .sb-station-node{
+ visibility:visible!important;opacity:1!important;display:block!important;
+}
+</style>
+<script id="sb-prevent-webview-overscroll">
+(function(){
+ if(window.__sbNoWebViewOverscroll)return;
+ window.__sbNoWebViewOverscroll=true;
+ document.addEventListener('touchmove',function(event){
+  const insidePanel=event.target.closest&&event.target.closest('#constructionPanel');
+  if(insidePanel)return;
+  // Leaflet owns map gestures; elsewhere, prevent the Android WebView from rubber-banding.
+  if(!event.target.closest||!event.target.closest('#map,#sb-3d-map'))event.preventDefault();
+ },{passive:false});
+ document.addEventListener('gesturestart',function(event){event.preventDefault();},{passive:false});
+ document.addEventListener('gesturechange',function(event){event.preventDefault();},{passive:false});
+ document.addEventListener('wheel',function(event){
+  if(event.target.closest&&event.target.closest('#constructionPanel'))return;
+  if(!event.target.closest||!event.target.closest('#map,#sb-3d-map'))event.preventDefault();
+ },{passive:false});
+})();
+</script>
+
+<style id="sb-station-node-dedicated-pane">
+#map .leaflet-sbStationNode-pane .sb-station-leaflet-icon{
+ opacity:1!important;visibility:visible!important;z-index:650!important;
+}
+#map .leaflet-sbStationNode-pane .sb-station-marker{
+ width:34px!important;height:34px!important;display:grid!important;
+ place-items:center!important;border:0!important;border-radius:50%!important;
+ background:transparent!important;box-shadow:none!important;transform:none!important;
+}
+#map .leaflet-sbStationNode-pane .sb-station-marker .sb-station-node{
+ display:block!important;width:18px!important;height:18px!important;
+ border:0!important;border-radius:50%!important;background:#16cbb2!important;
+ box-shadow:0 0 0 8px #05090f!important;opacity:1!important;visibility:visible!important;
+}
+#map .leaflet-sbStationNode-pane .sb-station-marker.is-selected .sb-station-node{
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #fff,0 0 14px #fff,0 0 26px rgba(255,255,255,.95)!important;
+}
+#map .leaflet-sbStationNode-pane .sb-station-marker.is-track-target .sb-station-node{
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 20px rgba(85,234,255,.85)!important;
+}
+</style>
+
+<style id="sb-final-figma-icon-dock-terms-layout">
+/* Shared dock geometry: same capsule height, material and 6px breathing room. */
+#sb-action-dock .sb-dock-panel{
+ min-height:58px!important;height:58px!important;
+ box-sizing:border-box!important;
+ padding:6px!important;gap:6px!important;
+ border-radius:999px!important;
+}
+#sb-action-dock .sb-dock-panel button{
+ width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+ flex:0 0 44px!important;margin:1px!important;border-radius:50%!important;
+}
+#sb-action-dock .sb-dock-panel-left,#sb-action-dock .sb-dock-panel-right{
+ min-height:58px!important;height:58px!important;
+}
+#constructionPanel{
+ position:fixed!important;
+ left:6px!important;right:6px!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + 76px)!important;
+ top:auto!important;
+ width:auto!important;max-width:calc(100vw - 12px)!important;
+ max-height:calc(100dvh - 156px)!important;
+ box-sizing:border-box!important;
+ border:0!important;border-radius:24px!important;
+ background:rgba(15,25,40,.58)!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+}
+#constructionPanel .tool-group{background:transparent!important;border:0!important}
+#constructionPanel .tool-grid{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ justify-items:center!important;justify-content:center!important;
+ gap:10px!important;padding:10px 6px!important;
+}
+#constructionPanel .tool-grid button{
+ width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;
+ border-radius:50%!important;margin:0!important;justify-self:center!important;
+}
+#sb-terms-overlay{
+ background:rgba(4,10,18,.46)!important;
+ backdrop-filter:blur(24px) saturate(165%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(165%)!important;
+}
+#sb-terms-card{
+ width:min(92vw,440px)!important;max-height:min(82dvh,680px)!important;
+ overflow:auto!important;padding:22px!important;border:0!important;
+ border-radius:28px!important;background:rgba(15,25,40,.62)!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.2)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+}
+#sb-terms-card #sb-terms-accept{
+ min-height:48px!important;border:0!important;border-radius:999px!important;
+ background:rgba(35,210,165,.2)!important;
+ box-shadow:inset 0 0 0 1px rgba(110,255,210,.28)!important;
+}
+#sb-terms-card #sb-terms-accept:disabled{opacity:.35!important}
+#sb-terms-card .sb-menu-close{display:none!important}
+#sb-terms-card h2{margin-top:0!important}
+#sb-top-dock #sb-map-theme-toggle{
+ touch-action:none!important;user-select:none!important;-webkit-user-select:none!important;
+ cursor:grab!important;position:relative;z-index:2;
+}
+body.sb-theme-dragging #sb-top-dock,
+body.sb-theme-dragging #sb-action-dock .sb-dock-panel{
+ margin:6px!important;
+}
+body.sb-theme-dragging #sb-top-dock #sb-map-theme-toggle{cursor:grabbing!important}
+#sb-top-dock .sb-theme-menu-pair{overflow:visible!important}
+#sb-top-dock svg,#sb-action-dock svg,#constructionPanel .tool-grid svg{
+ display:block!important;width:24px!important;height:24px!important;
+ min-width:24px!important;min-height:24px!important;
+ flex:0 0 24px!important;max-width:24px!important;max-height:24px!important;
+ margin:auto!important;overflow:visible!important;
+}
+#sb-top-dock button,#sb-action-dock button,#constructionPanel .tool-grid button{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+}
+#sb-terms-card input[type="checkbox"]{border-radius:5px!important}
+</style>
+
+
+<style id="sb-crosshair-4x2-dark-pill-refresh">
+:root{color-scheme:dark}
+html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
+#sb-top-dock,#sb-action-dock,#sb-construction-menu,#constructionPanel{
+ border-radius:999px!important;
+}
+#sb-top-dock{
+ border-radius:999px!important;
+}
+#sb-action-dock{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:center!important;gap:6px!important;padding:6px!important;
+ border:0!important;border-radius:999px!important;
+ background:rgba(12,23,39,.58)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.14)!important;
+ backdrop-filter:blur(26px) saturate(180%)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+}
+#sb-action-dock .sb-dock-pair{
+ display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;
+ padding:0!important;border-radius:999px!important;background:transparent!important;
+}
+#sb-action-dock button{
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ flex:0 0 46px!important;border-radius:50%!important;margin:0!important;
+}
+#sb-construction-menu{border-radius:999px!important}
+#sb-construction-menu #sb-panel-toggle{
+ width:58px!important;height:58px!important;min-width:58px!important;min-height:58px!important;
+ border-radius:50%!important;display:grid!important;place-items:center!important;
+ background:rgba(12,23,39,.64)!important;border:1px solid rgba(255,255,255,.2)!important;
+ backdrop-filter:blur(24px) saturate(180%)!important;-webkit-backdrop-filter:blur(24px) saturate(180%)!important;
+}
+#constructionPanel{
+ position:fixed!important;left:6px!important;right:6px!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + 76px)!important;
+ top:auto!important;width:auto!important;max-width:calc(100vw - 12px)!important;
+ max-height:calc(100dvh - 160px)!important;box-sizing:border-box!important;
+ padding:10px!important;border:0!important;border-radius:26px!important;
+ background:rgba(10,22,38,.64)!important;color:#f4f8ff!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.12)!important;
+ backdrop-filter:blur(28px) saturate(180%)!important;-webkit-backdrop-filter:blur(28px) saturate(180%)!important;
+}
+#constructionPanel .panel-heading,#constructionPanel .tool-group{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#constructionPanel .tool-grid{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,56px)!important;
+ justify-items:center!important;align-items:center!important;justify-content:stretch!important;
+ gap:8px 6px!important;padding:8px 6px!important;
+}
+#constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{
+ width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;
+ justify-self:center!important;align-self:center!important;margin:0!important;
+}
+#constructionPanel .tool-grid button{
+ display:grid!important;place-items:center!important;border-radius:50%!important;
+ background:rgba(255,255,255,.10)!important;border:1px solid rgba(220,240,255,.16)!important;
+}
+#constructionPanel .tool-grid button svg{
+ width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+ max-width:32px!important;max-height:32px!important;display:block!important;margin:auto!important;
+ overflow:visible!important;
+}
+/* Shared iOS-style outline icon geometry: 24-unit viewBox, centered 2px rounded strokes. */
+#constructionPanel .tool-grid button svg path,
+#constructionPanel .tool-grid button svg circle,
+#constructionPanel .tool-grid button svg rect,
+#constructionPanel .tool-grid button svg line,
+#constructionPanel .tool-grid button svg polyline{
+ vector-effect:non-scaling-stroke!important;stroke-linecap:round!important;stroke-linejoin:round!important;
+}
+#constructionPanel .tool-grid button svg{overflow:visible!important}
+#map .sb-map-crosshair{pointer-events:none!important;z-index:1200!important}
+#map .sb-map-crosshair:before,#map .sb-map-crosshair:after{background:#f6fbff!important}
+#map .sb-map-crosshair:before{height:32px!important}
+#map .sb-map-crosshair:after{width:32px!important}
+#sb-terms-overlay{z-index:4000!important}
+@media(max-width:560px){
+ #constructionPanel{left:6px!important;right:6px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 76px)!important}
+ #constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-template-rows:repeat(2,54px)!important;gap:6px!important;padding:6px!important}
+ #constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important}
+ #constructionPanel .tool-grid button svg{width:31px!important;height:31px!important;min-width:31px!important;min-height:31px!important}
+}
+</style>
+
+<style id="sb-dock-glass-match-and-construction-panel-drag">
+/* The left and right action groups use the exact top dock glass treatment. */
+#sb-action-dock{
+ position:fixed!important;left:10px!important;right:10px!important;
+ bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:10px!important;padding:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;
+ backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ pointer-events:none!important;overflow:visible!important;
+}
+#sb-action-dock .sb-dock-panel{
+ display:flex!important;align-items:center!important;gap:8px!important;
+ min-height:68px!important;height:68px!important;box-sizing:border-box!important;
+ padding:9px 14px!important;border-radius:999px!important;
+ background:linear-gradient(110deg,rgba(23,48,67,.88),rgba(75,91,88,.78))!important;
+ border:1px solid rgba(205,232,239,.34)!important;
+ box-shadow:0 10px 32px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.16)!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ pointer-events:auto!important;flex:0 0 auto!important;
+}
+#sb-action-dock .sb-dock-panel-left{justify-content:flex-start!important}
+#sb-action-dock .sb-dock-panel-right{justify-content:flex-end!important;margin-left:auto!important}
+#sb-action-dock .sb-dock-panel button{
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ flex:0 0 46px!important;border-radius:50%!important;margin:0!important;
+}
+#sb-action-dock .sb-dock-panel button svg{width:26px!important;height:26px!important}
+#constructionPanel{
+ touch-action:pan-y!important;user-select:none!important;-webkit-user-select:none!important;
+}
+#constructionPanel .panel-heading{cursor:grab!important;touch-action:none!important}
+#constructionPanel.sb-panel-dragging .panel-heading{cursor:grabbing!important}
+#constructionPanel.sb-panel-dragging{transition:none!important}
+#constructionPanel.sb-panel-dragging *{user-select:none!important;-webkit-user-select:none!important}
+</style>
+<script id="sb-construction-panel-long-press-drag">
+(function(){
+ const HOLD_MS=480, SNAP_DISTANCE=34;
+ function bind(){
+  const panel=document.getElementById('constructionPanel');
+  const handle=panel&&panel.querySelector('.panel-heading');
+  if(!panel||!handle||handle.dataset.dragBound)return;
+  handle.dataset.dragBound='true';
+  let timer=null,pointerId=null,startX=0,startY=0,offsetX=0,offsetY=0,dragging=false,origin=null;
+  const clear=()=>{if(timer){clearTimeout(timer);timer=null;}};
+  handle.addEventListener('pointerdown',event=>{
+   if(event.pointerType==='mouse'&&event.button!==0)return;
+   clear();pointerId=event.pointerId;startX=event.clientX;startY=event.clientY;dragging=false;
+   const rect=panel.getBoundingClientRect();origin={left:rect.left,top:rect.top,width:rect.width,height:rect.height};
+   timer=setTimeout(()=>{
+    dragging=true;handle.setPointerCapture?.(pointerId);
+    offsetX=startX-origin.left;offsetY=startY-origin.top;
+    panel.style.position='fixed';panel.style.left=origin.left+'px';panel.style.top=origin.top+'px';
+    panel.style.right='auto';panel.style.bottom='auto';panel.style.width=origin.width+'px';
+    panel.style.margin='0';panel.style.zIndex='1800';panel.classList.add('sb-panel-dragging');
+   },HOLD_MS);
+  });
+  handle.addEventListener('pointermove',event=>{
+   if(event.pointerId!==pointerId)return;
+   if(!dragging){if(Math.hypot(event.clientX-startX,event.clientY-startY)>10)clear();return;}
+   const rect=panel.getBoundingClientRect();
+   let x=Math.max(6,Math.min(innerWidth-rect.width-6,event.clientX-offsetX));
+   let y=Math.max(6,Math.min(innerHeight-rect.height-6,event.clientY-offsetY));
+   if(Math.hypot(x-origin.left,y-origin.top)<=SNAP_DISTANCE){x=origin.left;y=origin.top;}
+   panel.style.left=x+'px';panel.style.top=y+'px';
+  });
+  const finish=event=>{
+   if(event.pointerId!==pointerId)return;clear();
+   if(dragging){event.preventDefault();event.stopPropagation();panel.classList.remove('sb-panel-dragging');}
+   dragging=false;pointerId=null;
+  };
+  handle.addEventListener('pointerup',finish);handle.addEventListener('pointercancel',finish);
+ }
+ document.addEventListener('DOMContentLoaded',bind,{once:true});bind();
+})();
+</script>
+
+<script id="sb-resume-clear-stale-startup-blur">
+(function(){
+ function clearStaleStartupBlur(){
+  // Keep the intentional startup/terms blur until the user has accepted the terms.
+  if(!localStorage.getItem('sbTermsAccepted'))return;
+  const menu=document.getElementById('startMenu');
+  const terms=document.getElementById('sb-terms-overlay');
+  const menuVisible=menu&&getComputedStyle(menu).display!=='none';
+  const termsVisible=terms&&terms.classList.contains('open');
+  if(menuVisible||termsVisible)return;
+  document.body.classList.remove('sb-start-menu-open');
+  document.getElementById('map')?.classList.remove('sb-start-blur');
+  document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
+ }
+ function onResume(){
+  requestAnimationFrame(()=>requestAnimationFrame(clearStaleStartupBlur));
+ }
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)onResume();});
+ window.addEventListener('pageshow',onResume);
+ window.addEventListener('focus',onResume);
+ document.addEventListener('resume',onResume);
+})();
+</script>
+
+<style id="sb-bottom-docks-topbar-glass-cleanup">
+/* Bottom dock shells: match the top bar's translucent dark glass, without gradients or outlines. */
+#sb-action-dock .sb-dock-panel{
+ background:rgba(5,13,25,.68)!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:0 14px 38px rgba(2,8,18,.30)!important;
+ backdrop-filter:blur(22px) saturate(150%)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(150%)!important;
+}
+/* Keep both dock groups visually consistent; no inherited gradient or border on either bar. */
+#sb-action-dock .sb-dock-panel-left,
+#sb-action-dock .sb-dock-panel-right{
+ background:rgba(5,13,25,.68)!important;
+ background-image:none!important;
+ border:0!important;
+}
+/* Edit controls use the same quiet glass treatment as the other dock buttons,
+   without the always-on white outline/glow that made them look selected. */
+#sb-action-dock .sb-dock-panel #undoBtn,
+#sb-action-dock .sb-dock-panel #redoBtn{
+ background:rgba(255,255,255,.09)!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ filter:none!important;
+ opacity:1!important;
+ color:#f4f8fc!important;
+}
+#sb-action-dock .sb-dock-panel #undoBtn:disabled,
+#sb-action-dock .sb-dock-panel #redoBtn:disabled{
+ opacity:.42!important;
+ color:rgba(245,250,255,.55)!important;
+}
+#sb-action-dock .sb-dock-panel #undoBtn:not(:disabled),
+#sb-action-dock .sb-dock-panel #redoBtn:not(:disabled){
+ box-shadow:none!important;
+}
+#sb-action-dock .sb-dock-panel #undoBtn:hover,
+#sb-action-dock .sb-dock-panel #undoBtn:focus,
+#sb-action-dock .sb-dock-panel #undoBtn:focus-visible,
+#sb-action-dock .sb-dock-panel #redoBtn:hover,
+#sb-action-dock .sb-dock-panel #redoBtn:focus,
+#sb-action-dock .sb-dock-panel #redoBtn:focus-visible{
+ background:rgba(255,255,255,.09)!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+</style>
+
+<style id="sb-station-white-neon-crosshair-target">
+/* Committed station markers: white center with a transparent white neon halo. */
+#map .leaflet-sbStationNode-pane .sb-station-leaflet-icon,
+#map .leaflet-sbStationNode-pane .sb-station-marker{
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+}
+#map .leaflet-sbStationNode-pane .sb-station-marker .sb-station-node{
+ width:14px!important;height:14px!important;border-radius:50%!important;
+ background:#fff!important;border:1px solid rgba(255,255,255,.95)!important;
+ box-shadow:0 0 0 5px rgba(255,255,255,.12),0 0 10px rgba(255,255,255,.88),0 0 22px rgba(255,255,255,.55)!important;
+}
+#map .leaflet-sbStationNode-pane .sb-station-marker.is-selected .sb-station-node,
+#map .leaflet-sbStationNode-pane .sb-station-marker.is-crosshair-target .sb-station-node{
+ box-shadow:0 0 0 5px rgba(255,255,255,.18),0 0 0 8px rgba(255,255,255,.65),0 0 16px rgba(255,255,255,.95),0 0 30px rgba(255,255,255,.72)!important;
+}
+#map .leaflet-sbStationNode-pane .sb-station-marker.is-track-target .sb-station-node{
+ box-shadow:0 0 0 5px rgba(255,255,255,.15),0 0 0 8px rgba(110,235,255,.85),0 0 22px rgba(110,235,255,.9)!important;
+}
+</style>
+<script id="sb-map-click-crosshair-tool-routing">
+(function(){
+ if(window.__sbCrosshairToolRouting)return;
+ window.__sbCrosshairToolRouting=true;
+ const CENTER_RADIUS=26;
+ function centerPoint(){return map.getSize().divideBy(2);}
+ function stationAtCrosshair(){
+  const center=centerPoint();let best=null,bestDistance=CENTER_RADIUS;
+  stations.forEach((station,index)=>{
+   const point=map.latLngToContainerPoint([station.lat,station.lng]);
+   const distance=point.distanceTo(center);
+   if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
+  });
+  return best;
+ }
+ function segmentDistance(point,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,len=dx*dx+dy*dy;
+  if(!len)return point.distanceTo(a);
+  const t=Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/len));
+  return point.distanceTo(L.point(a.x+t*dx,a.y+t*dy));
+ }
+ function trackAtCrosshair(){
+  const center=centerPoint();let best=null,bestDistance=26;
+  tracks.forEach((track,index)=>{
+   const aStation=stations[track.a],bStation=stations[track.b];if(!aStation||!bStation)return;
+   let latLngs=[[aStation.lat,aStation.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[bStation.lat,bStation.lng]];
+   if(track.curve&&(track.waypoints||[]).length){
+    const route=latLngs.map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
+    const alpha=.5,stepsPerSegment=20;
+    const distance2=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
+    const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
+    const curved=[];
+    for(let segment=0;segment<route.length-1;segment++){
+     const p0=route[Math.max(0,segment-1)],p1=route[segment],p2=route[segment+1],p3=route[Math.min(route.length-1,segment+2)];
+     const t0=0,t1=t0+Math.max(1e-4,Math.pow(distance2(p0,p1),alpha));
+     const t2=t1+Math.max(1e-4,Math.pow(distance2(p1,p2),alpha));
+     const t3=t2+Math.max(1e-4,Math.pow(distance2(p2,p3),alpha));
+     const blend=(a,b,ta,tb,t)=>mix(a,b,(t-ta)/(tb-ta));
+     for(let step=0;step<=stepsPerSegment;step++){
+      if(segment>0&&step===0)continue;
+      const u=step/stepsPerSegment,t=t1+u*(t2-t1);
+      const A1=blend(p0,p1,t0,t1,t),A2=blend(p1,p2,t1,t2,t),A3=blend(p2,p3,t2,t3,t);
+      const B1=blend(A1,A2,t0,t2,t),B2=blend(A2,A3,t1,t3,t);
+      const C=blend(B1,B2,t1,t2,t),ll=map.unproject(C,18);
+      curved.push([ll.lat,ll.lng]);
+     }
+    }
+    latLngs=curved;
+   }
+   const points=latLngs.map(ll=>map.latLngToContainerPoint(ll));
+   let distance=Infinity;
+   for(let i=1;i<points.length;i++)distance=Math.min(distance,segmentDistance(center,points[i-1],points[i]));
+   if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
+  });
+  return best;
+ }
+ function waypointAtCrosshair(){
+  const center=centerPoint();let best=null,bestDistance=24;
+  tracks.forEach((track,trackIndex)=>(track.waypoints||[]).forEach((waypoint,waypointIndex)=>{
+   const distance=map.latLngToContainerPoint([waypoint.lat,waypoint.lng]).distanceTo(center);
+   if(distance<=bestDistance){best={trackIndex,waypointIndex,distance};bestDistance=distance;}
+  }));
+  return best;
+ }
+ map.on('click',function(){
+  if(document.getElementById('sb-3d-map')?.classList.contains('active'))return;
+  const center=map.getCenter();
+  const target=stationAtCrosshair();
+  if(mode==='track'){
+   if(target){handleStationClick(target.index);}
+   else message('Move the map until a station is under the crosshair, then tap to select it.');
+   return;
+  }
+  if(mode==='curve'||mode==='waypoint'){
+   if(selectedTrackIndex===null||!tracks[selectedTrackIndex]){
+    const trackTarget=trackAtCrosshair();
+    if(!trackTarget){message('Move the map until a track is under the crosshair to select it.');return;}
+    selectedTrackIndex=trackTarget.index;
+    renderNetwork();
+    message('Track selected. Move the map crosshair to a point and tap to add '+(mode==='curve'?'a curve point.':'a waypoint.'));
+    return;
+   }
+   const track=tracks[selectedTrackIndex];
+   if(!Array.isArray(track.waypoints))track.waypoints=[];
+   if(mode==='curve')track.curve=true;
+   // One committed geometry point equals one independent undo/redo entry.
+   track.waypoints.push({lat:center.lat,lng:center.lng,elevation:'at'});
+   saveHistory();
+   renderNetwork();
+   message(mode==='curve'?'Curve point added at crosshair.':'Waypoint added at crosshair.');
+   return;
+  }
+  if(mode==='inspect'){
+   if(target)handleStationClick(target.index);
+   else message('Move the map until a station is under the crosshair to inspect it.');
+   return;
+  }
+  if(mode==='delete'){
+   if(target){handleStationClick(target.index);return;}
+   const waypoint=waypointAtCrosshair();
+   if(waypoint){
+    tracks[waypoint.trackIndex].waypoints.splice(waypoint.waypointIndex,1);
+    saveHistory();renderNetwork();message('Waypoint deleted at crosshair.');return;
+   }
+   const track=trackAtCrosshair();
+   if(track){
+    tracks.splice(track.index,1);selectedTrackIndex=null;
+    saveHistory();renderNetwork();message('Track section deleted at crosshair.');return;
+   }
+   message('Move the map until a station, track, or waypoint is under the crosshair.');
+  }
+ });
+})();
+</script>
+
+
+<style id="sb-construction-drawer-dock-inset-buffer">
+/* Keep a clear inset between the construction drawer and the bottom-left edit dock. */
+#constructionPanel{
+ bottom:calc(env(safe-area-inset-bottom,0px) + 88px)!important;
+ max-height:calc(100dvh - 176px)!important;
+}
+@media(max-width:560px){
+ #constructionPanel{bottom:calc(env(safe-area-inset-bottom,0px) + 88px)!important;max-height:calc(100dvh - 176px)!important}
+}
+</style>
+<script id="sb-build-dock-selected-tool-state">
+(function(){
+ if(window.__sbBuildDockSelectedToolState)return;
+ window.__sbBuildDockSelectedToolState=true;
+ function sync(){
+  const button=document.getElementById('sb-build-dock-btn');
+  const menu=document.getElementById('sb-construction-menu');
+  if(!button)return;
+  const currentMode=typeof mode!=='undefined'?mode:null;
+  const buildMode=['station','track','curve','waypoint','inspect'].includes(currentMode);
+  const active=!!(menu&&menu.open)||buildMode;
+  const selected=active&&currentMode!=='delete';
+  button.classList.toggle('active',selected);
+  button.setAttribute('aria-pressed',String(selected));
+ }
+ document.addEventListener('DOMContentLoaded',sync);
+ const menu=document.getElementById('sb-construction-menu');
+ if(menu)new MutationObserver(sync).observe(menu,{attributes:true,attributeFilter:['open']});
+ const panel=document.getElementById('constructionPanel');
+ if(panel)panel.addEventListener('click',event=>{
+  if(event.target.closest('[data-panel-action]'))requestAnimationFrame(sync);
+ },true);
+ const originalSetMode=window.setMode;
+ if(typeof originalSetMode==='function')window.setMode=function(){const result=originalSetMode.apply(this,arguments);sync();return result;};
+ const originalToggle=window.toggleToolsPanel;
+ if(typeof originalToggle==='function')window.toggleToolsPanel=function(){const result=originalToggle.apply(this,arguments);sync();return result;};
+ sync();
+})();
+</script>
+
+
+<style id="sb-station-marker-built-in-pane-visibility">
+#map .leaflet-marker-pane .sb-station-leaflet-icon,
+#map .leaflet-marker-pane .sb-station-marker{display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+#map .leaflet-marker-pane .sb-station-marker .sb-station-node{display:block!important;width:14px!important;height:14px!important;border-radius:50%!important;background:#fff!important;border:1px solid rgba(255,255,255,.95)!important;box-shadow:0 0 0 5px rgba(255,255,255,.12),0 0 10px rgba(255,255,255,.88),0 0 22px rgba(255,255,255,.55)!important}
+#map .leaflet-marker-pane .sb-station-marker.is-selected .sb-station-node,#map .leaflet-marker-pane .sb-station-marker.is-crosshair-target .sb-station-node{box-shadow:0 0 0 5px rgba(255,255,255,.18),0 0 0 8px rgba(255,255,255,.65),0 0 16px rgba(255,255,255,.95),0 0 30px rgba(255,255,255,.72)!important}
+</style>
+<style id="sb-construction-drawer-right-side-spacing">
+#sb-panel-toggle.menu-hamburger{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 70px)!important}
+#sb-construction-menu[open]>#constructionPanel{position:fixed!important;left:auto!important;right:10px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 126px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 87px)!important;width:min(310px,calc(100vw - 20px))!important;max-height:none!important;height:auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+@media(max-width:560px){
+ #sb-panel-toggle.menu-hamburger{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 68px)!important}
+ #sb-construction-menu[open]>#constructionPanel{left:auto!important;right:8px!important;top:calc(max(6px,env(safe-area-inset-top,0px)) + 122px)!important;bottom:calc(env(safe-area-inset-bottom,0px) + 82px)!important;width:min(290px,calc(100vw - 16px))!important}
+}
+</style>
+
+
+<style id="sb-construction-dock-parity-and-button-spacing">
+/* Keep the drawer's existing right-side position and footprint; only match its
+   glass material to the action dock and normalize the tool-button rhythm. */
+#sb-construction-menu[open]>#constructionPanel{
+ box-sizing:border-box!important;
+ background:rgba(5,13,25,.68)!important;background-image:none!important;
+ border:0!important;border-radius:26px!important;
+ box-shadow:0 14px 38px rgba(2,8,18,.30)!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+ padding:12px!important;
+}
+#constructionPanel .tool-group,#constructionPanel .tool-grid{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#constructionPanel .tool-grid{
+ display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ justify-items:center!important;align-items:center!important;
+ column-gap:10px!important;row-gap:10px!important;
+ padding:12px 10px 14px!important;
+}
+#constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;flex:0 0 46px!important;
+ margin:0!important;justify-self:center!important;align-self:center!important;
+}
+#constructionPanel .tool-grid button{
+ border-radius:50%!important;display:grid!important;place-items:center!important;
+ background:rgba(255,255,255,.12)!important;background-image:none!important;
+ border:0!important;box-shadow:none!important;color:#f4fbff!important;
+}
+#constructionPanel .tool-grid button svg{width:26px!important;height:26px!important;min-width:26px!important;min-height:26px!important;max-width:26px!important;max-height:26px!important}
+#constructionPanel .tool-grid button:active{background:rgba(67,218,190,.30)!important;transform:scale(.96)!important}
+#constructionPanel .tool-grid button.active,#constructionPanel .tool-grid button[aria-pressed="true"]{
+ background:rgba(67,218,190,.28)!important;
+ box-shadow:0 0 0 1px rgba(105,255,225,.55),0 0 13px rgba(53,231,208,.24)!important;
+}
+@media(max-width:560px){
+ #constructionPanel .tool-grid{column-gap:8px!important;row-gap:9px!important;padding:10px 8px 12px!important}
+ #constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important}
+}
+</style>
+
+
+<style id="sb-nov06-glass-dock-map-alignment">
+/* Dock buttons share identical dimensions and matching selected-state glow geometry. */
+#sb-action-dock #trashModeBtn,
+#sb-action-dock #sb-build-dock-btn{
+  box-sizing:border-box!important;
+  width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+  flex:0 0 46px!important;padding:0!important;margin:0!important;border-radius:50%!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  border:2px solid rgba(225,240,250,.16)!important;outline:0!important;
+  box-shadow:none!important;transform:none!important;
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+  color:#fff!important;background:rgba(255,48,75,.40)!important;
+  border-color:rgba(255,115,135,.95)!important;
+  box-shadow:0 0 0 2px rgba(255,75,95,.35),0 0 13px rgba(255,48,75,.55),
+    0 0 25px rgba(255,48,75,.30),inset 0 0 12px rgba(255,70,90,.35)!important;
+}
+#sb-action-dock #sb-build-dock-btn.active,
+#sb-action-dock #sb-build-dock-btn[aria-pressed="true"]{
+  color:#9affdc!important;background:rgba(25,210,145,.42)!important;
+  border-color:rgba(100,255,195,.98)!important;
+  box-shadow:0 0 0 2px rgba(70,245,170,.35),0 0 13px rgba(35,235,150,.55),
+    0 0 25px rgba(35,235,150,.30),inset 0 0 12px rgba(45,235,160,.38)!important;
+}
+#sb-action-dock #trashModeBtn:not(.active):not([aria-pressed="true"]),
+#sb-action-dock #sb-build-dock-btn:not(.active):not([aria-pressed="true"]){
+  background:rgba(255,255,255,.08)!important;border-color:rgba(225,240,250,.16)!important;
+  box-shadow:none!important;
+}
+/* Give the tool bay real breathing room; keep the icons centered in separate circles. */
+#constructionPanel{
+  border-radius:28px!important;
+  overflow-x:hidden!important;
+  background:rgba(12,23,39,.42)!important;
+}
+#constructionPanel .panel-heading,
+#constructionPanel .panel-heading:before{
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+#constructionPanel .tool-group{
+  border-radius:22px!important;
+  margin:10px 0!important;
+  padding:0 8px 9px!important;
+  overflow:hidden!important;
+  background:rgba(255,255,255,.035)!important;
+}
+#constructionPanel .tool-group summary{
+  border:0!important;background:transparent!important;
+  border-radius:20px!important;padding:14px 14px!important;
+}
+#constructionPanel .tool-grid{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-auto-rows:minmax(52px,auto)!important;
+  justify-items:center!important;align-items:center!important;
+  gap:12px 8px!important;padding:14px 12px 16px!important;
+  margin:0!important;box-sizing:border-box!important;
+}
+#constructionPanel .tool-grid button,
+#constructionPanel .tool-grid .sb-tool-slot-empty{
+  box-sizing:border-box!important;width:46px!important;height:46px!important;
+  min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;
+  margin:0!important;padding:0!important;justify-self:center!important;align-self:center!important;
+  border-radius:50%!important;display:grid!important;place-items:center!important;
+}
+#constructionPanel .tool-grid button svg{width:27px!important;height:27px!important;display:block!important;pointer-events:none!important}
+/* Remove the old blue/cyan placement and drag halos. Keep markers crisp and readable. */
+.sb-station-marker,.sb-station-marker.is-dragging,
+.sb-station-marker.is-crosshair-target,.sb-placement-preview{
+  filter:none!important;box-shadow:none!important;
+}
+.sb-station-marker{
+  box-sizing:border-box!important;width:24px!important;height:24px!important;
+  border-radius:50%!important;background:transparent!important;
+  border:0!important;transform:none!important;
+}
+#map .sb-station-marker .sb-station-node{
+  display:block!important;width:20px!important;height:20px!important;
+  box-sizing:border-box!important;border-radius:50%!important;
+  background:#f7fbff!important;border:2px solid rgba(255,255,255,.95)!important;
+  box-shadow:0 1px 4px rgba(0,0,0,.85)!important;
+}
+#map .sb-station-marker.is-selected .sb-station-node{
+  background:#fff!important;border-color:#fff!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.95)!important;
+}
+#map .sb-station-marker.is-track-target .sb-station-node{background:#fff!important}
+#map .sb-station-marker.is-dragging .sb-station-node{background:#fff!important;box-shadow:none!important}
+/* Crosshair is centered against Leaflet's actual map container, not the full device window. */
+#map{overflow:hidden!important}
+#map .sb-map-crosshair{
+  position:absolute!important;left:50%!important;top:50%!important;
+  width:32px!important;height:32px!important;margin:0!important;padding:0!important;
+  transform:translate3d(-50%,-50%,0)!important;pointer-events:none!important;
+  z-index:1200!important;filter:none!important;
+}
+@media(max-width:560px){
+ #constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px 6px!important;padding:12px 9px 14px!important}
+ #constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;max-width:44px!important;max-height:44px!important}
+ #sb-action-dock #trashModeBtn,#sb-action-dock #sb-build-dock-btn{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;flex-basis:46px!important}
+}
+</style>
+<script id="sb-nov06-center-crosshair-sync">
+(function(){
+ function syncMapCrosshair(){
+  if(typeof map==='undefined'||!map)return;
+  const cross=document.querySelector('#map .sb-map-crosshair');
+  if(!cross)return;
+  const size=map.getSize();
+  cross.style.left=(size.x/2)+'px';
+  cross.style.top=(size.y/2)+'px';
+ }
+ function centerPlacementPoint(){
+  return map.containerPointToLatLng(map.getSize().divideBy(2));
+ }
+ window.sbGetCrosshairLatLng=centerPlacementPoint;
+ if(typeof map!=='undefined'&&map){
+  map.on('resize moveend zoomend',syncMapCrosshair);
+  window.addEventListener('resize',syncMapCrosshair,{passive:true});
+  requestAnimationFrame(()=>requestAnimationFrame(syncMapCrosshair));
+ }
 })();
 </script>
 
 </body>
 </html>
+<style id="sb-nov06-track-hitbox-and-dock-polish">
+#constructionPanel .tool-grid{box-sizing:border-box!important;width:100%!important;min-width:0!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;justify-items:center!important;align-items:center!important;gap:12px 8px!important;padding:12px 8px 14px!important;overflow:visible!important}
+#constructionPanel .tool-grid>*{box-sizing:border-box!important;min-width:0!important}
+#constructionPanel .tool-grid button{box-sizing:border-box!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;margin:0!important;padding:0!important;justify-self:center!important;align-self:center!important;border-radius:50%!important;overflow:visible!important}
+#constructionPanel .tool-grid button svg{width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important}
+#constructionPanel .tool-group{box-sizing:border-box!important;min-width:0!important;overflow:hidden!important}
+#constructionPanel .tool-group summary{box-sizing:border-box!important;max-width:100%!important;white-space:normal!important}
+#map .leaflet-sbTrack-pane path{stroke-linecap:round!important;stroke-linejoin:round!important}
+#map .sb-station-marker.is-track-target .sb-station-node{box-shadow:0 0 0 5px rgba(255,255,255,.16),0 0 0 8px var(--sb-station-line-color,#76ddff),0 0 20px var(--sb-station-line-color,#76ddff)!important}
+#sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,35,58,.34)!important;border:1px solid rgba(255,105,122,.96)!important;color:#fff!important;box-shadow:0 0 0 2px rgba(255,65,86,.24),0 0 16px rgba(255,35,65,.82),0 0 30px rgba(255,35,65,.58),inset 0 0 14px rgba(255,45,68,.32)!important;text-shadow:0 0 5px #fff,0 0 11px #ff334f,0 0 20px #ff334f!important}
+@media(max-width:560px){#constructionPanel .tool-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px 6px!important;padding:10px 6px 12px!important}#constructionPanel .tool-grid button{width:42px!important;height:42px!important;min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important}}
+</style>
