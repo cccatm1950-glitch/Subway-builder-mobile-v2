@@ -2271,6 +2271,58 @@ button.sb-flat-close,[data-flat-close="true"]{
  box-shadow:none!important;
 }
 
+
+
+/* PR #69 follow-up: strip dock framing and reset UI interaction highlights. */
+#sb-top-dock,#sb-action-dock{
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ background:transparent!important;
+ background-image:none!important;
+ backdrop-filter:none!important;
+ -webkit-backdrop-filter:none!important;
+}
+#sb-top-dock{border-radius:0!important}
+#sb-action-dock{border-radius:0!important}
+#sb-top-dock button,
+#sb-action-dock button,
+#constructionPanel button,
+#sb-game-menu button{
+ box-shadow:none!important;
+ outline:none!important;
+}
+#sb-top-dock button:hover,
+#sb-top-dock button:focus,
+#sb-top-dock button:focus-visible,
+#sb-top-dock button:active,
+#sb-top-dock button.active,
+#sb-action-dock button:hover,
+#sb-action-dock button:focus,
+#sb-action-dock button:focus-visible,
+#sb-action-dock button:active,
+#sb-action-dock button.active,
+#constructionPanel button:hover,
+#constructionPanel button:focus,
+#constructionPanel button:focus-visible,
+#constructionPanel button:active,
+#constructionPanel button.active,
+#sb-game-menu button:hover,
+#sb-game-menu button:focus,
+#sb-game-menu button:focus-visible,
+#sb-game-menu button:active,
+#sb-game-menu button.active{
+ box-shadow:none!important;
+ outline:none!important;
+ filter:none!important;
+}
+#sb-action-dock #undoBtn:not(:disabled),
+#sb-action-dock #redoBtn:not(:disabled),
+#sb-action-dock #undoBtn:disabled,
+#sb-action-dock #redoBtn:disabled{
+ box-shadow:none!important;
+}
+
 </style>
 
 /* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
