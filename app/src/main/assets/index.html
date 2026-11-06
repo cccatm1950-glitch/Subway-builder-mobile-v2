@@ -2822,39 +2822,7 @@ function renderNetwork(){
   if(!a||!b)return;
 
   let start=L.latLng(a.lat,a.lng);
-  if(mode==='waypoint'||mode==='curve'||mode==='delete'){
- L.polyline([
-  [a.lat,a.lng],
-  [b.lat,b.lng]
- ],{
-  pane:'sbInteractionPane',
-  color:mode==='delete'?'#e74c3c':(selectedTrackIndex===trackIndex?'#45e6ff':'#f0a52b'),
-  weight:mode==='delete'?24:(selectedTrackIndex===trackIndex?30:26),
-  opacity:mode==='delete'?0.28:(selectedTrackIndex===trackIndex?0.72:0.24),
-  interactive:true,
-  bubblingMouseEvents:false,
-  lineCap:'round',
-  lineJoin:'round'
- }).addTo(window.networkLayer).on('click',function(e){
-  L.DomEvent.stopPropagation(e);
-
-  if(mode==='curve'){
-   selectedTrackIndex=trackIndex;
-   renderNetwork();
-   message('Track selected. Tap the map to add a curve point.');
-  }else if(mode==='delete'){
-   tracks.splice(trackIndex,1);
-   selectedTrackIndex=null;
-   saveHistory();
-   renderNetwork();
-   message('Track section deleted.');
-  }else{
-   selectTrackForWaypoints(trackIndex);
-  }
- });
-}
   let end=L.latLng(b.lat,b.lng);
-
   let points=[];
 
 if(t.waypoints){
@@ -2925,6 +2893,15 @@ if(mode==='delete'){
  ];
 }
 
+  // Transparent edit hitbox follows the sampled route, not the station chord.
+  if(mode==='waypoint'||mode==='curve'||mode==='delete'){
+   L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
+    L.DomEvent.stopPropagation(e);
+    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();message('Track selected. Tap the map to add a curve point.');}
+    else if(mode==='delete'){tracks.splice(trackIndex,1);selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
+    else selectTrackForWaypoints(trackIndex);
+   });
+  }
   const assignedLines=lines.filter(line=>(t.lineIds||[]).includes(line.id));
   const routeColor=assignedLines[0]?.color||['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
   function drawLine(offset){
@@ -2942,8 +2919,8 @@ if(mode==='delete'){
     });
 
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
-  const selectedCurve=!!(t.curve&&selectedTrackIndex===trackIndex);
-  L.polyline(shifted,{pane:'sbTrackPane',color:selectedCurve?'#76ddff':routeColor,weight:selectedCurve?17:14,opacity:selectedCurve ? .24 : .22,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  const selectedCurve=false;
+  L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:.22,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   if(elevation==='below'){
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
    [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:.22}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
@@ -2973,9 +2950,14 @@ if(mode==='delete'){
 
  stations.forEach((s,i)=>{
   let connected=tracks.find(t=>t.a===i||t.b===i);
-  let other=connected
-    ? stations[connected.a===i?connected.b:connected.a]
-    : null;
+  let other=connected?stations[connected.a===i?connected.b:connected.a]:null;
+  // Use the first/last curve waypoint as the platform's endpoint tangent.
+  let tangentPoint=null;
+  if(connected&&(connected.waypoints||[]).length){
+   const wp=connected.waypoints;
+   const tangent=connected.a===i?wp[0]:wp[wp.length-1];
+   if(Number.isFinite(tangent.lat)&&Number.isFinite(tangent.lng))tangentPoint=tangent;
+  }
   // Before a new station is connected, align it with the nearest existing
   // station so the platform does not default to north/south. Once connected,
   // the actual track bearing takes precedence on every render.
@@ -2990,8 +2972,9 @@ if(mode==='delete'){
    });
    other=nearest;
   }
-  let dx=other?(other.lng-s.lng)*Math.cos(s.lat*Math.PI/180):0;
-  let dy=other?other.lat-s.lat:1;
+  let orientationPoint=tangentPoint||other;
+  let dx=orientationPoint?(orientationPoint.lng-s.lng)*Math.cos(s.lat*Math.PI/180):0;
+  let dy=orientationPoint?orientationPoint.lat-s.lat:1;
   let len=Math.sqrt(dx*dx+dy*dy)||1;
 
   let halfWidth=platformWidth==='narrow'?5:
@@ -3030,10 +3013,8 @@ if(mode==='delete'){
       corners[3],
       corners[2]
     ],{
-      color:'#71869c',
-      weight:2,
-      fillColor:'#dce5ed',
-      fillOpacity:0.95,
+      color:'#a9bac9',weight:1,opacity:0.58,
+      fillColor:'#dce5ed',fillOpacity:0.34,
       pane:'sbPlatformPane'
     }).addTo(window.networkLayer);
   }
@@ -5801,6 +5782,24 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   requestAnimationFrame(()=>requestAnimationFrame(syncMapCrosshair));
  }
 })();
+</script>
+
+<style id="sb-construction-dock-layout-and-marker-fix">
+#sb-construction-menu[open]>#constructionPanel{box-sizing:border-box!important;display:block!important;width:min(660px,calc(100vw - 24px))!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;padding:10px 12px!important;margin:0!important;background:rgba(24,31,41,.82)!important;border:1px solid rgba(225,240,250,.13)!important;border-radius:32px!important;box-shadow:0 12px 32px rgba(0,0,0,.24)!important;-webkit-backdrop-filter:blur(28px) saturate(165%)!important;backdrop-filter:blur(28px) saturate(165%)!important}
+#constructionPanel .panel-heading,#constructionPanel .tool-group summary{display:none!important}
+#constructionPanel .tool-group{display:block!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+#constructionPanel .tool-grid{display:grid!important;grid-template-columns:repeat(8,minmax(0,1fr))!important;grid-auto-rows:52px!important;gap:6px!important;width:100%!important;padding:0!important;margin:0!important;justify-items:center!important;align-items:center!important;background:transparent!important;border:0!important;box-shadow:none!important}
+#constructionPanel .tool-grid button{box-sizing:border-box!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;margin:0!important;padding:0!important;border:1px solid rgba(225,240,250,.10)!important;border-radius:50%!important;display:grid!important;place-items:center!important;background:rgba(255,255,255,.105)!important;color:#eff8ff!important;box-shadow:none!important}
+#constructionPanel .tool-grid button svg{width:25px!important;height:25px!important;display:block!important}
+#constructionPanel .tool-grid button.active,#constructionPanel .tool-grid button[aria-pressed="true"]{background:rgba(41,208,174,.28)!important;border-color:rgba(110,255,224,.8)!important;box-shadow:0 0 0 2px rgba(76,240,205,.12),0 0 14px rgba(53,231,208,.24)!important}
+.sb-station-marker{width:22px!important;height:22px!important;border-radius:50%!important;background:#087f79!important;border:2px solid #f4fbff!important;box-shadow:0 1px 5px rgba(0,0,0,.72)!important;transform:none!important}
+#map .sb-station-marker .sb-station-node{width:12px!important;height:12px!important;display:block!important;border-radius:50%!important;background:#fff!important;border:0!important;box-shadow:0 0 3px rgba(0,0,0,.65)!important}
+#map .sb-station-marker.is-selected{background:#087f79!important;box-shadow:0 0 0 3px rgba(255,255,255,.7)!important}
+#map .sb-station-marker.is-track-target{box-shadow:0 0 0 3px rgba(255,255,255,.55)!important}
+@media(max-width:560px){#sb-construction-menu[open]>#constructionPanel{width:calc(100vw - 16px)!important;right:8px!important;padding:8px 6px!important}#constructionPanel .tool-grid{grid-template-columns:repeat(8,minmax(0,1fr))!important;grid-auto-rows:42px!important;gap:2px!important}#constructionPanel .tool-grid button{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important}#constructionPanel .tool-grid button svg{width:21px!important;height:21px!important}}
+</style>
+<script id="sb-construction-menu-persistence-fix">
+(function(){const original=window.setMode;if(typeof original==='function'&&!original.__sbKeepConstructionDockOpen){const wrapped=function(nextMode){const wasOpen=!!document.getElementById('sb-construction-menu')?.open;const result=original.apply(this,arguments);const buildMode=['station','track','curve','waypoint','inspect'].includes(nextMode);if(wasOpen||buildMode)toggleToolsPanel(true);return result;};wrapped.__sbKeepConstructionDockOpen=true;window.setMode=wrapped;}const menu=document.getElementById('sb-construction-menu');const panel=document.getElementById('constructionPanel');const toggle=document.getElementById('sb-panel-toggle');if(menu&&panel&&toggle){const sync=()=>{panel.setAttribute('aria-hidden',String(!menu.open));toggle.setAttribute('aria-expanded',String(menu.open));};menu.addEventListener('toggle',sync);sync();}})();
 </script>
 
 </body>
