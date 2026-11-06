@@ -5179,5 +5179,29 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  document.addEventListener('DOMContentLoaded',bind,{once:true});bind();
 })();
 </script>
+
+<script id="sb-resume-clear-stale-startup-blur">
+(function(){
+ function clearStaleStartupBlur(){
+  // Keep the intentional startup/terms blur until the user has accepted the terms.
+  if(!localStorage.getItem('sbTermsAccepted'))return;
+  const menu=document.getElementById('startMenu');
+  const terms=document.getElementById('sb-terms-overlay');
+  const menuVisible=menu&&getComputedStyle(menu).display!=='none';
+  const termsVisible=terms&&terms.classList.contains('open');
+  if(menuVisible||termsVisible)return;
+  document.body.classList.remove('sb-start-menu-open');
+  document.getElementById('map')?.classList.remove('sb-start-blur');
+  document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
+ }
+ function onResume(){
+  requestAnimationFrame(()=>requestAnimationFrame(clearStaleStartupBlur));
+ }
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)onResume();});
+ window.addEventListener('pageshow',onResume);
+ window.addEventListener('focus',onResume);
+ document.addEventListener('resume',onResume);
+})();
+</script>
 </body>
 </html>
