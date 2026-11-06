@@ -5460,9 +5460,10 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   const button=document.getElementById('sb-build-dock-btn');
   const menu=document.getElementById('sb-construction-menu');
   if(!button)return;
-  const buildMode=['station','track','curve','waypoint','inspect'].includes(window.mode);
+  const currentMode=typeof mode!=='undefined'?mode:null;
+  const buildMode=['station','track','curve','waypoint','inspect'].includes(currentMode);
   const active=!!(menu&&menu.open)||buildMode;
-  const selected=active&&window.mode!=='delete';
+  const selected=active&&currentMode!=='delete';
   button.classList.toggle('active',selected);
   button.setAttribute('aria-pressed',String(selected));
  }
