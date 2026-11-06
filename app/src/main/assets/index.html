@@ -6577,4 +6577,53 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  border-radius:50%!important;
 }
 #sb-service-lines #runBtn.active{color:#9affdf!important;background:rgba(25,210,150,.20)!important}
-</style></html>
+</style><style id="sb-nov06-menu-axis-consistency">
+/* Lock each menu to its intended axis: construction groups stack vertically;
+   tool buttons flow top-to-bottom in two columns; the color palette is horizontal. */
+#constructionPanel,#constructionPanel .tool-group{
+ writing-mode:horizontal-tb!important;direction:ltr!important;
+}
+#constructionPanel{
+ overflow-x:hidden!important;overflow-y:auto!important;
+}
+#constructionPanel .tool-group{
+ display:block!important;flex-direction:column!important;
+ width:100%!important;max-width:100%!important;
+}
+#constructionPanel .tool-grid{
+ display:grid!important;
+ grid-template-columns:repeat(2,40px)!important;
+ grid-template-rows:repeat(4,40px)!important;
+ grid-auto-flow:row!important;
+ grid-auto-columns:40px!important;grid-auto-rows:40px!important;
+ justify-content:center!important;align-content:start!important;
+ justify-items:center!important;align-items:center!important;
+ width:100%!important;height:auto!important;min-height:0!important;
+ overflow:visible!important;transform:none!important;
+}
+#constructionPanel .tool-grid>*{
+ grid-column:auto!important;grid-row:auto!important;
+ writing-mode:horizontal-tb!important;direction:ltr!important;
+}
+#sb-line-color-options{
+ writing-mode:horizontal-tb!important;direction:ltr!important;
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:flex-start!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ max-width:min(90vw,460px)!important;
+}
+#sb-line-color-options[hidden]{display:none!important}
+#sb-service-lines-content{
+ display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+}
+@media(max-width:700px){
+ #constructionPanel .tool-grid{
+  grid-template-columns:repeat(2,40px)!important;
+  grid-template-rows:repeat(4,40px)!important;
+  grid-auto-flow:row!important;
+ }
+ #sb-line-color-options{flex-direction:row!important;overflow-x:auto!important;overflow-y:hidden!important}
+}
+</style>
+</html>
