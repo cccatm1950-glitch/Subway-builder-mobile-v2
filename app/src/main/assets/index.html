@@ -1880,6 +1880,74 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  color:#fff!important;
  box-shadow:0 0 0 2px rgba(255,55,82,.2),0 0 18px rgba(255,35,68,.72),inset 0 0 12px rgba(255,60,82,.28)!important;
 }
+
+/* PR #62 — authoritative 4×2 build-tool grid and layered Delete glow.
+   Keep this block last so older responsive rules cannot override the layout. */
+#constructionPanel .tool-group .tool-grid,
+#constructionPanel .tool-grid{
+ display:grid!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ grid-template-rows:repeat(2,48px)!important;
+ grid-auto-flow:row!important;
+ gap:12px 8px!important;
+ width:100%!important;max-width:100%!important;min-width:0!important;
+ box-sizing:border-box!important;
+ justify-content:stretch!important;justify-items:center!important;
+ align-content:center!important;align-items:center!important;
+ padding:12px 8px!important;margin:0!important;
+}
+#constructionPanel .tool-grid button,
+#constructionPanel .tool-grid .sb-tool-slot-empty{
+ width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;
+ margin:0!important;padding:5px!important;box-sizing:border-box!important;
+ justify-self:center!important;align-self:center!important;border-radius:50%!important;
+}
+#constructionPanel .tool-grid button{
+ display:grid!important;place-items:center!important;
+ pointer-events:auto!important;touch-action:manipulation!important;
+}
+#constructionPanel .tool-grid button svg{
+ display:block!important;width:26px!important;height:26px!important;
+ max-width:26px!important;max-height:26px!important;margin:auto!important;
+}
+#constructionPanel .tool-grid .sb-tool-slot-empty{
+ display:block!important;pointer-events:none!important;
+ border:1px dashed rgba(205,229,250,.12)!important;
+ background:rgba(255,255,255,.01)!important;
+}
+#sb-action-dock #trashModeBtn{
+ box-shadow:
+  0 0 0 2px rgba(255,75,95,.22),
+  0 0 13px rgba(255,45,70,.62),
+  0 0 26px rgba(255,45,70,.34),
+  inset 0 0 10px rgba(255,60,82,.18)!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ box-shadow:
+  0 0 0 2px rgba(255,75,95,.32),
+  0 0 15px rgba(255,45,70,.86),
+  0 0 30px rgba(255,45,70,.55),
+  inset 0 0 12px rgba(255,60,82,.28)!important;
+}
+@media(max-width:560px){
+ #constructionPanel .tool-group .tool-grid,
+ #constructionPanel .tool-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-rows:repeat(2,46px)!important;
+  gap:10px 6px!important;padding:10px 4px!important;
+ }
+ #constructionPanel .tool-grid button,
+ #constructionPanel .tool-grid .sb-tool-slot-empty{
+  width:44px!important;height:44px!important;
+  min-width:44px!important;min-height:44px!important;
+  max-width:44px!important;max-height:44px!important;
+ }
+ #constructionPanel .tool-grid button svg{width:24px!important;height:24px!important}
+}
+
 </style>
 </head>
 <body class="sb-start-menu-open">
@@ -1972,14 +2040,14 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
    <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
-   <span class="sb-tool-slot-empty" aria-hidden="true"></span>
+
+
+
+
+
+
+
+
   </div>
  </details>
 </nav>
