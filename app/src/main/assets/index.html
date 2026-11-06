@@ -3255,7 +3255,11 @@ function resetSelection(){
 function activateDeleteMode(){
  if(document.getElementById('sb-3d-map').classList.contains('active'))toggle3DCityView();
  if(typeof closeStationMenu==='function')closeStationMenu();
- setMode(mode==='delete'?'station':'delete');
+ const entering=mode!=='delete';
+ if(entering&&typeof toggleToolsPanel==='function')toggleToolsPanel(false);
+ setMode(entering?'delete':'station');
+ const build=document.getElementById('sb-build-dock-btn');
+ if(build){build.classList.remove('active');build.setAttribute('aria-pressed','false');}
 }
  function setWaypointElevation(trackIndex,waypointIndex,level){
  let track=tracks[trackIndex];
@@ -4458,6 +4462,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   button.setAttribute('aria-pressed','false');
   button.innerHTML='<svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3.5 17.5a2.1 2.1 0 0 0 3 3l4.8-4.8a5 5 0 0 0 6.4-6.4l-3 3-3.5-3.5 3.5-3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   button.addEventListener('click',function(){
+   if(mode==='delete')setMode('station');
    if(typeof toggleToolsPanel==='function')toggleToolsPanel();
    syncBuildState();
   });
@@ -4469,7 +4474,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const menu=document.getElementById('sb-construction-menu');
   const del=document.getElementById('trashModeBtn');
   if(!button)return;
-  const open=!!(menu&&menu.open);
+  const open=!!(menu&&menu.open)&&mode!=='delete';
   button.classList.toggle('active',open);
   button.setAttribute('aria-pressed',String(open));
   if(del){
@@ -4669,6 +4674,59 @@ function toggleDefaultDarkOnStart(){
             0 0 25px rgba(35,235,145,.48),
             inset 0 0 12px rgba(35,235,145,.25)!important;
 }
+</style>
+
+
+<style id="sb-final-dock-white-glow-and-start">
+/* Permanent white neon geometry identical to Delete: 2/13/25/12px. */
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled,
+#sb-action-dock #undoBtn:hover,#sb-action-dock #redoBtn:hover,
+#sb-action-dock #undoBtn:focus-visible,#sb-action-dock #redoBtn:focus-visible{
+ opacity:1!important;filter:none!important;color:#fff!important;
+ background:rgba(235,245,255,.16)!important;border:1px solid rgba(255,255,255,.98)!important;
+ box-shadow:0 0 0 2px rgba(255,255,255,.25),
+ 0 0 13px rgba(255,255,255,.78),
+ 0 0 25px rgba(255,255,255,.48),
+ inset 0 0 12px rgba(255,255,255,.25)!important;
+}
+/* Match touch trace to the bottom glass dock without changing monospace text. */
+#sb-touch-trace-hud{
+ background:rgba(15,25,40,.58)!important;
+ border:0!important;border-radius:18px!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+}
+/* Start screen: same glass material, circular control and white neon dimensions. */
+#startMenu .play-launch{
+ background:rgba(15,25,40,.58)!important;
+ border:0!important;border-radius:18px!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ max-width:calc(100vw - 32px)!important;
+ box-sizing:border-box!important;
+ pointer-events:auto!important;
+}
+#startMenu .play-brand{text-shadow:none!important}
+#startMenu #sb-play-button,
+#startMenu #sb-play-button:hover,
+#startMenu #sb-play-button:focus,
+#startMenu #sb-play-button:focus-visible,
+#startMenu #sb-play-button:active,
+#startMenu #sb-play-button.sb-pointer-hover{
+ width:88px!important;height:88px!important;min-width:88px!important;min-height:88px!important;
+ border-radius:50%!important;background:rgba(235,245,255,.16)!important;
+ border:1px solid rgba(255,255,255,.98)!important;
+ box-shadow:0 0 0 2px rgba(255,255,255,.25),
+ 0 0 13px rgba(255,255,255,.78),
+ 0 0 25px rgba(255,255,255,.48),
+ inset 0 0 12px rgba(255,255,255,.25)!important;
+ filter:none!important;transform:none!important;
+ transition:none!important;
+}
+#startMenu #sb-play-button span{color:#fff!important;text-shadow:none!important}
 </style>
 
 </body>
