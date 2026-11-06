@@ -2096,6 +2096,58 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  border-right:1px solid rgba(174,205,231,.2);border-bottom:1px solid rgba(174,205,231,.2);
 }
 
+
+/* PR #69 visual refinement: tiny red flat-glass close controls and flush construction menu. */
+button.sb-menu-close,
+#constructionPanel .panel-heading button.sb-menu-close{
+ box-sizing:border-box!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ width:8px!important;min-width:8px!important;max-width:8px!important;
+ height:8px!important;min-height:8px!important;max-height:8px!important;
+ flex:0 0 8px!important;aspect-ratio:1/1!important;
+ margin:0 0 0 auto!important;padding:0!important;
+ border-radius:50%!important;
+ color:#fff!important;
+ background:rgba(255,72,86,.72)!important;
+ border:1px solid rgba(255,255,255,.24)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.16)!important;
+ backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important;
+ font-family:Arial,sans-serif!important;font-size:6px!important;font-weight:500!important;
+ line-height:6px!important;letter-spacing:0!important;text-align:center!important;
+ text-indent:0!important;overflow:hidden!important;
+}
+#constructionPanel .panel-heading{
+ background:transparent!important;background-image:none!important;
+ box-shadow:none!important;border:0!important;
+ padding:2px 0 8px!important;
+}
+#constructionPanel .panel-title{background:transparent!important}
+#constructionPanel .tool-group,
+#constructionPanel .tool-group[open]{
+ background:transparent!important;background-image:none!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ margin:5px 0!important;overflow:visible!important;
+}
+#constructionPanel .tool-group summary,
+#constructionPanel .tool-group[open] summary{
+ background:transparent!important;background-image:none!important;
+ border:0!important;box-shadow:none!important;
+ padding:10px 0!important;margin:0!important;
+}
+#constructionPanel .tool-group[open] summary{border-bottom:0!important}
+#constructionPanel .tool-grid{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+ padding:2px 0!important;margin:0!important;
+}
+#constructionPanel .tool-group>button,
+#constructionPanel button[data-panel-action],
+#constructionPanel #mapMenu button{
+ box-shadow:none!important;
+}
+#constructionPanel .tool-group>button{
+ margin:3px 0!important;
+}
+
 </style>
 
 /* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
