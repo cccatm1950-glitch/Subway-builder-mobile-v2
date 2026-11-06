@@ -6718,4 +6718,64 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 }
 #sb-line-color-options .sb-custom-color-apply:disabled{opacity:.35!important}
 </style>
+<style id="sb-nov06-left-edit-dock-white-neon-parity">
+@keyframes sb-edit-dock-white-neon{
+ 0%,100%{
+  border-color:rgba(255,255,255,.62)!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 7px rgba(255,255,255,.16),0 4px 16px rgba(0,0,0,.20)!important;
+ }
+ 50%{
+  border-color:rgba(255,255,255,.96)!important;
+  box-shadow:0 0 0 2px rgba(255,255,255,.20),0 0 15px rgba(255,255,255,.42),0 0 24px rgba(255,255,255,.16),0 4px 16px rgba(0,0,0,.20)!important;
+ }
+}
+#sb-action-dock .sb-dock-panel-left button,
+#sb-action-dock .sb-dock-panel-left #undoBtn,
+#sb-action-dock .sb-dock-panel-left #redoBtn{
+ box-sizing:border-box!important;position:relative!important;
+ display:inline-flex!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ aspect-ratio:1/1!important;border-radius:50%!important;
+ align-items:center!important;justify-content:center!important;
+ padding:0!important;margin:0!important;overflow:visible!important;
+ color:#fff!important;background:rgba(30,42,58,.42)!important;
+ border:1.5px solid rgba(255,255,255,.72)!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.14),0 0 9px rgba(255,255,255,.20),0 4px 16px rgba(0,0,0,.20)!important;
+ -webkit-backdrop-filter:blur(20px) saturate(170%)!important;
+ backdrop-filter:blur(20px) saturate(170%)!important;
+ animation:sb-edit-dock-white-neon 3.2s ease-in-out infinite!important;
+ transition:transform .16s ease,background .16s ease!important;
+}
+#sb-action-dock .sb-dock-panel-left button svg{
+ color:#fff!important;stroke:#fff!important;filter:drop-shadow(0 0 3px rgba(255,255,255,.42))!important;
+}
+#sb-action-dock .sb-dock-panel-left button:active,
+#sb-action-dock .sb-dock-panel-left button[aria-pressed="true"],
+#sb-action-dock .sb-dock-panel-left button.active{
+ color:#fff!important;background:rgba(255,255,255,.16)!important;
+ border-color:#fff!important;
+ box-shadow:0 0 0 2px rgba(255,255,255,.24),0 0 17px rgba(255,255,255,.58),0 0 28px rgba(255,255,255,.22)!important;
+ transform:scale(.94)!important;
+}
+#sb-action-dock .sb-dock-panel-left button:disabled{
+ opacity:.42!important;color:rgba(255,255,255,.72)!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-action-dock .sb-dock-panel-left button,
+ #sb-action-dock .sb-dock-panel-left #undoBtn,
+ #sb-action-dock .sb-dock-panel-left #redoBtn{
+  animation:none!important;border-color:rgba(255,255,255,.9)!important;
+  box-shadow:0 0 0 1px rgba(255,255,255,.2),0 0 12px rgba(255,255,255,.28),0 4px 16px rgba(0,0,0,.2)!important;
+ }
+}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-left button,
+ #sb-action-dock .sb-dock-panel-left #undoBtn,
+ #sb-action-dock .sb-dock-panel-left #redoBtn{
+  flex-basis:46px!important;width:46px!important;height:46px!important;
+  min-width:46px!important;min-height:46px!important;
+ }
+}
+</style>
 </html>
