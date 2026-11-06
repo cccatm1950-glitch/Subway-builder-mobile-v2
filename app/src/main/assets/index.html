@@ -3034,8 +3034,8 @@ if(mode==='delete'){
  icon:L.divIcon({
   className:'sb-station-leaflet-icon',
   html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"><span class="sb-station-node"></span></div>',
-  iconSize:[28,28],
-  iconAnchor:[14,14]
+  iconSize:[20,20],
+  iconAnchor:[10,10]
  })
 }).addTo(window.stationNodeLayer);
 
@@ -4931,55 +4931,58 @@ function toggleDefaultDarkOnStart(){
 
 <script id="sb-service-lines-script">
 (function(){
- const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff','#ff8bd1','#54d7e8'];
+ const presetColors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff','#ff8bd1','#54d7e8','#ff914d','#a6e35b','#e5e7eb'];
+ let draftColor=presetColors[0],customColors=[];
+ try{const saved=JSON.parse(localStorage.getItem('sbServiceCustomColors')||'[]');if(Array.isArray(saved))customColors=saved.slice(0,10);}catch(_){}
+ function saveCustomColors(){try{localStorage.setItem('sbServiceCustomColors',JSON.stringify(customColors.slice(0,10)));}catch(_){}}
+ function mount(){
+  const dock=document.getElementById('sb-action-dock');
+  if(!dock)return;
+  let serviceDock=document.getElementById('sb-service-dock');
+  if(!serviceDock){
+   serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
+   serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
+   serviceDock.innerHTML='<div id="sb-service-lines"><div class="sb-service-lines-heading">SERVICE LINES</div><div id="sb-service-create-slot"><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name"><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="sb-service-run" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
+   const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
+  }
+  buildPalette();draw();bindRunButton();
+ }
+ function buildPalette(){
+  const trigger=document.getElementById('sb-line-color-trigger'),palette=document.getElementById('sb-line-color-options');if(!trigger||!palette)return;
+  trigger.style.setProperty('--sb-picked-line-color',draftColor);palette.replaceChildren();
+  const choose=(color)=>{draftColor=color;trigger.style.setProperty('--sb-picked-line-color',color);palette.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.color===color)));palette.hidden=true;trigger.setAttribute('aria-expanded','false');};
+  presetColors.forEach(color=>{const b=document.createElement('button');b.type='button';b.className='sb-line-color-option';b.dataset.color=color;b.style.setProperty('--sb-option-color',color);b.title=color;b.setAttribute('aria-label','Preset '+color);b.setAttribute('aria-selected',String(color===draftColor));b.addEventListener('click',()=>choose(color));palette.append(b);});
+  for(let slot=0;slot<10;slot++){const b=document.createElement('button');b.type='button';b.className='sb-line-color-option sb-custom-color-slot';const color=customColors[slot];if(color){b.dataset.color=color;b.style.setProperty('--sb-option-color',color);b.title='Custom '+(slot+1)+' '+color;b.setAttribute('aria-label','Use custom color '+(slot+1));b.setAttribute('aria-selected',String(color===draftColor));b.addEventListener('click',()=>choose(color));}else{b.classList.add('empty');b.textContent='+';b.title='Add custom color '+(slot+1);b.setAttribute('aria-label','Add custom color slot '+(slot+1));const input=document.createElement('input');input.type='color';input.value=draftColor;input.className='sb-custom-color-input';input.setAttribute('aria-label','Choose custom color for slot '+(slot+1));input.addEventListener('input',()=>{customColors[slot]=input.value;saveCustomColors();buildPalette();choose(input.value);});b.append(input);}palette.append(b);}
+  trigger.onclick=(event)=>{event.stopPropagation();palette.hidden=!palette.hidden;trigger.setAttribute('aria-expanded',String(!palette.hidden));};
+  document.addEventListener('pointerdown',event=>{if(!palette.hidden&&!palette.contains(event.target)&&event.target!==trigger){palette.hidden=true;trigger.setAttribute('aria-expanded','false');}},{passive:true});
+ }
  function draw(){
   const host=document.getElementById('sb-service-lines-content');if(!host)return;
-  const scrollLeft=host.scrollLeft;host.replaceChildren();
-  lines.forEach(line=>{
-   const row=document.createElement('div');row.className='sb-line-row';
+  const oldScroll=host.scrollLeft;host.replaceChildren();
+  (Array.isArray(lines)?lines:[]).forEach(line=>{
+   const slot=document.createElement('div');slot.className='sb-line-slot';slot.setAttribute('role','group');slot.setAttribute('aria-label',line.name+' service line');
    const sw=document.createElement('i');sw.className='sb-line-swatch';sw.style.background=line.color;
    const pick=document.createElement('button');pick.type='button';pick.className='sb-line-select'+(activeLineId===line.id?' active':'');pick.textContent='●';pick.title='Select '+line.name;pick.setAttribute('aria-label','Select '+line.name);pick.setAttribute('aria-pressed',String(activeLineId===line.id));
    pick.addEventListener('click',()=>{activeLineId=line.id;draw();message(line.name+' selected for new track sections.');});
    const label=document.createElement('span');label.className='sb-line-label';label.textContent=line.name;
-   const count=document.createElement('small');count.textContent=tracks.filter(t=>(t.lineIds||[]).includes(line.id)).length;
-   const remove=document.createElement('button');remove.type='button';remove.className='sb-line-remove';remove.textContent='−';remove.title='Remove line';
+   const count=document.createElement('small');count.className='sb-line-count';count.textContent=String(tracks.filter(t=>(t.lineIds||[]).includes(line.id)).length);
+   const remove=document.createElement('button');remove.type='button';remove.className='sb-line-remove';remove.textContent='−';remove.title='Remove '+line.name;remove.setAttribute('aria-label','Remove '+line.name);
    remove.addEventListener('click',()=>{lines=lines.filter(x=>x.id!==line.id);tracks.forEach(t=>t.lineIds=(t.lineIds||[]).filter(id=>id!==line.id));if(activeLineId===line.id)activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();});
-   row.append(sw,pick,label,count,remove);host.append(row);
+   slot.append(sw,pick,label,count,remove);host.append(slot);
   });
-  const create=document.createElement('div');create.className='sb-line-create';
-  const name=document.createElement('input');name.placeholder='New line name';name.maxLength=24;name.setAttribute('aria-label','New line name');
-  const picker=document.createElement('div');picker.className='sb-line-color-picker';
-  const trigger=document.createElement('button');trigger.type='button';trigger.className='sb-line-color-trigger';trigger.setAttribute('aria-label','Choose line color');trigger.setAttribute('aria-expanded','false');
-  let selectedColor=colors[0];trigger.style.setProperty('--sb-picked-line-color',selectedColor);
-  const options=document.createElement('div');options.className='sb-line-color-options';options.setAttribute('role','listbox');options.setAttribute('aria-label','Line colors');options.hidden=true;
-  colors.forEach(c=>{const option=document.createElement('button');option.type='button';option.className='sb-line-color-option';option.style.setProperty('--sb-option-color',c);option.setAttribute('role','option');option.setAttribute('aria-label',c);option.setAttribute('aria-selected',String(c===selectedColor));option.addEventListener('click',()=>{selectedColor=c;trigger.style.setProperty('--sb-picked-line-color',c);options.querySelectorAll('.sb-line-color-option').forEach(el=>el.setAttribute('aria-selected',String(el.getAttribute('aria-label')===c)));options.hidden=true;trigger.setAttribute('aria-expanded','false');});options.append(option);});
-  trigger.addEventListener('click',event=>{event.stopPropagation();options.hidden=!options.hidden;trigger.setAttribute('aria-expanded',String(!options.hidden));});
-  picker.append(trigger,options);
-  const add=document.createElement('button');add.type='button';add.className='sb-line-add';add.textContent='+';add.setAttribute('aria-label','Create line');
-  add.addEventListener('click',()=>{if(!name.value.trim()){message('Enter a line name first.');name.focus();return;}const line={id:'line-'+(nextLineId++),name:name.value.trim(),color:selectedColor};lines.push(line);activeLineId=line.id;saveHistory();draw();message(line.name+' created.');});
-  create.append(name,picker,add);host.append(create);
-  const link=document.createElement('button');link.type='button';link.className='sb-line-link';link.textContent='↗';link.title='Link selected track to active line';link.disabled=selectedTrackIndex===null||!activeLineId;
-  link.addEventListener('click',()=>{const t=tracks[selectedTrackIndex];if(!t||!activeLineId)return;t.lineIds=Array.isArray(t.lineIds)?t.lineIds:[];if(!t.lineIds.includes(activeLineId))t.lineIds.push(activeLineId);saveHistory();renderNetwork();draw();message('Track shared with '+(lines.find(x=>x.id===activeLineId)?.name||'line')+'.');});
-  host.append(link);
-  const hint=document.createElement('p');hint.className='sb-line-hint';hint.textContent='Select a line before drawing. To share an existing section, choose Waypoint, tap its track, then link it here.';host.append(hint);
-  host.scrollLeft=scrollLeft;
+  host.scrollLeft=oldScroll;
+  const trigger=document.getElementById('sb-line-color-trigger');if(trigger)trigger.style.setProperty('--sb-picked-line-color',draftColor);
  }
- function mount(){
-  const dock=document.getElementById('sb-action-dock');
-  if(!dock||document.getElementById('sb-service-lines-content'))return;
-  const serviceDock=document.createElement('section');
-  serviceDock.id='sb-service-dock';
-  serviceDock.className='sb-dock-panel sb-dock-panel-service';
-  serviceDock.setAttribute('aria-label','Service lines');
-  serviceDock.innerHTML='<div id="sb-service-lines"><div class="sb-service-lines-heading">SERVICE LINES</div><div id="sb-service-lines-content"></div></div>';
-  const right=dock.querySelector('.sb-dock-panel-right');
-  if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
-  draw();
- }
+ function bindRunButton(){const button=document.getElementById('sb-service-run');if(!button||button.dataset.bound)return;button.dataset.bound='true';button.addEventListener('click',()=>toggleSimulation());const sync=()=>{button.textContent=running?'Ⅱ':'▶';button.setAttribute('aria-label',running?'Pause trains':'Run trains');button.title=running?'Pause trains':'Run trains';button.classList.toggle('active',!!running);};sync();const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceRunSync){const wrapped=function(){const result=prior.apply(this,arguments);sync();draw();return result;};wrapped.__sbServiceRunSync=true;window.updateUI=wrapped;}}
+ function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';saveHistory();draw();message(line.name+' created.');}
+ document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
+ document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
  document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
- const prior=window.updateUI;if(typeof prior==='function')window.updateUI=function(){const result=prior.apply(this,arguments);draw();return result;};
+ const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceLineDraw){const wrapped=function(){const result=prior.apply(this,arguments);draw();const run=document.getElementById('sb-service-run');if(run){run.textContent=running?'Ⅱ':'▶';run.classList.toggle('active',!!running);}return result;};wrapped.__sbServiceLineDraw=true;window.updateUI=wrapped;}
+ window.sbDrawServiceLines=draw;
 })();
-</script>
+</script>}
+
 <style id="sb-service-lines-glass">
 #sb-service-lines{margin-top:12px;padding-top:10px;border-top:1px solid rgba(225,245,255,.14);color:#edf7ff}
 .sb-service-lines-heading{font-size:10px;font-weight:800;letter-spacing:1.5px;color:#a9bfd2;margin:0 2px 8px}
@@ -6342,4 +6345,115 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  });
 })();
 </script>
+<style id="sb-nov06-service-dock-stable-slots-and-placement-centering">
+/* Station icon, platform and fixed reticle share Leaflet's exact map-center coordinate. */
+#map .sb-station-leaflet-icon{width:20px!important;height:20px!important;margin:0!important}
+#map .sb-station-marker{width:20px!important;height:20px!important;display:grid!important;place-items:center!important;transform:none!important}
+#map .sb-station-marker .sb-station-node{width:14px!important;height:14px!important}
+/* Service dock: stable fixed action slots plus an independent horizontal line list. */
+#sb-action-dock .sb-dock-panel-service{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;
+ min-width:0!important;min-height:58px!important;height:58px!important;max-height:58px!important;
+ padding:5px 12px!important;margin:0!important;overflow:visible!important;
+ border:0!important;border-radius:999px!important;
+}
+#sb-service-lines{
+ box-sizing:border-box!important;display:flex!important;flex-direction:row!important;
+ align-items:center!important;gap:10px!important;width:100%!important;height:100%!important;
+ min-width:0!important;min-height:0!important;margin:0!important;padding:0!important;
+ border:0!important;overflow:visible!important;
+}
+#sb-service-lines .sb-service-lines-heading{flex:0 0 auto!important;margin:0!important;padding:0!important;white-space:nowrap!important}
+#sb-service-create-slot{
+ box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;
+ align-items:center!important;justify-content:center!important;gap:7px!important;
+ height:46px!important;min-height:46px!important;padding:0!important;margin:0!important;
+}
+#sb-new-line-name{
+ box-sizing:border-box!important;flex:0 1 116px!important;width:116px!important;
+ min-width:62px!important;max-width:116px!important;height:40px!important;min-height:40px!important;
+ margin:0!important;padding:0 12px!important;border:0!important;border-radius:999px!important;
+ background:rgba(255,255,255,.10)!important;color:#f4f8fc!important;
+}
+#sb-line-color-trigger,#sb-line-add,#sb-service-run,
+#sb-service-lines .sb-line-select,#sb-service-lines .sb-line-remove{
+ box-sizing:border-box!important;display:inline-flex!important;flex:0 0 40px!important;
+ width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+ max-width:40px!important;max-height:40px!important;align-items:center!important;justify-content:center!important;
+ margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;
+ background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
+ box-shadow:none!important;line-height:1!important;
+}
+#sb-line-color-trigger:before{content:""!important;width:14px!important;height:14px!important;border-radius:50%!important;background:var(--sb-picked-line-color,#ff5263)!important;box-shadow:0 0 10px var(--sb-picked-line-color,#ff5263)!important}
+#sb-line-add{font-size:24px!important;font-weight:700!important;color:#9affdf!important;background:rgba(25,210,150,.18)!important}
+#sb-service-run{font-size:20px!important;font-weight:800!important;color:#f4f8fc!important;background:rgba(235,245,255,.12)!important}
+#sb-service-run.active{color:#9affdf!important;background:rgba(25,210,150,.20)!important;box-shadow:0 0 0 1px rgba(80,255,190,.6),0 0 13px rgba(35,235,155,.36)!important}
+#sb-service-lines-content{
+ box-sizing:border-box!important;display:flex!important;flex:1 1 0!important;flex-flow:row nowrap!important;
+ align-items:center!important;gap:8px!important;width:0!important;min-width:0!important;max-width:100%!important;
+ height:48px!important;min-height:48px!important;overflow-x:auto!important;overflow-y:hidden!important;
+ padding:3px 10px!important;margin:0!important;touch-action:pan-x!important;
+ -webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important;scrollbar-width:none!important;
+}
+#sb-service-lines-content::-webkit-scrollbar{display:none!important}
+#sb-service-lines-content .sb-line-slot{
+ box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;align-items:center!important;
+ gap:6px!important;height:42px!important;min-height:42px!important;padding:0 8px!important;margin:0!important;
+ border:0!important;border-radius:999px!important;background:rgba(235,245,255,.07)!important;
+ white-space:nowrap!important;
+}
+#sb-service-lines .sb-line-swatch{flex:0 0 8px!important;width:8px!important;height:8px!important;border-radius:50%!important}
+#sb-service-lines .sb-line-select{flex-basis:32px!important;width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;max-width:32px!important;max-height:32px!important;font-size:13px!important;background:rgba(255,255,255,.10)!important}
+#sb-service-lines .sb-line-select.active{color:#9affdf!important;background:rgba(25,210,150,.20)!important;box-shadow:0 0 0 1px rgba(80,255,190,.6),0 0 12px rgba(35,235,155,.35)!important}
+#sb-service-lines .sb-line-label{flex:0 0 auto!important;min-width:0!important;max-width:96px!important;font-size:11px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+#sb-service-lines .sb-line-count{flex:0 0 auto!important;font-size:9px!important;color:#b7c9d9!important}
+#sb-service-lines .sb-line-remove{flex-basis:28px!important;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;max-width:28px!important;max-height:28px!important;color:#ff9aa8!important;background:rgba(255,55,78,.15)!important;font-size:18px!important}
+#sb-service-run-slot{box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;height:46px!important;min-height:46px!important;padding:0!important;margin:0!important}
+#sb-service-lines .sb-line-color-picker{position:relative!important;display:flex!important;flex:0 0 40px!important;width:40px!important;height:40px!important;align-items:center!important;justify-content:center!important}
+#sb-line-color-options{
+ position:absolute!important;z-index:100000!important;left:50%!important;bottom:calc(100% + 10px)!important;
+ transform:translateX(-50%)!important;display:flex!important;flex-direction:row!important;flex-wrap:nowrap!important;
+ align-items:center!important;gap:7px!important;width:min(82vw,420px)!important;max-width:min(82vw,420px)!important;
+ overflow-x:auto!important;overflow-y:hidden!important;padding:8px 10px!important;margin:0!important;
+ border:0!important;border-radius:999px!important;background:rgba(17,29,44,.88)!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.28)!important;-webkit-backdrop-filter:blur(22px) saturate(160%)!important;
+ backdrop-filter:blur(22px) saturate(160%)!important;scrollbar-width:none!important;touch-action:pan-x!important;
+}
+#sb-line-color-options[hidden]{display:none!important}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options .sb-line-color-option{
+ position:relative!important;box-sizing:border-box!important;display:inline-flex!important;flex:0 0 30px!important;
+ width:30px!important;height:30px!important;min-width:30px!important;min-height:30px!important;
+ max-width:30px!important;max-height:30px!important;align-items:center!important;justify-content:center!important;
+ padding:0!important;margin:0!important;border:2px solid rgba(255,255,255,.76)!important;
+ border-radius:50%!important;background:var(--sb-option-color,rgba(255,255,255,.12))!important;
+ color:#fff!important;box-shadow:none!important;font-size:17px!important;
+}
+#sb-line-color-options .sb-line-color-option[aria-selected="true"]{outline:2px solid #fff!important;outline-offset:2px!important}
+#sb-line-color-options .sb-line-color-option.empty{border:1px dashed rgba(255,255,255,.65)!important;background:rgba(255,255,255,.08)!important}
+#sb-line-color-options .sb-custom-color-input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important}
+#sb-service-lines button:active,#sb-line-color-trigger:active,#sb-line-add:active,#sb-service-run:active{transform:scale(.94)!important}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service{padding:4px 8px!important;min-height:54px!important;height:54px!important;max-height:54px!important}
+ #sb-service-lines{gap:6px!important}
+ #sb-service-lines .sb-service-lines-heading{font-size:8px!important;letter-spacing:.5px!important}
+ #sb-service-create-slot{height:44px!important;min-height:44px!important;gap:5px!important}
+ #sb-new-line-name{flex-basis:82px!important;width:82px!important;min-width:56px!important;height:38px!important;min-height:38px!important;padding:0 8px!important;font-size:10px!important}
+ #sb-line-color-trigger,#sb-line-add,#sb-service-run{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important}
+ #sb-service-run-slot{height:42px!important;min-height:42px!important}
+ #sb-service-lines-content{height:44px!important;min-height:44px!important;padding:2px 6px!important;gap:5px!important}
+ #sb-service-lines-content .sb-line-slot{height:38px!important;min-height:38px!important;padding:0 5px!important;gap:4px!important}
+ #sb-service-lines .sb-line-select{flex-basis:28px!important;width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important}
+ #sb-service-lines .sb-line-remove{flex-basis:24px!important;width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important}
+ #sb-service-lines .sb-line-label{max-width:64px!important;font-size:10px!important}
+}
+@media(max-width:420px){
+ #sb-action-dock .sb-dock-panel-service{padding:3px 6px!important}
+ #sb-service-lines{gap:4px!important}
+ #sb-service-lines .sb-service-lines-heading{font-size:7px!important;letter-spacing:.3px!important}
+ #sb-new-line-name{flex-basis:68px!important;width:68px!important;min-width:48px!important}
+ #sb-line-color-trigger,#sb-line-add,#sb-service-run{flex-basis:34px!important;width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important;max-width:34px!important;max-height:34px!important}
+ #sb-service-lines-content{gap:4px!important}
+}
+</style>
 </html>
