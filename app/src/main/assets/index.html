@@ -2554,6 +2554,9 @@ let money=25000;
 let passengers=0;
 var stations=[];
 var tracks=[];
+var lines=[];
+var activeLineId=null;
+var nextLineId=1;
 var selected=null;
 var selectedTrackIndex=null;
 let stationMenuTimer=null;
@@ -2606,9 +2609,10 @@ function snapshot(){
   })),
   tracks:tracks.map(t=>({
    a:t.a,b:t.b,style:t.style||'single',curve:!!t.curve,
-   elevation:t.elevation||'at',
+   elevation:t.elevation||'at',lineIds:Array.isArray(t.lineIds)?t.lineIds.slice():[],
    waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
-  }))
+  })),
+  lines:lines.map(line=>({id:line.id,name:line.name,color:line.color}))
  };
 }
 
@@ -2636,8 +2640,12 @@ function restoreSnapshot(data){
  })).filter(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lng));
  tracks=data.tracks.map(t=>({
   a:t.a,b:t.b,style:t.style||'single',curve:!!t.curve,elevation:t.elevation||'at',
+  lineIds:Array.isArray(t.lineIds)?t.lineIds.filter(id=>typeof id==='string'):[],
   waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
  })).filter(t=>Number.isInteger(t.a)&&Number.isInteger(t.b)&&stations[t.a]&&stations[t.b]);
+ lines=Array.isArray(data.lines)?data.lines.filter(x=>x&&typeof x.id==='string').map(x=>({id:x.id,name:String(x.name||'Line'),color:/^#[0-9a-f]{6}$/i.test(x.color)?x.color:'#42d69a'})):[];
+ nextLineId=lines.reduce((m,x)=>Math.max(m,Number(x.id.replace(/\\D/g,''))||0),0)+1;
+ if(!lines.some(x=>x.id===activeLineId))activeLineId=lines[0]?.id||null;
  selected=null;selectedTrackIndex=null;
  renderNetwork();updateUI();
 }
@@ -2851,7 +2859,8 @@ if(mode==='delete'){
     });
 
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
-  const routeColor=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
+  const assignedLines=lines.filter(line=>(t.lineIds||[]).includes(line.id));
+  const routeColor=assignedLines[0]?.color||['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
   if(elevation==='below'){
    L.polyline(shifted,{pane:'sbTrackPane',color:'#020914',weight:14,opacity:1,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer);
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
@@ -3338,7 +3347,8 @@ function handleStationClick(index){
   style:trackStyle,
   curve:curveMode,
   elevation:tunnelMode?"below":"at",
-  waypoints:[]
+  waypoints:[],
+  lineIds:activeLineId?[activeLineId]:[]
 });
   selected=null;
   saveHistory();
@@ -4729,5 +4739,54 @@ function toggleDefaultDarkOnStart(){
 #startMenu #sb-play-button span{color:#fff!important;text-shadow:none!important}
 </style>
 
+<script id="sb-service-lines">
+(function(){
+ const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff','#ff8bd1','#54d7e8'];
+ function draw(){
+  const host=document.getElementById('sb-service-lines-content');if(!host)return;host.replaceChildren();
+  lines.forEach(line=>{
+   const row=document.createElement('div');row.className='sb-line-row';
+   const sw=document.createElement('i');sw.className='sb-line-swatch';sw.style.background=line.color;
+   const pick=document.createElement('button');pick.className='sb-line-select'+(activeLineId===line.id?' active':'');pick.textContent=line.name;
+   pick.addEventListener('click',()=>{activeLineId=line.id;draw();message(line.name+' selected for new track sections.');});
+   const count=document.createElement('small');count.textContent=tracks.filter(t=>(t.lineIds||[]).includes(line.id)).length;
+   const remove=document.createElement('button');remove.className='sb-line-remove';remove.textContent='−';remove.title='Remove line';
+   remove.addEventListener('click',()=>{lines=lines.filter(x=>x.id!==line.id);tracks.forEach(t=>t.lineIds=(t.lineIds||[]).filter(id=>id!==line.id));if(activeLineId===line.id)activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();});
+   row.append(sw,pick,count,remove);host.append(row);
+  });
+  const create=document.createElement('div');create.className='sb-line-create';
+  const name=document.createElement('input');name.placeholder='New line name';name.maxLength=24;
+  const color=document.createElement('select');colors.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=c;color.append(o);});
+  const add=document.createElement('button');add.className='sb-line-add';add.textContent='+';add.setAttribute('aria-label','Create line');
+  add.addEventListener('click',()=>{if(!name.value.trim()){message('Enter a line name first.');return;}const line={id:'line-'+(nextLineId++),name:name.value.trim(),color:color.value};lines.push(line);activeLineId=line.id;saveHistory();draw();message(line.name+' created.');});
+  create.append(name,color,add);host.append(create);
+  const link=document.createElement('button');link.className='sb-line-link';link.textContent='Link selected track';
+  link.disabled=selectedTrackIndex===null||!activeLineId;
+  link.addEventListener('click',()=>{const t=tracks[selectedTrackIndex];if(!t||!activeLineId)return;t.lineIds=Array.isArray(t.lineIds)?t.lineIds:[];if(!t.lineIds.includes(activeLineId))t.lineIds.push(activeLineId);saveHistory();renderNetwork();draw();message('Track shared with '+(lines.find(x=>x.id===activeLineId)?.name||'line')+'.');});
+  host.append(link);
+  const hint=document.createElement('p');hint.className='sb-line-hint';hint.textContent='Select a line before drawing. To share an existing section, choose Waypoint, tap its track, then link it here.';host.append(hint);
+ }
+ function mount(){const panel=document.getElementById('constructionPanel');if(!panel||document.getElementById('sb-service-lines-content'))return;const section=document.createElement('section');section.id='sb-service-lines';section.innerHTML='<div class="sb-service-lines-heading">SERVICE LINES</div><div id="sb-service-lines-content"></div>';panel.append(section);draw();}
+ document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
+ const prior=window.updateUI;if(typeof prior==='function')window.updateUI=function(){const result=prior.apply(this,arguments);draw();return result;};
+})();
+</script>
+<style id="sb-service-lines-glass">
+#sb-service-lines{margin-top:12px;padding-top:10px;border-top:1px solid rgba(225,245,255,.14);color:#edf7ff}
+.sb-service-lines-heading{font-size:10px;font-weight:800;letter-spacing:1.5px;color:#a9bfd2;margin:0 2px 8px}
+.sb-line-row,.sb-line-create{display:flex;align-items:center;gap:6px;margin:6px 0}
+.sb-line-swatch{width:9px;height:9px;flex:0 0 9px;border-radius:50%}
+#sb-service-lines button{width:34px;height:34px;min-width:34px;min-height:34px;flex:0 0 34px;padding:0;border:0;border-radius:50%;margin:0;display:inline-flex;align-items:center;justify-content:center}
+#sb-service-lines .sb-line-select{width:auto;min-width:0;flex:1 1 auto;height:30px;min-height:30px;border-radius:16px;padding:0 10px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:rgba(255,255,255,.07)}
+#sb-service-lines .sb-line-select.active{color:#a5ffe0;box-shadow:0 0 0 1px rgba(80,255,190,.65),0 0 12px rgba(35,235,155,.3)}
+#sb-service-lines small{font-size:9px;color:#9fb4c9}
+#sb-service-lines .sb-line-remove{color:#ff9aa8;background:rgba(255,55,78,.14)}
+#sb-service-lines input{min-width:0;width:0;flex:1 1 auto;height:34px;border:0;border-radius:17px;padding:0 10px;background:rgba(255,255,255,.09);color:#fff;font-size:11px}
+#sb-service-lines select{width:78px;min-width:78px;height:32px;border:0;border-radius:16px;background:#172638;color:#fff;font-size:10px}
+#sb-service-lines .sb-line-add{font-size:22px;color:#a5ffe0;background:rgba(35,235,155,.14)}
+#sb-service-lines .sb-line-link{width:100%;height:36px;min-height:36px;border-radius:18px;margin-top:8px;background:rgba(85,167,255,.13)}
+#sb-service-lines .sb-line-link:disabled{opacity:.35}
+#sb-service-lines .sb-line-hint{font-size:9px;line-height:1.45;color:#9fb4c9;margin:8px 2px 0}
+</style>
 </body>
 </html>
