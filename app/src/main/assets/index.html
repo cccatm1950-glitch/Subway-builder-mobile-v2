@@ -4294,10 +4294,10 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<div id="sb-service-lines"><div class="sb-service-lines-heading">SERVICE LINES</div><div id="sb-service-create-slot"><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name"><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines">≡</button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name"><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
-  buildPalette();draw();bindRunButton();
+  buildPalette();draw();bindRunButton();bindServiceDockToggle();
  }
  function buildPalette(){
   const trigger=document.getElementById('sb-line-color-trigger'),palette=document.getElementById('sb-line-color-options');if(!trigger||!palette)return;
@@ -4337,10 +4337,32 @@ function toggleDefaultDarkOnStart(){
    const count=document.createElement('small');count.className='sb-line-count';count.textContent=String(tracks.filter(t=>(t.lineIds||[]).includes(line.id)).length);
    const remove=document.createElement('button');remove.type='button';remove.className='sb-line-remove';remove.textContent='−';remove.title='Remove '+line.name;remove.setAttribute('aria-label','Remove '+line.name);
    remove.addEventListener('click',()=>{lines=lines.filter(x=>x.id!==line.id);tracks.forEach(t=>t.lineIds=(t.lineIds||[]).filter(id=>id!==line.id));if(activeLineId===line.id)activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();});
-   slot.append(sw,pick,label,count);host.append(slot);
+   slot.append(sw,pick,label,count,remove);host.append(slot);
   });
   host.scrollLeft=oldScroll;
   const trigger=document.getElementById('sb-line-color-trigger');if(trigger)trigger.style.setProperty('--sb-picked-line-color',draftColor);const removeActive=document.getElementById('sb-line-remove-active');if(removeActive){removeActive.disabled=!lines.some(item=>item.id===activeLineId);removeActive.title=removeActive.disabled?'Select a line first':'Remove '+(lines.find(item=>item.id===activeLineId)?.name||'selected line');}
+ }
+ function bindServiceDockToggle(){
+  const dock=document.getElementById('sb-service-dock'),button=document.getElementById('sb-service-dock-toggle');
+  if(!dock||!button||button.dataset.bound)return;
+  button.dataset.bound='true';
+  const setExpanded=(expanded)=>{
+   dock.classList.toggle('is-expanded',expanded);
+   button.setAttribute('aria-expanded',String(expanded));
+   button.setAttribute('aria-label',expanded?'Close service lines':'Open service lines');
+   button.title=expanded?'Close service lines':'Service lines';
+   if(expanded){
+    const heading=dock.querySelector('.sb-service-lines-heading');
+    if(heading){heading.classList.remove('sb-heading-enter');void heading.offsetWidth;heading.classList.add('sb-heading-enter');}
+    const scroller=document.getElementById('sb-service-lines-content');
+    if(scroller)scroller.scrollLeft=0;
+   }else{
+    const palette=document.getElementById('sb-line-color-options'),trigger=document.getElementById('sb-line-color-trigger');
+    if(palette)palette.hidden=true;if(trigger)trigger.setAttribute('aria-expanded','false');
+   }
+  };
+  button.addEventListener('click',()=>setExpanded(!dock.classList.contains('is-expanded')));
+  setExpanded(false);
  }
  function bindRunButton(){const button=document.getElementById('runBtn');if(!button||button.dataset.bound)return;button.dataset.bound='true';button.addEventListener('click',()=>toggleSimulation());const sync=()=>{button.textContent=running?'Ⅱ':'▶';button.setAttribute('aria-label',running?'Pause trains':'Run trains');button.title=running?'Pause trains':'Run trains';button.classList.toggle('active',!!running);};sync();const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceRunSync){const wrapped=function(){const result=prior.apply(this,arguments);sync();draw();return result;};wrapped.__sbServiceRunSync=true;window.updateUI=wrapped;}}
  function removeActiveLine(){
@@ -5979,6 +6001,72 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #sb-top-dock button svg,#sb-action-dock button svg,#constructionPanel button svg,
 #sb-service-lines button svg,#stationContextMenu button svg{
  filter:none!important;drop-shadow:none!important;text-shadow:none!important;
+}
+</style>
+
+<style id="sb-service-dock-motion-and-control-parity">
+/* Service actions use the same quiet glass button treatment and footprint as Run. */
+#sb-service-lines button,
+#sb-service-dock-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 40px!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+ max-width:40px!important;max-height:40px!important;margin:0!important;padding:0!important;border:0!important;
+ border-radius:50%!important;background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
+ box-shadow:none!important;outline:0!important;filter:none!important;text-shadow:none!important;
+ transform:none!important;transition:background-color .18s ease,opacity .24s ease,transform .34s cubic-bezier(.2,.8,.2,1)!important;
+}
+#sb-service-lines button:active,#sb-service-lines button:focus,#sb-service-lines button:focus-visible,
+#sb-service-dock-toggle:active,#sb-service-dock-toggle:focus,#sb-service-dock-toggle:focus-visible{
+ box-shadow:none!important;outline:0!important;filter:none!important;transform:none!important;
+}
+#sb-service-lines .sb-line-color-trigger{position:relative!important;overflow:hidden!important;border:0!important;background:rgba(235,245,255,.12)!important}
+#sb-service-lines .sb-line-color-trigger:before{position:absolute!important;inset:4px!important;width:auto!important;height:auto!important;border:0!important;box-shadow:none!important}
+#sb-service-lines .sb-line-add,#sb-service-lines #runBtn,#sb-service-lines .sb-line-select,
+#sb-service-lines .sb-line-remove,#sb-service-lines #sb-line-remove-active,
+#sb-service-lines .sb-line-color-trigger{background:rgba(235,245,255,.12)!important;color:#f4f8fc!important}
+#sb-service-lines .sb-line-swatch{flex:0 0 8px!important;width:8px!important;height:8px!important;border-radius:50%!important}
+#sb-service-lines .sb-line-slot{display:flex!important;align-items:center!important;gap:6px!important}
+#sb-service-lines .sb-line-remove{font-size:18px!important}
+#sb-service-dock{box-sizing:border-box!important;flex:0 0 48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;
+ overflow:hidden!important;transition:flex-basis .38s cubic-bezier(.2,.8,.2,1),width .38s cubic-bezier(.2,.8,.2,1),max-width .38s cubic-bezier(.2,.8,.2,1)!important}
+#sb-service-dock #sb-service-dock-toggle{flex:0 0 40px!important;position:relative!important;z-index:3;font-size:25px!important;line-height:1!important}
+#sb-service-dock #sb-service-lines{display:flex!important;align-items:center!important;gap:8px!important;min-width:0!important;width:100%!important;height:100%!important;
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateX(-12px)!important;
+ transition:opacity .22s ease,transform .34s cubic-bezier(.2,.8,.2,1),visibility 0s linear .34s!important}
+#sb-service-dock:not(.is-expanded){display:flex!important;align-items:center!important;justify-content:center!important;padding:7px!important}
+#sb-service-dock.is-expanded{flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;padding:6px 10px!important}
+#sb-service-dock.is-expanded #sb-service-lines{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translateX(0)!important;transition-delay:0s!important}
+#sb-service-dock.is-expanded #sb-service-dock-toggle{flex:0 0 40px!important}
+#sb-service-lines .sb-service-lines-heading{position:absolute!important;z-index:5;left:62px!important;top:50%!important;
+ margin:0!important;padding:7px 12px!important;border-radius:16px!important;background:rgba(18,31,48,.78)!important;
+ -webkit-backdrop-filter:blur(18px) saturate(160%)!important;backdrop-filter:blur(18px) saturate(160%)!important;
+ color:#f4f8fc!important;white-space:nowrap!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-14px,-50%)!important}
+#sb-service-lines .sb-service-lines-heading.sb-heading-enter{animation:sb-service-heading-card 1.55s cubic-bezier(.2,.8,.2,1) both!important}
+@keyframes sb-service-heading-card{
+ 0%{opacity:0;visibility:visible;transform:translate(-14px,-50%)}
+ 18%,58%{opacity:1;visibility:visible;transform:translate(0,-50%)}
+ 100%{opacity:0;visibility:hidden;transform:translate(14px,-50%)}
+}
+#sb-service-create-slot,#sb-service-run-slot,#sb-service-lines-content{opacity:0;transform:translateX(-10px);transition:opacity .28s ease,transform .38s cubic-bezier(.2,.8,.2,1)}
+#sb-service-dock.is-expanded #sb-service-create-slot,
+#sb-service-dock.is-expanded #sb-service-run-slot,
+#sb-service-dock.is-expanded #sb-service-lines-content{opacity:1;transform:translateX(0)}
+#sb-service-dock.is-expanded #sb-service-create-slot{transition-delay:.06s}
+#sb-service-dock.is-expanded #sb-service-lines-content{transition-delay:.13s}
+#sb-service-dock.is-expanded #sb-service-run-slot{transition-delay:.2s}
+#sb-service-lines-content .sb-line-slot{opacity:0;transform:translateX(-8px);transition:opacity .24s ease,transform .32s cubic-bezier(.2,.8,.2,1)}
+#sb-service-dock.is-expanded #sb-service-lines-content .sb-line-slot{opacity:1;transform:translateX(0)}
+#sb-service-lines-content .sb-line-slot:nth-child(1){transition-delay:.08s}
+#sb-service-lines-content .sb-line-slot:nth-child(2){transition-delay:.12s}
+#sb-service-lines-content .sb-line-slot:nth-child(3){transition-delay:.16s}
+#sb-service-lines-content .sb-line-slot:nth-child(4){transition-delay:.2s}
+#sb-service-lines-content .sb-line-slot:nth-child(n+5){transition-delay:.24s}
+@media(prefers-reduced-motion:reduce){
+ #sb-service-dock,#sb-service-dock *{animation:none!important;transition:none!important}
+}
+@media(max-width:700px){
+ #sb-service-dock{flex-basis:48px!important;width:48px!important;min-width:48px!important}
+ #sb-service-dock.is-expanded{flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important}
 }
 </style>
 </html>
