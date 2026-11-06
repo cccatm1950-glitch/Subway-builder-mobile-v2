@@ -2035,18 +2035,22 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  padding:7px!important;border-radius:50%!important;white-space:normal!important;
 }
 #sb-touch-trace-hud{
- position:fixed!important;z-index:1300!important;
- left:max(8px,env(safe-area-inset-left,0px))!important;
- right:calc(env(safe-area-inset-right,0px) + 66px)!important;
- bottom:calc(env(safe-area-inset-bottom,0px) + 182px)!important;
- width:auto!important;max-width:360px!important;
+ position:fixed!important;z-index:6000!important;
+ left:max(8px,env(safe-area-inset-left,0px))!important;right:auto!important;
+ top:auto!important;bottom:calc(env(safe-area-inset-bottom,0px) + 182px)!important;
+ width:min(360px,calc(100vw - 82px))!important;max-width:calc(100vw - 82px)!important;
  max-height:min(24dvh,170px)!important;overflow:auto!important;
- padding:8px 10px!important;border:1px solid rgba(125,235,213,.85)!important;
- border-radius:12px!important;background:rgba(2,10,20,.94)!important;
- color:#dff!important;font:10px/1.35 monospace!important;
- pointer-events:none!important;white-space:pre-wrap!important;overflow-wrap:anywhere!important;
- box-shadow:0 3px 18px #000a!important;backdrop-filter:blur(12px)!important;
+ padding:8px 10px!important;border:1px solid rgba(125,235,213,.48)!important;
+ border-radius:12px!important;background:rgba(2,10,20,.48)!important;
+ color:rgba(231,255,251,.92)!important;font:10px/1.35 monospace!important;
+ pointer-events:auto!important;touch-action:none!important;cursor:grab!important;
+ user-select:none!important;-webkit-user-select:none!important;
+ white-space:pre-wrap!important;overflow-wrap:anywhere!important;
+ box-shadow:0 2px 10px rgba(0,0,0,.2)!important;
+ backdrop-filter:blur(3px)!important;-webkit-backdrop-filter:blur(3px)!important;
 }
+#sb-touch-trace-hud:active{cursor:grabbing!important}
+#sb-touch-trace-hud[hidden]{display:none!important}
 #sb-touch-trace-hud[hidden]{display:none!important}
 @media(max-width:560px){
  #sb-top-dock #sb-map-theme-toggle,
@@ -2056,7 +2060,7 @@ input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-
  }
  #sb-top-dock #sb-map-theme-toggle{font-size:17px!important}
  #sb-touch-trace-hud{
-  right:calc(env(safe-area-inset-right,0px) + 60px)!important;
+  width:min(320px,calc(100vw - 76px))!important;max-width:calc(100vw - 76px)!important;
   bottom:calc(env(safe-area-inset-bottom,0px) + 184px)!important;
   max-height:min(22dvh,150px)!important;
  }
@@ -2148,6 +2152,40 @@ button.sb-menu-close,
  margin:3px 0!important;
 }
 
+
+/* PR #69 follow-up: draggable translucent touch trace and contained sliding settings card. */
+#sb-touch-trace-hud{opacity:.94!important}
+#sb-game-menu-card{
+ position:relative!important;display:flex!important;flex-direction:column!important;
+ width:min(90vw,370px)!important;max-height:calc(100dvh - 36px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+ overflow:hidden!important;isolation:isolate!important;
+}
+#sb-game-menu-card .sb-game-menu-header{position:relative!important;z-index:2!important;flex:0 0 auto!important}
+#sb-game-menu-card .sb-game-menu-view{
+ flex:0 1 auto!important;min-height:0!important;max-height:calc(100dvh - 150px)!important;
+ overflow-y:auto!important;overscroll-behavior:contain!important;
+ transition:transform .28s cubic-bezier(.2,.75,.25,1),opacity .2s ease!important;
+}
+#sb-game-menu-card.settings-active #sb-game-menu-main{display:none!important}
+#sb-game-menu-card.settings-active #sb-game-menu-settings-view{
+ display:block!important;animation:sb-settings-slide-in .28s cubic-bezier(.2,.75,.25,1) both!important;
+}
+@keyframes sb-settings-slide-in{from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:translateX(0)}}
+#sb-game-menu-settings-view[hidden]{display:none!important}
+#sb-game-menu-card .sb-menu-header-actions{display:flex!important;align-items:center!important;gap:9px!important}
+#sb-game-menu-card .sb-menu-close{
+ width:8px!important;min-width:8px!important;max-width:8px!important;
+ height:8px!important;min-height:8px!important;max-height:8px!important;
+ flex:0 0 8px!important;padding:0!important;margin:0!important;
+ font-size:7px!important;line-height:6px!important;
+ background:rgba(255,65,78,.76)!important;color:#fff!important;
+ border:1px solid rgba(255,255,255,.24)!important;box-shadow:none!important;
+}
+#sb-game-menu-back{font-family:Arial,sans-serif!important;font-size:9px!important;font-weight:700!important}
+#sb-game-menu-settings-view h3{margin-top:2px!important}
+
+/* The game-menu back control uses the same tiny red glass circle, with a left arrow. */
+#sb-game-menu-back{font-size:9px!important;line-height:6px!important;font-weight:700!important}
 </style>
 
 /* PR #69 follow-up: menu viewport bounds, close controls, and explicit station move mode. */
@@ -2195,7 +2233,7 @@ button.sb-menu-close,
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button class="sb-menu-close" type="button" aria-label="Close game menu" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button><button class="sb-game-menu-action" type="button" onclick="toggleInGameMenuSettings()">Back to menu</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -3603,9 +3641,20 @@ function closeInGameMenu(){
  sbInGameMenuWasRunning=false;
 }
 function toggleInGameMenuSettings(){
- const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');if(!main||!settings)return;
- const show=settings.hidden;main.hidden=show;settings.hidden=!show;
- document.getElementById('sb-game-menu-settings')?.setAttribute('aria-label',show?'Back to game menu':'Open menu settings');
+ const card=document.getElementById('sb-game-menu-card');
+ const main=document.getElementById('sb-game-menu-main'),settings=document.getElementById('sb-game-menu-settings-view');
+ const gear=document.getElementById('sb-game-menu-settings'),back=document.getElementById('sb-game-menu-back');
+ if(!card||!main||!settings)return;
+ const show=settings.hidden;
+ if(show){settings.hidden=false;requestAnimationFrame(()=>card.classList.add('settings-active'));}
+ else{card.classList.remove('settings-active');}
+ main.hidden=show;settings.hidden=!show;
+ if(gear)gear.hidden=show;
+ if(back)back.hidden=!show;
+ const title=document.getElementById('sb-game-menu-title');
+ if(title)title.textContent=show?'SETTINGS':'GAME MENU';
+ if(gear)gear.setAttribute('aria-label','Open menu settings');
+ if(back)back.setAttribute('aria-label','Back to game menu');
 }
 document.getElementById('sb-game-menu-toggle')?.addEventListener('click',function(event){
  event.preventDefault();event.stopPropagation();openInGameMenu();
@@ -3997,5 +4046,33 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 })();
 </script>
 
+
+<script>
+/* PR #69 follow-up: allow the touch trace HUD to be repositioned by touch or mouse. */
+(function(){
+ let drag=null;
+ const clamp=(v,min,max)=>Math.max(min,Math.min(v,max));
+ function start(e){
+  const hud=e.target.closest&&e.target.closest('#sb-touch-trace-hud');
+  if(!hud||e.button!==undefined&&e.button!==0)return;
+  const r=hud.getBoundingClientRect();
+  drag={hud,x:e.clientX,y:e.clientY,left:r.left,top:r.top};
+  hud.style.left=r.left+'px';hud.style.top=r.top+'px';hud.style.right='auto';hud.style.bottom='auto';
+  try{hud.setPointerCapture(e.pointerId);}catch(_){}
+  e.preventDefault();
+ }
+ function move(e){
+  if(!drag)return;
+  const w=drag.hud.offsetWidth,h=drag.hud.offsetHeight;
+  drag.hud.style.left=clamp(drag.left+e.clientX-drag.x,4,innerWidth-w-4)+'px';
+  drag.hud.style.top=clamp(drag.top+e.clientY-drag.y,4,innerHeight-h-4)+'px';
+ }
+ function end(){drag=null;}
+ document.addEventListener('pointerdown',start,{passive:false});
+ document.addEventListener('pointermove',move,{passive:true});
+ document.addEventListener('pointerup',end,{passive:true});
+ document.addEventListener('pointercancel',end,{passive:true});
+})();
+</script>
 </body>
 </html>
