@@ -2456,7 +2456,7 @@ button.sb-flat-close,[data-flat-close="true"]{
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
-<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">⌫</button></div>
+<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">×</button></div>
 
 
 
@@ -2522,11 +2522,11 @@ function toggleMapTheme(){
  const next=currentTheme==='dark'?'light':'dark';
  setMapTheme(next);
  const button=document.getElementById('sb-map-theme-toggle');
- if(button){button.setAttribute('aria-pressed',String(next==='dark'));button.setAttribute('aria-label',next==='dark'?'Switch map to light mode':'Switch map to dark mode');button.title=next==='dark'?'Switch to light map':'Switch to dark map';button.textContent=next==='dark'?'☼':'◐';}
+ if(button){button.setAttribute('aria-label',next==='dark'?'Switch map to light mode':'Switch map to dark mode');button.title=next==='dark'?'Switch to light map':'Switch to dark map';button.textContent=next==='dark'?'☼':'◐';}
 }
-// Map-theme clicks are handled by the delegated construction-panel listener.
+// Theme button stays visually neutral; only its map tile action changes.
 setMapTheme(currentTheme);
- document.addEventListener('DOMContentLoaded',()=>{const button=document.getElementById('sb-map-theme-toggle');if(button){button.setAttribute('aria-pressed',String(currentTheme==='dark'));button.textContent=currentTheme==='dark'?'☼':'◐';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleMapTheme();});}});
+ document.addEventListener('DOMContentLoaded',()=>{const button=document.getElementById('sb-map-theme-toggle');if(button){button.textContent=currentTheme==='dark'?'☼':'◐';button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleMapTheme();});}});
 
 /* Default map zoom and attribution controls are intentionally hidden. */
 
@@ -2872,66 +2872,8 @@ if(mode==='delete'){
 });
 
  stations.forEach((s,i)=>{
-  let connected=tracks.find(t=>t.a===i||t.b===i);
-  let other=connected
-    ? stations[connected.a===i?connected.b:connected.a]
-    : null;
-
-  let dx=other?(other.lng-s.lng)*Math.cos(s.lat*Math.PI/180):0;
-  let dy=other?other.lat-s.lat:1;
-  let len=Math.sqrt(dx*dx+dy*dy)||1;
-
-  let halfWidth=platformWidth==='narrow'?5:
-                platformWidth==='wide'?15:10;
-
-  let px=-dy/len;
-  let py=dx/len;
-  let cos=Math.cos(s.lat*Math.PI/180);
-
-    let platformHalfWidth=platformWidth==='narrow'?3:
-                        platformWidth==='wide'?7.5:5;
-
-  function drawPlatform(acrossOffset){
-    let centerEast=px*acrossOffset;
-    let centerNorth=py*acrossOffset;
-    let halfLength=45;
-    let corners=[];
-
-    for(let along of [-1,1]){
-      for(let across of [-1,1]){
-        let east=centerEast+(dx/len)*halfLength*along
-                         +px*platformHalfWidth*across;
-        let north=centerNorth+(dy/len)*halfLength*along
-                             +py*platformHalfWidth*across;
-
-        corners.push([
-          s.lat+north/111320,
-          s.lng+east/(111320*cos)
-        ]);
-      }
-    }
-
-    L.polygon([
-      corners[0],
-      corners[1],
-      corners[3],
-      corners[2]
-    ],{
-      color:'#71869c',
-      weight:2,
-      fillColor:'#dce5ed',
-      fillOpacity:0.95,
-      pane:'sbPlatformPane'
-    }).addTo(window.networkLayer);
-  }
-
-  if((s.platformType||'island')==='side'){
-    drawPlatform(-(platformHalfWidth+4));
-    drawPlatform(platformHalfWidth+4);
-  }else{
-    drawPlatform(0);
-  }
-  L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:9,color:'#f4fbff',weight:2,fillColor:'#087f79',fillOpacity:1,interactive:false}).addTo(window.networkLayer);
+  /* Station platform slabs are intentionally disabled until their orientation
+     can follow connected track geometry reliably. Keep the station node only. */
   let marker=L.marker([s.lat,s.lng],{
  /* Keep the actual station node above platform/halo graphics; disable drag while deleting. */
  pane:'markerPane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:5000,
@@ -4399,6 +4341,71 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  }
  const priorRender=window.renderNetwork;
  if(typeof priorRender==='function')window.renderNetwork=function(){const r=priorRender.apply(this,arguments);syncCrosshairStation();return r;};
+})();
+</script>
+
+
+<style id="sb-dock-history-delete-theme-fix">
+#sb-top-dock{border-radius:16px!important}
+#sb-action-dock{border-radius:16px!important}
+#sb-top-dock #sb-map-theme-toggle,
+#sb-top-dock #sb-map-theme-toggle:hover,
+#sb-top-dock #sb-map-theme-toggle:focus,
+#sb-top-dock #sb-map-theme-toggle:focus-visible,
+#sb-top-dock #sb-map-theme-toggle:active,
+#sb-top-dock #sb-map-theme-toggle.active{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(255,255,255,.085)!important;filter:none!important;transform:none!important;
+}
+#sb-action-dock #trashModeBtn{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ font-size:32px!important;line-height:1!important;font-weight:400!important;
+ padding:0!important;text-align:center!important;
+}
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{
+ opacity:.24!important;filter:grayscale(1)!important;
+}
+#sb-action-dock #undoBtn:not(:disabled),#sb-action-dock #redoBtn:not(:disabled){
+ opacity:1!important;filter:none!important;
+}
+#sb-top-dock .sb-theme-menu-pair{display:flex!important;align-items:center!important;gap:8px!important;flex:0 0 auto!important}
+</style>
+<script id="sb-theme-slot-and-history-sync">
+(function(){
+ function syncHistory(){
+  const u=document.getElementById('undoBtn'),r=document.getElementById('redoBtn');
+  if(!u||!r)return;
+  const canUndo=typeof historyIndex==='number'&&historyIndex>0;
+  const canRedo=Array.isArray(history)&&historyIndex<history.length-1;
+  u.disabled=!canUndo;r.disabled=!canRedo;
+  u.setAttribute('aria-disabled',String(!canUndo));
+  r.setAttribute('aria-disabled',String(!canRedo));
+ }
+ function placeThemeSlot(){
+  const dock=document.getElementById('sb-top-dock');
+  const theme=document.getElementById('sb-map-theme-toggle');
+  const menu=document.getElementById('sb-game-menu-toggle');
+  if(!dock||!theme||!menu||theme.dataset.slotPlaced==='true')return;
+  const pair=document.createElement('div');pair.className='sb-theme-menu-pair';
+  dock.insertBefore(pair,dock.querySelector('.stats'));
+  pair.appendChild(theme);pair.appendChild(menu);
+  theme.dataset.slotPlaced='true';
+ }
+ function init(){
+  placeThemeSlot();
+  const del=document.getElementById('trashModeBtn');
+  if(del)del.textContent='×';
+  syncHistory();
+ }
+ const oldUpdate=window.updateUI;
+ if(typeof oldUpdate==='function')window.updateUI=function(){const result=oldUpdate.apply(this,arguments);syncHistory();return result;};
+ for(const name of ['saveHistory','undo','redo']){
+  const fn=window[name];
+  if(typeof fn==='function')window[name]=function(){const result=fn.apply(this,arguments);syncHistory();return result;};
+ }
+ document.addEventListener('DOMContentLoaded',init,{once:true});
+ init();
+ if(typeof map!=='undefined'&&map)map.on('layeradd layerremove',syncHistory);
 })();
 </script>
 
