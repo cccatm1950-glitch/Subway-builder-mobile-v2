@@ -2471,6 +2471,7 @@ map.createPane('sbTrackPane');map.getPane('sbTrackPane').style.zIndex=410;
 map.createPane('sbPlatformPane');map.getPane('sbPlatformPane').style.zIndex=430;
 map.createPane('sbStationPane');map.getPane('sbStationPane').style.zIndex=460;
 map.createPane('sbInteractionPane');map.getPane('sbInteractionPane').style.zIndex=480;
+map.createPane('sbStationNodePane');map.getPane('sbStationNodePane').style.zIndex=650;
 
 /* =========================================================
    SECTION 10 — MAP INITIALIZATION
@@ -2810,35 +2811,22 @@ if(mode==='delete'){
  });
 }
 
-  if(t.curve){
- let route=[
-  [start.lat,start.lng],
-  ...(t.waypoints||[]).map(w=>[w.lat,w.lng]),
-  [end.lat,end.lng]
- ];
-
+  if(t.curve&&(t.waypoints||[]).length){
+ // Smooth Catmull-Rom interpolation passes through each placed waypoint and
+ // uses endpoint tangents, avoiding the sharp, one-sided bulges of the old curve.
+ const route=[[start.lat,start.lng],...(t.waypoints||[]).map(w=>[w.lat,w.lng]),[end.lat,end.lng]];
+ const sampleCount=14;
  for(let segment=0;segment<route.length-1;segment++){
-  let p1=route[segment];
-  let p2=route[segment+1];
-
-  let dx=p2[1]-p1[1];
-  let dy=p2[0]-p1[0];
-
-  let control=[
-   (p1[0]+p2[0])/2-dx*0.25,
-   (p1[1]+p2[1])/2+dy*0.25
-  ];
-
-  for(let i=0;i<=10;i++){
-   if(segment>0&&i===0)continue;
-
-   let p=i/10;
-   let q=1-p;
-
-   points.push([
-    q*q*p1[0]+2*q*p*control[0]+p*p*p2[0],
-    q*q*p1[1]+2*q*p*control[1]+p*p*p2[1]
-   ]);
+  const p0=route[Math.max(0,segment-1)];
+  const p1=route[segment];
+  const p2=route[segment+1];
+  const p3=route[Math.min(route.length-1,segment+2)];
+  for(let step=0;step<=sampleCount;step++){
+   if(segment>0&&step===0)continue;
+   const u=step/sampleCount,u2=u*u,u3=u2*u;
+   const lat=.5*((2*p1[0])+(-p0[0]+p2[0])*u+(2*p0[0]-5*p1[0]+4*p2[0]-p3[0])*u2+(-p0[0]+3*p1[0]-3*p2[0]+p3[0])*u3);
+   const lng=.5*((2*p1[1])+(-p0[1]+p2[1])*u+(2*p0[1]-5*p1[1]+4*p2[1]-p3[1])*u2+(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*u3);
+   points.push([lat,lng]);
   }
  }
 }else{
@@ -2900,7 +2888,7 @@ if(mode==='delete'){
      can follow connected track geometry reliably. Keep the station node only. */
   let marker=L.marker([s.lat,s.lng],{
  /* Keep the actual station node above platform/halo graphics; disable drag while deleting. */
- pane:'markerPane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:5000,
+ pane:'sbStationNodePane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:10000,
  icon:L.divIcon({
   className:'sb-station-leaflet-icon',
   html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"><span class="sb-station-node"></span></div>',
@@ -2993,9 +2981,18 @@ function updateUI(){
  const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=sbEditHistory.length-1;
 }
 function setMode(newMode){
+ const previousMode=mode;
  mode=newMode;
  selected=null;
-  if(mode!=='waypoint')selectedTrackIndex=null;
+ if(mode!=='waypoint'&&mode!=='curve')selectedTrackIndex=null;
+ if(mode!=='delete'){
+  const deleteButton=document.getElementById('trashModeBtn');
+  if(deleteButton){deleteButton.classList.remove('active');deleteButton.setAttribute('aria-pressed','false');}
+ }
+ if(mode==='delete'){
+  const buildButton=document.getElementById('sb-build-dock-btn');
+  if(buildButton){buildButton.classList.remove('active');buildButton.setAttribute('aria-pressed','false');}
+ }
  const constructionPanel=document.getElementById('constructionPanel');
  if(constructionPanel){
   if(mode!=='delete'){
@@ -3409,8 +3406,10 @@ map.on('move zoom',function(){if(mode==='station'&&stationPlacementPreview)stati
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
  const now=Date.now();
- if(now-lastTouchPlacementAt<80)return;
+ if(now-lastTouchPlacementAt<120)return;
  lastTouchPlacementAt=now;
+ // Build placements always use the fixed map-center reticle, never the raw touch coordinate.
+ if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.getCenter();
  if(mode==='station'){
   /* Station placement is locked to the map/camera center, matching the fixed preview reticle. */
   latlng=map.getCenter();
@@ -4835,5 +4834,78 @@ function toggleDefaultDarkOnStart(){
 .sb-station-marker{display:grid!important;place-items:center!important;visibility:visible!important;opacity:1!important}
 .sb-station-node{display:block!important;width:13px!important;height:13px!important;border-radius:50%!important;background:#f5fbff!important;border:2px solid rgba(255,255,255,.85)!important;box-shadow:0 1px 5px rgba(0,0,0,.75)!important}
 </style>
+
+<style id="sb-followup-dock-centering-touch">
+/* Dock shells are horizontal capsules; button hit areas remain circular with a 4px inset. */
+#sb-action-dock .sb-dock-panel{
+ border-radius:999px!important;
+ padding:4px!important;
+ gap:4px!important;
+ min-height:56px!important;
+}
+#sb-action-dock .sb-dock-panel button{
+ margin:4px!important;
+ border-radius:50%!important;
+}
+#constructionPanel .tool-grid{
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ justify-items:center!important;
+ justify-content:center!important;
+ align-content:center!important;
+ gap:10px 8px!important;
+ padding:10px 8px!important;
+}
+#constructionPanel .tool-grid button{justify-self:center!important;margin:0!important}
+#constructionPanel .tool-grid{width:100%!important;max-width:100%!important}
+#constructionPanel .tool-group{width:100%!important}
+#sb-default-dark-toggle.sb-ios-switch{
+ border-radius:999px!important;
+ padding:3px!important;
+ overflow:hidden!important;
+}
+#sb-default-dark-toggle.sb-ios-switch span{
+ width:26px!important;height:26px!important;min-width:26px!important;
+ border-radius:50%!important;flex:0 0 26px!important;
+}
+#sb-default-dark-toggle.sb-ios-switch[aria-checked="true"]{justify-content:flex-end!important}
+html,body{
+ width:100%!important;height:100%!important;min-height:100%!important;
+ overflow:hidden!important;overscroll-behavior:none!important;
+}
+body,#map,#sb-3d-map{touch-action:none!important}
+#map .leaflet-container{touch-action:none!important;overscroll-behavior:none!important}
+#constructionPanel{
+ overscroll-behavior:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+}
+#constructionPanel button,#sb-action-dock button,#sb-top-dock button,
+#sb-game-menu button,#sb-terms-overlay button{touch-action:manipulation!important}
+.leaflet-marker-pane,.leaflet-marker-pane *,.leaflet-pane.sbStationNodePane,
+.leaflet-pane.sbStationNodePane *{pointer-events:auto}
+.leaflet-sbStationNodePane-pane{z-index:650!important}
+.sb-station-leaflet-icon{z-index:650!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important}
+.sb-station-marker,.sb-station-marker .sb-station-node{
+ visibility:visible!important;opacity:1!important;display:block!important;
+}
+</style>
+<script id="sb-prevent-webview-overscroll">
+(function(){
+ if(window.__sbNoWebViewOverscroll)return;
+ window.__sbNoWebViewOverscroll=true;
+ document.addEventListener('touchmove',function(event){
+  const insidePanel=event.target.closest&&event.target.closest('#constructionPanel');
+  if(insidePanel)return;
+  // Leaflet owns map gestures; elsewhere, prevent the Android WebView from rubber-banding.
+  if(!event.target.closest||!event.target.closest('#map,#sb-3d-map'))event.preventDefault();
+ },{passive:false});
+ document.addEventListener('gesturestart',function(event){event.preventDefault();},{passive:false});
+ document.addEventListener('gesturechange',function(event){event.preventDefault();},{passive:false});
+ document.addEventListener('wheel',function(event){
+  if(event.target.closest&&event.target.closest('#constructionPanel'))return;
+  if(!event.target.closest||!event.target.closest('#map,#sb-3d-map'))event.preventDefault();
+ },{passive:false});
+})();
+</script>
 </body>
 </html>
