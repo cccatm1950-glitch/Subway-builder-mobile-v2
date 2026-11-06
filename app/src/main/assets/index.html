@@ -2344,6 +2344,76 @@ button.sb-flat-close,[data-flat-close="true"]{
 #sb-terms-card>.sb-menu-close{position:absolute!important;right:10px!important;top:10px!important;z-index:2!important}
 #sb-terms-card h2{padding:0 36px!important}
 
+
+<style id="sb-dock-glass-parity-refresh">
+/* Bottom dock surfaces: match the top dock's translucent glass, without gradients or borders. */
+#sb-action-dock .sb-dock-panel{
+ background:rgba(23,48,67,.58)!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+}
+#sb-action-dock{
+ background:transparent!important;
+ background-image:none!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+#sb-action-dock .sb-dock-panel button{
+ background:rgba(255,255,255,.12)!important;
+ background-image:none!important;
+ border:0!important;
+ box-shadow:none!important;
+ color:#f4fbff!important;
+ filter:none!important;
+}
+/* Undo/redo have no idle glow or persistent muted highlight; feedback is interaction-only. */
+#sb-action-dock #undoBtn,
+#sb-action-dock #redoBtn,
+#sb-action-dock #undoBtn:not(:disabled),
+#sb-action-dock #redoBtn:not(:disabled),
+#sb-action-dock #undoBtn:disabled,
+#sb-action-dock #redoBtn:disabled{
+ background:rgba(255,255,255,.12)!important;
+ border:0!important;
+ box-shadow:none!important;
+ outline:0!important;
+ filter:none!important;
+ opacity:1!important;
+ color:#f4fbff!important;
+}
+#sb-action-dock #undoBtn:hover,
+#sb-action-dock #redoBtn:hover,
+#sb-action-dock #undoBtn:focus-visible,
+#sb-action-dock #redoBtn:focus-visible{
+ background:rgba(255,255,255,.18)!important;
+ box-shadow:none!important;
+ outline:none!important;
+}
+#sb-action-dock #undoBtn:active,
+#sb-action-dock #redoBtn:active{
+ background:rgba(67,218,190,.3)!important;
+ box-shadow:none!important;
+}
+#sb-action-dock #trashModeBtn{
+ background:rgba(255,255,255,.12)!important;
+ border:0!important;
+ box-shadow:none!important;
+ color:#f4fbff!important;
+}
+#sb-action-dock #trashModeBtn.active,
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,42,68,.30)!important;
+ border:0!important;
+ box-shadow:0 0 0 1px rgba(255,75,95,.38),0 0 12px rgba(255,45,70,.28)!important;
+ color:#ffd5dc!important;
+}
+</style>
+
 </head>
 <body class="sb-start-menu-open">
 
