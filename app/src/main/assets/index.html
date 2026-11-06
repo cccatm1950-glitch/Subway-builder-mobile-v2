@@ -4907,5 +4907,27 @@ body,#map,#sb-3d-map{touch-action:none!important}
  },{passive:false});
 })();
 </script>
+
+<style id="sb-station-node-dedicated-pane">
+#map .leaflet-sbStationNodePane-pane .sb-station-leaflet-icon{
+ opacity:1!important;visibility:visible!important;z-index:650!important;
+}
+#map .leaflet-sbStationNodePane-pane .sb-station-marker{
+ width:34px!important;height:34px!important;display:grid!important;
+ place-items:center!important;border:0!important;border-radius:50%!important;
+ background:transparent!important;box-shadow:none!important;transform:none!important;
+}
+#map .leaflet-sbStationNodePane-pane .sb-station-marker .sb-station-node{
+ display:block!important;width:18px!important;height:18px!important;
+ border:0!important;border-radius:50%!important;background:#16cbb2!important;
+ box-shadow:0 0 0 8px #05090f!important;opacity:1!important;visibility:visible!important;
+}
+#map .leaflet-sbStationNodePane-pane .sb-station-marker.is-selected .sb-station-node{
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #fff,0 0 14px #fff,0 0 26px rgba(255,255,255,.95)!important;
+}
+#map .leaflet-sbStationNodePane-pane .sb-station-marker.is-track-target .sb-station-node{
+ box-shadow:0 0 0 8px #05090f,0 0 0 11px #55eaff,0 0 20px rgba(85,234,255,.85)!important;
+}
+</style>
 </body>
 </html>
