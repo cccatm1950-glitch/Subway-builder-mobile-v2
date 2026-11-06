@@ -6626,4 +6626,24 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  #sb-line-color-options{flex-direction:row!important;overflow-x:auto!important;overflow-y:hidden!important}
 }
 </style>
+<style id="sb-nov06-center-line-color-fill">
+/* Center the selected line-color swatch inside its circular trigger with an exact 4px inset. */
+#sb-line-color-trigger{
+ position:relative!important;display:inline-flex!important;
+ align-items:center!important;justify-content:center!important;
+ box-sizing:border-box!important;padding:0!important;overflow:hidden!important;
+}
+#sb-line-color-trigger:before{
+ content:""!important;position:absolute!important;
+ top:4px!important;right:4px!important;bottom:4px!important;left:4px!important;
+ width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+ max-width:none!important;max-height:none!important;
+ margin:0!important;padding:0!important;transform:none!important;
+ display:block!important;box-sizing:border-box!important;border:0!important;
+ border-radius:50%!important;
+ background:var(--sb-picked-line-color,#ff5263)!important;
+ box-shadow:0 0 10px var(--sb-picked-line-color,#ff5263)!important;
+ pointer-events:none!important;
+}
+</style>
 </html>
