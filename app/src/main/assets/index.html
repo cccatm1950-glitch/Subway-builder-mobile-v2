@@ -4613,5 +4613,63 @@ function toggleDefaultDarkOnStart(){
 })();
 </script>
 
+
+<style id="sb-construction-dock-glass-green-neon">
+/* Construction drawer uses the same two-panel dock glass material. */
+#constructionPanel{
+ background:rgba(15,25,40,.58)!important;
+ border:0!important;
+ border-radius:18px!important;
+ box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ overflow-x:hidden!important;
+}
+#constructionPanel .panel-heading{
+ background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#constructionPanel .panel-title,
+#constructionPanel .tool-group>summary{
+ color:#eef6fc!important;
+}
+#constructionPanel .tool-group{
+ background:rgba(255,255,255,.045)!important;
+ border:0!important;border-radius:14px!important;
+ box-shadow:none!important;
+}
+#constructionPanel .tool-grid button{
+ border:0!important;border-radius:50%!important;
+ background:rgba(255,255,255,.07)!important;
+ color:#eef6fc!important;box-shadow:none!important;
+ transition:background .16s ease,box-shadow .16s ease!important;
+}
+/* All selected construction tools share Delete's exact glow geometry. */
+#constructionPanel .tool-grid button.active,
+#constructionPanel .tool-grid button[aria-pressed="true"],
+#constructionPanel button[data-panel-action].active,
+#constructionPanel button[data-platform-width][aria-pressed="true"],
+#constructionPanel button[data-platform-type][aria-pressed="true"]{
+ background:rgba(25,210,150,.34)!important;
+ border:1px solid rgba(112,255,190,.98)!important;
+ color:#fff!important;
+ box-shadow:0 0 0 2px rgba(80,255,170,.25),
+            0 0 13px rgba(35,235,145,.78),
+            0 0 25px rgba(35,235,145,.48),
+            inset 0 0 12px rgba(35,235,145,.25)!important;
+ filter:none!important;opacity:1!important;
+}
+#constructionPanel .tool-grid button:active{
+ transform:none!important;
+}
+#constructionPanel button.sb-neon-pressed,
+#constructionPanel button.sb-neon-release{
+ --sb-neon:rgba(35,235,145,.99)!important;
+ box-shadow:0 0 0 2px rgba(80,255,170,.25),
+            0 0 13px rgba(35,235,145,.78),
+            0 0 25px rgba(35,235,145,.48),
+            inset 0 0 12px rgba(35,235,145,.25)!important;
+}
+</style>
+
 </body>
 </html>
