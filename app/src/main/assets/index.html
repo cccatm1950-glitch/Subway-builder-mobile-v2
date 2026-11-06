@@ -5344,5 +5344,97 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  box-shadow:none!important;
 }
 </style>
+
+<style id="sb-station-white-neon-crosshair-target">
+/* Committed station markers: white center with a transparent white neon halo. */
+#map .leaflet-sbStationNodePane-pane .sb-station-leaflet-icon,
+#map .leaflet-sbStationNodePane-pane .sb-station-marker{
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+}
+#map .leaflet-sbStationNodePane-pane .sb-station-marker .sb-station-node{
+ width:14px!important;height:14px!important;border-radius:50%!important;
+ background:#fff!important;border:1px solid rgba(255,255,255,.95)!important;
+ box-shadow:0 0 0 5px rgba(255,255,255,.12),0 0 10px rgba(255,255,255,.88),0 0 22px rgba(255,255,255,.55)!important;
+}
+#map .leaflet-sbStationNodePane-pane .sb-station-marker.is-selected .sb-station-node,
+#map .leaflet-sbStationNodePane-pane .sb-station-marker.is-crosshair-target .sb-station-node{
+ box-shadow:0 0 0 5px rgba(255,255,255,.18),0 0 0 8px rgba(255,255,255,.65),0 0 16px rgba(255,255,255,.95),0 0 30px rgba(255,255,255,.72)!important;
+}
+#map .leaflet-sbStationNodePane-pane .sb-station-marker.is-track-target .sb-station-node{
+ box-shadow:0 0 0 5px rgba(255,255,255,.15),0 0 0 8px rgba(110,235,255,.85),0 0 22px rgba(110,235,255,.9)!important;
+}
+</style>
+<script id="sb-map-click-crosshair-tool-routing">
+(function(){
+ if(window.__sbCrosshairToolRouting)return;
+ window.__sbCrosshairToolRouting=true;
+ const CENTER_RADIUS=26;
+ function centerPoint(){return map.getSize().divideBy(2);}
+ function stationAtCrosshair(){
+  const center=centerPoint();let best=null,bestDistance=CENTER_RADIUS;
+  stations.forEach((station,index)=>{
+   const point=map.latLngToContainerPoint([station.lat,station.lng]);
+   const distance=point.distanceTo(center);
+   if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
+  });
+  return best;
+ }
+ function segmentDistance(point,a,b){
+  const dx=b.x-a.x,dy=b.y-a.y,len=dx*dx+dy*dy;
+  if(!len)return point.distanceTo(a);
+  const t=Math.max(0,Math.min(1,((point.x-a.x)*dx+(point.y-a.y)*dy)/len));
+  return point.distanceTo(L.point(a.x+t*dx,a.y+t*dy));
+ }
+ function trackAtCrosshair(){
+  const center=centerPoint();let best=null,bestDistance=20;
+  tracks.forEach((track,index)=>{
+   const aStation=stations[track.a],bStation=stations[track.b];if(!aStation||!bStation)return;
+   const points=[[aStation.lat,aStation.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[bStation.lat,bStation.lng]]
+    .map(ll=>map.latLngToContainerPoint(ll));
+   let distance=Infinity;
+   for(let i=1;i<points.length;i++)distance=Math.min(distance,segmentDistance(center,points[i-1],points[i]));
+   if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
+  });
+  return best;
+ }
+ function waypointAtCrosshair(){
+  const center=centerPoint();let best=null,bestDistance=24;
+  tracks.forEach((track,trackIndex)=>(track.waypoints||[]).forEach((waypoint,waypointIndex)=>{
+   const distance=map.latLngToContainerPoint([waypoint.lat,waypoint.lng]).distanceTo(center);
+   if(distance<=bestDistance){best={trackIndex,waypointIndex,distance};bestDistance=distance;}
+  }));
+  return best;
+ }
+ map.on('click',function(){
+  if(document.getElementById('sb-3d-map')?.classList.contains('active'))return;
+  const target=stationAtCrosshair();
+  if(mode==='track'){
+   if(target){handleStationClick(target.index);}
+   else message('Move the map until a station is under the crosshair, then tap to select it.');
+   return;
+  }
+  if(mode==='inspect'){
+   if(target)handleStationClick(target.index);
+   else message('Move the map until a station is under the crosshair to inspect it.');
+   return;
+  }
+  if(mode==='delete'){
+   if(target){handleStationClick(target.index);return;}
+   const waypoint=waypointAtCrosshair();
+   if(waypoint){
+    tracks[waypoint.trackIndex].waypoints.splice(waypoint.waypointIndex,1);
+    saveHistory();renderNetwork();message('Waypoint deleted at crosshair.');return;
+   }
+   const track=trackAtCrosshair();
+   if(track){
+    tracks.splice(track.index,1);selectedTrackIndex=null;
+    saveHistory();renderNetwork();message('Track section deleted at crosshair.');return;
+   }
+   message('Move the map until a station, track, or waypoint is under the crosshair.');
+  }
+ });
+})();
+</script>
+
 </body>
 </html>
