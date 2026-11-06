@@ -2847,8 +2847,8 @@ if(mode==='delete'){
    icon:L.divIcon({
     className:'',
     html:'<div style="font-size:22px;text-shadow:0 1px 4px #000;">'+symbol+'</div>',
-    iconSize:[28,28],
-    iconAnchor:[14,14]
+    iconSize:[20,20],
+  iconAnchor:[10,10]
    })
   }).addTo(window.networkLayer).bindTooltip(
    'Waypoint '+(waypointIndex+1)+' — '+(w.elevation||'at')+' grade'
@@ -3025,7 +3025,7 @@ if(mode==='delete'){
   }else{
     drawPlatform(0);
   }
-  L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:9,color:'#f4fbff',weight:2,fillColor:'#087f79',fillOpacity:1,interactive:false}).addTo(window.networkLayer);
+  /* Legacy teal/white circle marker removed; one centered Leaflet node is retained. */
   /* Station platform slabs are intentionally disabled until their orientation
      can follow connected track geometry reliably. Keep the station node only. */
   let marker=L.marker([s.lat,s.lng],{
@@ -6260,5 +6260,13 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #constructionPanel .tool-grid>*{position:static!important;float:none!important;transform:none!important;grid-column:auto!important;grid-row:auto!important}
 #constructionPanel .tool-grid button{box-sizing:border-box!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;max-width:40px!important;max-height:40px!important;flex:none!important;margin:0!important;padding:0!important;border-radius:50%!important}
 @media(max-width:420px){#sb-service-lines-content{padding-inline:5px 12px!important}#sb-service-lines .sb-line-color-picker{flex-basis:36px!important;width:36px!important}#sb-service-lines .sb-line-color-trigger{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}#sb-construction-menu[open]>#constructionPanel{width:124px!important;min-width:124px!important;max-width:124px!important}}
+</style>
+<style id="sb-nov06-single-centered-station-marker">
+#map .sb-station-leaflet-icon{width:20px!important;height:20px!important;margin:0!important;transform:none!important}
+#map .sb-station-marker{box-sizing:border-box!important;display:grid!important;place-items:center!important;width:20px!important;height:20px!important;margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;filter:none!important;transform:none!important}
+#map .sb-station-marker .sb-station-node{display:block!important;box-sizing:border-box!important;width:14px!important;height:14px!important;margin:0!important;padding:0!important;border-radius:50%!important;background:#f7fbff!important;border:2px solid rgba(255,255,255,.96)!important;box-shadow:0 1px 5px rgba(0,0,0,.72),0 0 10px rgba(255,255,255,.34)!important}
+#map .sb-station-marker.is-selected .sb-station-node,#map .sb-station-marker.is-track-target .sb-station-node{background:#fff!important;border-color:#fff!important;box-shadow:0 0 0 3px rgba(255,255,255,.62),0 0 12px rgba(255,255,255,.72)!important}
+#map .sb-station-marker.is-dragging .sb-station-node{background:#fff!important}
+#map .sb-map-crosshair{left:50%!important;top:50%!important;transform:translate(-50%,-50%)!important}
 </style>
 </html>
