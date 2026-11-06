@@ -2926,6 +2926,8 @@ if(mode==='delete'){
  ];
 }
 
+  const assignedLines=lines.filter(line=>(t.lineIds||[]).includes(line.id));
+  const routeColor=assignedLines[0]?.color||['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
       let prev=points[Math.max(0,i-1)];
