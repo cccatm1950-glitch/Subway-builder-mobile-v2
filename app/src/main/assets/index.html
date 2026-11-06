@@ -2369,7 +2369,7 @@ button.sb-flat-close,[data-flat-close="true"]{
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -2492,7 +2492,7 @@ const darkTiles = L.tileLayer(
  }
 );
 
-let currentTheme=localStorage.getItem('mapTheme')||'light';
+let currentTheme=localStorage.getItem('sbDefaultDarkOnStart')==='true'?'dark':(localStorage.getItem('mapTheme')||'light');
 
 function setMapTheme(theme){
  if(theme!=='light'&&theme!=='dark')return;
@@ -4511,6 +4511,107 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  box-shadow:0 0 0 1px rgba(255,90,110,.62),0 0 11px rgba(255,45,70,.5),0 0 22px rgba(255,45,70,.28)!important;
 }
 </style>
+
+
+<style id="sb-two-panel-dock-and-startup-switch">
+#sb-action-dock{
+ left:10px!important;right:10px!important;bottom:calc(env(safe-area-inset-bottom,0px) + 9px)!important;
+ display:flex!important;align-items:stretch!important;justify-content:space-between!important;
+ gap:10px!important;padding:0!important;background:transparent!important;border:0!important;
+ box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ pointer-events:none!important;overflow:visible!important;
+}
+#sb-action-dock .sb-dock-panel{
+ display:flex!important;align-items:center!important;gap:8px!important;
+ min-height:58px!important;padding:7px 10px!important;box-sizing:border-box!important;
+ border-radius:18px!important;background:rgba(15,25,40,.58)!important;
+ border:0!important;box-shadow:0 8px 24px rgba(0,0,0,.18)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ pointer-events:auto!important;flex:0 0 auto!important;
+}
+#sb-action-dock .sb-dock-panel-left{justify-content:flex-start!important}
+#sb-action-dock .sb-dock-panel-right{justify-content:flex-end!important;margin-left:auto!important}
+#sb-action-dock .sb-dock-panel button{
+ pointer-events:auto!important;touch-action:manipulation!important;
+ width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;
+ flex:0 0 44px!important;border:0!important;border-radius:50%!important;
+}
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{opacity:1!important;color:#f4f8fc!important}
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{opacity:1!important;color:#f4f8fc!important}
+#sb-action-dock #trashModeBtn{margin:0!important}
+#sb-action-dock #sb-build-dock-btn{margin:0!important}
+#sb-construction-menu>summary#sb-panel-toggle{display:none!important}
+.sb-setting-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;margin:12px 0;border-top:1px solid rgba(230,245,255,.13);border-bottom:1px solid rgba(230,245,255,.13)}
+.sb-setting-row strong{display:block;color:#f4f8ff;font-size:13px}
+.sb-setting-row small{display:block;color:#aebfd1;font-size:11px;margin-top:4px}
+.sb-ios-switch{width:52px!important;height:32px!important;min-width:52px!important;min-height:32px!important;max-width:52px!important;max-height:32px!important;flex:0 0 52px!important;padding:3px!important;border:0!important;border-radius:999px!important;background:rgba(130,145,160,.48)!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.25)!important;position:relative!important;transition:background .2s ease!important}
+.sb-ios-switch span{display:block;width:26px;height:26px;border-radius:50%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.3);transform:translateX(0);transition:transform .2s ease}
+.sb-ios-switch[aria-checked="true"]{background:#30d158!important}
+.sb-ios-switch[aria-checked="true"] span{transform:translateX(20px)}
+@media(max-width:420px){#sb-action-dock{left:6px!important;right:6px!important;gap:6px!important}#sb-action-dock .sb-dock-panel{gap:5px!important;padding:6px!important;min-height:54px!important}#sb-action-dock .sb-dock-panel button{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;flex-basis:40px!important}}
+</style>
+<script id="sb-dock-panels-history-touch-startup">
+function toggleDefaultDarkOnStart(){
+ const button=document.getElementById('sb-default-dark-toggle');
+ const enabled=!(localStorage.getItem('sbDefaultDarkOnStart')==='true');
+ localStorage.setItem('sbDefaultDarkOnStart',String(enabled));
+ if(button)button.setAttribute('aria-checked',String(enabled));
+ if(enabled){localStorage.setItem('mapTheme','dark');}
+}
+(function(){
+ function setupDockPanels(){
+  const dock=document.getElementById('sb-action-dock');
+  const undo=document.getElementById('undoBtn'),redo=document.getElementById('redoBtn');
+  const del=document.getElementById('trashModeBtn'),build=document.getElementById('sb-build-dock-btn');
+  if(!dock||!undo||!redo||!del||!build)return;
+  const left=document.createElement('div');left.className='sb-dock-panel sb-dock-panel-left';left.setAttribute('aria-label','Undo and redo');
+  const right=document.createElement('div');right.className='sb-dock-panel sb-dock-panel-right';right.setAttribute('aria-label','Construction and delete');
+  [undo,redo].forEach(el=>left.appendChild(el));
+  [del,build].forEach(el=>right.appendChild(el));
+  dock.replaceChildren(left,right);
+  const original=document.getElementById('sb-panel-toggle');
+  if(original){original.style.display='none';original.setAttribute('aria-hidden','true');}
+  const toggle=document.getElementById('sb-default-dark-toggle');
+  if(toggle)toggle.setAttribute('aria-checked',String(localStorage.getItem('sbDefaultDarkOnStart')==='true'));
+ }
+ function syncHistoryButtons(){
+  const undo=document.getElementById('undoBtn'),redo=document.getElementById('redoBtn');
+  if(!undo||!redo||!Array.isArray(sbEditHistory))return;
+  const canUndo=historyIndex>0,canRedo=historyIndex<sbEditHistory.length-1;
+  undo.disabled=!canUndo;redo.disabled=!canRedo;
+  undo.setAttribute('aria-disabled',String(!canUndo));redo.setAttribute('aria-disabled',String(!canRedo));
+ }
+ function bindHistoryTouch(){
+  const u=document.getElementById('undoBtn'),r=document.getElementById('redoBtn');
+  [[u,()=>undo()],[r,()=>redo()]].forEach(([button,action])=>{
+   if(!button||button.dataset.directHistoryBound==='true')return;
+   button.dataset.directHistoryBound='true';
+   button.removeAttribute('onclick');
+   button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();if(button.disabled)return;action();syncHistoryButtons();});
+  });
+ }
+ const previousSave=window.saveHistory;
+ if(typeof previousSave==='function'&&!previousSave.__dockWrapped){
+  const wrapped=function(){const result=previousSave.apply(this,arguments);syncHistoryButtons();return result;};
+  wrapped.__dockWrapped=true;window.saveHistory=wrapped;
+ }
+ const previousUndo=window.undo;
+ if(typeof previousUndo==='function'&&!previousUndo.__dockWrapped){
+  const wrapped=function(){const result=previousUndo.apply(this,arguments);syncHistoryButtons();return result;};
+  wrapped.__dockWrapped=true;window.undo=wrapped;
+ }
+ const previousRedo=window.redo;
+ if(typeof previousRedo==='function'&&!previousRedo.__dockWrapped){
+  const wrapped=function(){const result=previousRedo.apply(this,arguments);syncHistoryButtons();return result;};
+  wrapped.__dockWrapped=true;window.redo=wrapped;
+ }
+ function init(){setupDockPanels();bindHistoryTouch();syncHistoryButtons();}
+ document.addEventListener('DOMContentLoaded',init,{once:true});init();
+ const oldUpdate=window.updateUI;
+ if(typeof oldUpdate==='function')window.updateUI=function(){const result=oldUpdate.apply(this,arguments);syncHistoryButtons();return result;};
+})();
+</script>
 
 </body>
 </html>
