@@ -2025,7 +2025,6 @@ map.createPane('sbTrackPane');map.getPane('sbTrackPane').style.zIndex=410;
 map.createPane('sbPlatformPane');map.getPane('sbPlatformPane').style.zIndex=430;
 map.createPane('sbStationPane');map.getPane('sbStationPane').style.zIndex=460;
 map.createPane('sbInteractionPane');map.getPane('sbInteractionPane').style.zIndex=480;
-map.createPane('sbStationNodePane');map.getPane('sbStationNodePane').style.zIndex=650;
 
 /* =========================================================
    SECTION 10 — MAP INITIALIZATION
@@ -2874,7 +2873,7 @@ function updateStationPlacementPreview(){
 }
 
 map.on('mousemove touchmove',updateStationPlacementPreview);
-map.on('move zoom',updateStationPlacementPreview);
+map.on('move zoom moveend zoomend',updateStationPlacementPreview);
 map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPreview();});
 
 let lastTouchPlacementAt=0;
@@ -3595,8 +3594,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 
 
 <script>
-/* PR #69 recording fixes: keep Delete latched, keep the actual station node above its preview,
-   and attach the station options dropdown to the station's map coordinate. */
+/* PR #69 follow-up: preserve Delete state and anchor station options to platform coordinates. */
 (function(){
  let modeBeforeDelete='station';
  const priorActivateDelete=window.activateDeleteMode;
