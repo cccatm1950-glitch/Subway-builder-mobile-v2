@@ -2396,12 +2396,11 @@ function syncStationEndpointVisibility(){
    Legacy categorical saves are migrated without changing their visible intent. */
 function legacyTrackElevation(level){return level==='below'?-25:level==='above'?5:0;}
 function getTrackConstructionType(height){
- if(height<=-100)return 'deepBore';
- if(height<=-24)return 'standardTunnel';
- if(height<=-10)return 'cutAndCover';
- if(height<=-4)return 'trenched';
- if(height<=-1)return 'atGrade';
- if(height<=0)return 'ramp';
+ if(height<=-24)return 'deepBore';
+ if(height<=-10)return 'standardTunnel';
+ if(height<=-4)return 'cutAndCover';
+ if(height<=-1)return 'trenched';
+ if(height<=0)return 'atGrade';
  if(height<5)return 'ramp';
  return 'elevated';
 }
