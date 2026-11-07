@@ -2294,6 +2294,15 @@ function getPrimaryStationConnection(stationIndex){
  return tracks.find(track=>track.a===stationIndex||track.b===stationIndex)||null;
 }
 
+function syncStationEndpointVisibility(){
+ if(!window.networkLayer||!map)return;
+ const center=map.getSize().divideBy(2);
+ window.networkLayer.eachLayer(layer=>{
+  if(!layer.options||!String(layer.options.className||'').includes('sb-station-platform-endpoint')||!layer.setStyle||!layer.getLatLng)return;
+  const point=map.latLngToContainerPoint(layer.getLatLng()),visible=point.distanceTo(center)<=10;
+  layer.setStyle({opacity:visible?1:0,fillOpacity:visible?1:0});
+ });
+}
 function renderNetwork(){
  platformCrowdMarkers.forEach(marker=>map.removeLayer(marker));
  platformCrowdMarkers=[];
@@ -2485,6 +2494,7 @@ if(mode==='delete'){
   if((s.platformType||'island')==='side'){drawPlatform(-(platformHalfWidth+4));drawPlatform(platformHalfWidth+4);}else{drawPlatform(0);}
 
  });
+ syncStationEndpointVisibility();
 }
  /* =========================================================
    SECTION 14 — UI AND CONSTRUCTION MODES
@@ -2814,7 +2824,6 @@ let stationPlacementPreview=null;
 let stationPlatformPreview=null;
 let stationEndpointPreview=null;
 let pendingStationPlacement=null;
-let pendingStationPlacementBearing=90;
 
 function clearStationPlacementPreview(){
  if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
@@ -2822,39 +2831,47 @@ function clearStationPlacementPreview(){
  if(stationEndpointPreview){map.removeLayer(stationEndpointPreview);stationEndpointPreview=null;}
 }
 
-function stationPlatformGeometry(anchor,edge,bearing=90){
+function stationPlatformGeometry(anchor,edge){
  const a=map.project(anchor,18),b=map.project(edge,18);
- const angle=(Number.isFinite(bearing)?bearing:90)*Math.PI/180,ux=Math.sin(angle),uy=-Math.cos(angle);
- const onePixel=map.unproject({x:a.x+1,y:a.y},18),metersPerPixel=Math.max(.001,map.distance(anchor,onePixel));
- const requested=((b.x-a.x)*ux+(b.y-a.y)*uy)*metersPerPixel;
- const lengthMeters=Math.max(30,Math.min(300,Math.abs(requested))),direction=requested<0?-1:1;
- const endpoint={x:a.x+ux*lengthMeters/metersPerPixel*direction,y:a.y+uy*lengthMeters/metersPerPixel*direction};
- const centerPoint={x:(a.x+endpoint.x)/2,y:(a.y+endpoint.y)/2},halfWidth=5,halfLengthPixels=lengthMeters/(2*metersPerPixel);
+ let dx=b.x-a.x,dy=b.y-a.y;
+ const rawPixels=Math.hypot(dx,dy),onePixel=map.unproject({x:a.x+1,y:a.y},18);
+ const metersPerPixel=Math.max(.001,map.distance(anchor,onePixel)),rawMeters=rawPixels*metersPerPixel;
+ const lengthMeters=Math.min(300,rawMeters),scale=rawPixels>0?lengthMeters/rawMeters:0;
+ dx*=scale;dy*=scale;
+ const pixels=Math.hypot(dx,dy),ux=pixels?dx/pixels:0,uy=pixels?dy/pixels:0;
+ const endpoint={x:a.x+dx,y:a.y+dy},centerPoint={x:(a.x+endpoint.x)/2,y:(a.y+endpoint.y)/2};
+ const halfWidth=5,halfLength=pixels/2;
  const corners=[
-  {x:centerPoint.x-ux*halfLengthPixels-uy*halfWidth,y:centerPoint.y-uy*halfLengthPixels+ux*halfWidth},
-  {x:centerPoint.x+ux*halfLengthPixels-uy*halfWidth,y:centerPoint.y+uy*halfLengthPixels+ux*halfWidth},
-  {x:centerPoint.x+ux*halfLengthPixels+uy*halfWidth,y:centerPoint.y+uy*halfLengthPixels-ux*halfWidth},
-  {x:centerPoint.x-ux*halfLengthPixels+uy*halfWidth,y:centerPoint.y-uy*halfLengthPixels-ux*halfWidth}
+  {x:centerPoint.x-ux*halfLength-uy*halfWidth,y:centerPoint.y-uy*halfLength+ux*halfWidth},
+  {x:centerPoint.x+ux*halfLength-uy*halfWidth,y:centerPoint.y+uy*halfLength+ux*halfWidth},
+  {x:centerPoint.x+ux*halfLength+uy*halfWidth,y:centerPoint.y+uy*halfLength-ux*halfWidth},
+  {x:centerPoint.x-ux*halfLength+uy*halfWidth,y:centerPoint.y-uy*halfLength-ux*halfWidth}
  ].map(point=>{const ll=map.unproject(point,18);return [ll.lat,ll.lng];});
- return {corners,lengthMeters,bearing:(bearing+360)%360,center:map.unproject(centerPoint,18),back:map.unproject(a,18),front:map.unproject(endpoint,18)};
+ const bearing=pixels?(Math.atan2(dx,-dy)*180/Math.PI+360)%360:90;
+ return {corners,lengthMeters,bearing,center:map.unproject(centerPoint,18),back:map.unproject(a,18),front:map.unproject(endpoint,18)};
 }
 
 function updateStationPlacementPreview(){
  if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){clearStationPlacementPreview();return;}
  const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
- const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair,pendingStationPlacementBearing):{corners:[[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng]],back:crosshair,front:crosshair};
+ const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair):{corners:[[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng]],back:crosshair,front:crosshair};
  if(!stationPlatformPreview)stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false,className:'sb-station-platform-preview'}).addTo(map);
  else stationPlatformPreview.setLatLngs(geometry.corners);
  if(!stationEndpointPreview){
   stationEndpointPreview=L.layerGroup([
-   L.circleMarker(geometry.back,{radius:5,color:'#65ffe4',weight:2,fillColor:'#07111e',fillOpacity:1,interactive:false}),
-   L.circleMarker(geometry.front,{radius:5,color:'#65ffe4',weight:2,fillColor:'#65ffe4',fillOpacity:1,interactive:false})
+   L.circleMarker(geometry.back,{radius:5,color:'#65ffe4',weight:2,fillColor:'#07111e',fillOpacity:1,interactive:false,className:'sb-station-preview-node'}),
+   L.circleMarker(geometry.front,{radius:5,color:'#65ffe4',weight:2,fillColor:'#65ffe4',fillOpacity:1,interactive:false,className:'sb-station-preview-node'})
   ]).addTo(map);
  }else{const nodes=stationEndpointPreview.getLayers();if(nodes[0])nodes[0].setLatLng(geometry.back);if(nodes[1])nodes[1].setLatLng(geometry.front);}
+ const centerPoint=map.getSize().divideBy(2);
+ stationEndpointPreview.getLayers().forEach(node=>{
+  const point=map.latLngToContainerPoint(node.getLatLng()),visible=point.distanceTo(centerPoint)<=10;
+  node.setStyle({opacity:visible?1:0,fillOpacity:visible?1:0});
+ });
 }
 
 map.on('mousemove touchmove',updateStationPlacementPreview);
-map.on('move zoom moveend zoomend',updateStationPlacementPreview);
+map.on('move zoom moveend zoomend',function(){updateStationPlacementPreview();syncStationEndpointVisibility();});
 map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPreview();});
 
 let lastTouchPlacementAt=0;
@@ -2871,12 +2888,11 @@ function handleMapPlacement(latlng){
   if(money<500){message('Not enough money for a station.');return;}
   if(!pendingStationPlacement){
    pendingStationPlacement=L.latLng(latlng.lat,latlng.lng);
-   pendingStationPlacementBearing=90;
    updateStationPlacementPreview();
-   message('Rear platform node fixed. Move the map to extend the opposite node, then tap again to place the station.');
+   message('Rear platform node fixed. Pan or zoom to move the opposite node freely, then tap again to place the station.');
    return;
   }
-  const geometry=stationPlatformGeometry(pendingStationPlacement,latlng,pendingStationPlacementBearing);
+  const geometry=stationPlatformGeometry(pendingStationPlacement,latlng);
   const center=geometry.center;
   pendingStationPlacement=null;
   clearStationPlacementPreview();
@@ -2886,12 +2902,11 @@ function handleMapPlacement(latlng){
    name:'Station '+(stations.length+1),
    platformType:platformType,
    platformLengthMeters:geometry.lengthMeters,
-   platformBearing:pendingStationPlacementBearing
+   platformBearing:geometry.bearing
   });
   saveHistory();
   renderNetwork();
   message('Station and platform placed successfully.');
-  pendingStationPlacementBearing=90;
  }
 else if(mode==='delete'){
   message('Tap a station, track, or waypoint to delete it.');
