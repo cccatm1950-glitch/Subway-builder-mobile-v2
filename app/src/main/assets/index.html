@@ -6500,4 +6500,89 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 }
 @media(prefers-reduced-motion:reduce){#sb-game-menu-settings-view .sb-menu-pointer-switch,#sb-game-menu-settings-view .sb-menu-pointer-switch span{transition:none!important}}
 </style>
+
+<style id="sb-borderless-panels-menus-and-neutral-history-controls">
+/* Remove perimeter borders from dock panels, construction panels, and menu surfaces. */
+#sb-top-dock>.sb-top-panel,
+#sb-action-dock,
+#sb-action-dock .sb-dock-panel,
+#constructionPanel,
+.panel,
+#sb-game-menu,
+#sb-game-menu-card,
+#sb-game-menu-card .sb-game-menu-view,
+#stationContextMenu,
+#sb-construction-context-menu,
+#sb-construction-context-menu .sb-construction-context-heading,
+#sb-service-context-menu,
+#serviceSearchPanel,
+#startMenu .start-card{
+ border:0!important;
+ outline:0!important;
+}
+#sb-top-dock>.sb-top-panel,
+#sb-action-dock .sb-dock-panel,
+#constructionPanel,
+.panel,
+#sb-game-menu-card,
+#stationContextMenu,
+#sb-construction-context-menu,
+#sb-service-context-menu,
+#serviceSearchPanel,
+#startMenu .start-card{
+ border-color:transparent!important;
+}
+/* Menu action buttons remain glass-filled and functional, but have no outline frame. */
+#constructionPanel button,
+#sb-game-menu-card button,
+#stationContextMenu button,
+#sb-construction-context-menu button,
+#sb-service-context-menu button,
+#serviceSearchPanel button{
+ border:0!important;
+ outline:0!important;
+}
+/* Remove every white ring/glow source from undo and redo in all interaction states. */
+#sb-action-dock #undoBtn,
+#sb-action-dock #redoBtn,
+#sb-action-dock #undoBtn:hover,
+#sb-action-dock #redoBtn:hover,
+#sb-action-dock #undoBtn:active,
+#sb-action-dock #redoBtn:active,
+#sb-action-dock #undoBtn:focus,
+#sb-action-dock #redoBtn:focus,
+#sb-action-dock #undoBtn:focus-visible,
+#sb-action-dock #redoBtn:focus-visible,
+#sb-action-dock #undoBtn:focus-within,
+#sb-action-dock #redoBtn:focus-within,
+#sb-action-dock #undoBtn.active,
+#sb-action-dock #redoBtn.active,
+#sb-action-dock #undoBtn[aria-pressed],
+#sb-action-dock #redoBtn[aria-pressed]{
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+ filter:none!important;
+ -webkit-filter:none!important;
+ text-shadow:none!important;
+ -webkit-text-stroke:0!important;
+}
+#sb-action-dock #undoBtn:before,
+#sb-action-dock #undoBtn:after,
+#sb-action-dock #redoBtn:before,
+#sb-action-dock #redoBtn:after{
+ content:none!important;
+ display:none!important;
+ box-shadow:none!important;
+ filter:none!important;
+}
+#sb-action-dock #undoBtn svg,
+#sb-action-dock #redoBtn svg,
+#sb-action-dock #undoBtn svg *,
+#sb-action-dock #redoBtn svg *{
+ filter:none!important;
+ -webkit-filter:none!important;
+ stroke-linejoin:round!important;
+}
+</style>
 </html>
