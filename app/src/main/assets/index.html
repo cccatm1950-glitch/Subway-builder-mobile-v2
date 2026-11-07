@@ -1931,7 +1931,12 @@ button.sb-flat-close,[data-flat-close="true"]{
  color:#f4fbff!important}
 </style>
 
-</head>
+<style id="sb-platform-size-presets">
+#sb-construction-context-menu .sb-platform-size-heading{margin:12px 2px 7px;color:rgba(220,237,248,.72);font-size:10px;font-weight:800;letter-spacing:1.1px}
+#sb-construction-context-menu .sb-platform-size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+#sb-construction-context-menu .sb-platform-size-grid button{min-width:0;min-height:38px;border-radius:999px;border:1px solid rgba(220,240,255,.16);background:rgba(235,245,255,.07);color:#e8f2fa;font-size:12px;font-weight:700}
+#sb-construction-context-menu .sb-platform-size-grid button.active{background:rgba(54,211,190,.22);border-color:rgba(101,255,228,.68);color:#75ffe8;box-shadow:0 0 12px rgba(38,220,196,.22)}
+</style></head>
 <body class="sb-start-menu-open">
 
 <!-- ========================================================
@@ -2092,7 +2097,17 @@ setMapTheme(currentTheme);
 var mode='station';
 let trackStyle='single';
 let platformWidth='default';
+let platformSize='standard';
 let platformType='island';
+const PLATFORM_SIZE_PRESETS={compact:{length:60,width:6,label:'Compact'},standard:{length:90,width:8,label:'Standard'},long:{length:150,width:10,label:'Long'}};
+function getPlatformDimensions(size){return PLATFORM_SIZE_PRESETS[size]||PLATFORM_SIZE_PRESETS.standard;}
+function setPlatformSize(size){
+ if(!PLATFORM_SIZE_PRESETS[size])return;
+ platformSize=size;
+ document.querySelectorAll('[data-platform-size]').forEach(button=>{const active=button.dataset.platformSize===size;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
+ if(mode==='station')updateStationPlacementPreview();
+ const d=getPlatformDimensions(size);message('Platform size: '+d.label+' ('+d.length+'m × '+d.width+'m).');
+}
 
 function setPlatformType(type){
  if(type!=='island'&&type!=='side')return;
@@ -2153,6 +2168,7 @@ function snapshot(){
   money:money,
   passengers:passengers,
   platformWidth:platformWidth,
+  platformSize:platformSize,
   platformType:platformType,
   mode:mode,
   trackStyle:trackStyle,
@@ -2161,7 +2177,8 @@ function snapshot(){
   stations:stations.map(s=>({
    lat:s.lat,lng:s.lng,name:s.name,elevation:s.elevation||'at',
    platformType:s.platformType||'island',
-   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:90,
+   platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
+   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:getPlatformDimensions(s.platformSize||platformSize).length,
    platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
    waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:null
   })),
@@ -2187,6 +2204,7 @@ function restoreSnapshot(data){
  money=Number.isFinite(data.money)?data.money:25000;
  passengers=Number.isFinite(data.passengers)?data.passengers:0;
  if(['default','narrow','wide'].includes(data.platformWidth))platformWidth=data.platformWidth;
+ if(PLATFORM_SIZE_PRESETS[data.platformSize])platformSize=data.platformSize;
  if(['island','side'].includes(data.platformType))platformType=data.platformType;
  if(['station','track','waypoint','delete','inspect','curve'].includes(data.mode))mode=data.mode;
  if(['single','parallel'].includes(data.trackStyle))trackStyle=data.trackStyle;
@@ -2194,7 +2212,8 @@ function restoreSnapshot(data){
  stations=data.stations.map((s,i)=>({
   lat:Number(s.lat),lng:Number(s.lng),name:s.name||'Station '+(i+1),
   elevation:s.elevation||'at',platformType:s.platformType||'island',
-  platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):90,
+  platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
+  platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):getPlatformDimensions(s.platformSize||platformSize).length,
   platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
   waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:undefined
  })).filter(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lng));
@@ -2331,8 +2350,9 @@ function getStationTrackSideOffset(stationIndex,fromPoint,toPoint){
  const platformNormalEast=-axisNorth,platformNormalNorth=axisEast;
  const alignment=platformNormalEast*routeNormalEast+platformNormalNorth*routeNormalNorth;
  const side=alignment<0?-1:1;
- const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):90)/2;
- const width=platformWidth==='narrow'?3:platformWidth==='wide'?7.5:5;
+ const dimensions=getPlatformDimensions(station.platformSize||platformSize);
+ const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):dimensions.length)/2;
+ const width=dimensions.width/2;
  const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
  return side*(support+6);
 }
@@ -2484,16 +2504,15 @@ if(mode==='delete'){
   let dx=Math.sin(bearingRadians),dy=Math.cos(bearingRadians);
   let len=Math.sqrt(dx*dx+dy*dy)||1;
 
-  let halfWidth=platformWidth==='narrow'?5:
-                platformWidth==='wide'?15:10;
+  const dimensions=getPlatformDimensions(s.platformSize||platformSize);
+  let halfWidth=dimensions.width;
 
   let px=-dy/len;
   let py=dx/len;
   let cos=Math.cos(s.lat*Math.PI/180);
 
-    let platformHalfWidth=platformWidth==='narrow'?3:
-                        platformWidth==='wide'?7.5:5;
-  let platformHalfLength=(Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):90)/2;
+    let platformHalfWidth=dimensions.width/2;
+  let platformHalfLength=(Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):dimensions.length)/2;
 
   function drawPlatform(acrossOffset){
     let centerEast=px*acrossOffset,centerNorth=py*acrossOffset,corners=[];
@@ -2863,14 +2882,15 @@ function clearStationPlacementPreview(){
 
 function stationPlatformGeometry(anchor,edge){
  const a=map.project(anchor,18),b=map.project(edge,18);
- let dx=b.x-a.x,dy=b.y-a.y;
- const rawPixels=Math.hypot(dx,dy),onePixel=map.unproject({x:a.x+1,y:a.y},18);
- const metersPerPixel=Math.max(.001,map.distance(anchor,onePixel)),rawMeters=rawPixels*metersPerPixel;
- const lengthMeters=Math.min(300,rawMeters),scale=rawPixels>0?lengthMeters/rawMeters:0;
+ let dx=b.x-a.x,dy=b.y-a.y,rawPixels=Math.hypot(dx,dy);
+ if(rawPixels<.5){dx=1;dy=0;rawPixels=1;}
+ const onePixel=map.unproject({x:a.x+1,y:a.y},18),metersPerPixel=Math.max(.001,map.distance(anchor,onePixel));
+ const dimensions=getPlatformDimensions(platformSize),lengthMeters=dimensions.length;
+ const scale=(lengthMeters/metersPerPixel)/rawPixels;
  dx*=scale;dy*=scale;
  const pixels=Math.hypot(dx,dy),ux=pixels?dx/pixels:0,uy=pixels?dy/pixels:0;
  const endpoint={x:a.x+dx,y:a.y+dy},centerPoint={x:(a.x+endpoint.x)/2,y:(a.y+endpoint.y)/2};
- const halfWidth=5,halfLength=pixels/2;
+ const halfWidth=(dimensions.width/2)/metersPerPixel,halfLength=pixels/2;
  const corners=[
   {x:centerPoint.x-ux*halfLength-uy*halfWidth,y:centerPoint.y-uy*halfLength+ux*halfWidth},
   {x:centerPoint.x+ux*halfLength-uy*halfWidth,y:centerPoint.y+uy*halfLength+ux*halfWidth},
@@ -2878,7 +2898,7 @@ function stationPlatformGeometry(anchor,edge){
   {x:centerPoint.x-ux*halfLength+uy*halfWidth,y:centerPoint.y-uy*halfLength-ux*halfWidth}
  ].map(point=>{const ll=map.unproject(point,18);return [ll.lat,ll.lng];});
  const bearing=pixels?(Math.atan2(dx,-dy)*180/Math.PI+360)%360:90;
- return {corners,lengthMeters,bearing,center:map.unproject(centerPoint,18),back:map.unproject(a,18),front:map.unproject(endpoint,18)};
+ return {corners,lengthMeters,bearing,center:map.unproject(centerPoint,18),back:map.unproject(a,18),front:map.unproject(endpoint,18),widthMeters:dimensions.width};
 }
 
 function updateStationPlacementPreview(){
@@ -2932,6 +2952,7 @@ function handleMapPlacement(latlng){
    lat:center.lat,lng:center.lng,
    name:'Station '+(stations.length+1),
    platformType:platformType,
+   platformSize:platformSize,
    platformLengthMeters:geometry.lengthMeters,
    platformBearing:geometry.bearing
   });
@@ -3927,8 +3948,16 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    '<button type="button" data-mode="curve">Curve</button>'+
    '<button type="button" data-mode="waypoint">Waypoint</button>'+
    '<button type="button" data-mode="inspect">Inspect</button>'+
+   '</div>'+
+   '<div class="sb-platform-size-heading">PLATFORM SIZE</div>'+
+   '<div class="sb-platform-size-grid">'+
+   '<button type="button" data-platform-size="compact" aria-pressed="'+String(platformSize==='compact')+'" class="'+(platformSize==='compact'?'active':'')+'">60m</button>'+
+   '<button type="button" data-platform-size="standard" aria-pressed="'+String(platformSize==='standard')+'" class="'+(platformSize==='standard'?'active':'')+'">90m</button>'+
+   '<button type="button" data-platform-size="long" aria-pressed="'+String(platformSize==='long')+'" class="'+(platformSize==='long'?'active':'')+'">150m</button>'+
    '</div>';
   menu.addEventListener('click',function(event){
+   const sizeAction=event.target.closest('button[data-platform-size]');
+   if(sizeAction){setPlatformSize(sizeAction.dataset.platformSize);return;}
    const action=event.target.closest('button[data-mode]');
    if(!action)return;
    const nextMode=action.dataset.mode;
