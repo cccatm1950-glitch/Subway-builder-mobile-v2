@@ -3639,11 +3639,14 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  function ensurePreview(){
   if(typeof map==='undefined'||!map)return;
   if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){
-   if(typeof stationPlacementPreview!=='undefined'&&stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
-   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}return;
+   /* Clear the complete placement preview as one unit so platform and endpoint
+      nodes cannot remain stranded after switching tools or entering 3D mode. */
+   if(typeof clearStationPlacementPreview==='function')clearStationPlacementPreview();
+   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
+   return;
   }
-  /* Reuse the single camera-centered reticle created by the original placement layer. */
-  /* No point-marker ghost: the platform preview is the only station preview. */
+  /* The platform footprint and its endpoint nodes are owned by the original
+     crosshair placement layer; do not create a second marker ghost here. */
   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
  }
  function clearStationMoveMode(){
