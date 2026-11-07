@@ -7510,4 +7510,89 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 </style>
 
+
+<style id="sb-top-status-right-menu-alignment-and-dialog-glass">
+/* Keep the theme and menu controls adjacent at the left; pin the original-size
+   city/status capsule to the upper-right edge. */
+#sb-top-dock{
+ position:fixed!important;
+ top:max(9px,env(safe-area-inset-top,0px))!important;
+ left:14px!important;right:14px!important;
+ width:auto!important;height:58px!important;min-height:58px!important;
+ display:flex!important;flex-direction:row!important;
+ align-items:center!important;justify-content:flex-start!important;
+ gap:8px!important;padding:0!important;margin:0!important;
+ pointer-events:none!important;overflow:visible!important;
+}
+#sb-top-dock>.sb-top-panel-theme,
+#sb-top-dock>.sb-top-panel-menu{
+ display:flex!important;flex:0 0 58px!important;
+ width:58px!important;min-width:58px!important;max-width:58px!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ margin:0!important;padding:6px!important;
+}
+#sb-top-dock>.sb-top-panel-stats{
+ display:flex!important;flex:0 1 488px!important;
+ width:488px!important;min-width:0!important;max-width:min(488px,calc(100vw - 150px))!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ margin-left:auto!important;padding:6px 18px!important;
+}
+#sb-top-dock>.sb-top-panel-stats .stats{
+ width:100%!important;min-width:0!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:clamp(8px,1.7vw,18px)!important;
+}
+#sb-top-dock>.sb-top-panel-stats .stat{min-width:0!important}
+#sb-top-dock>.sb-top-panel-stats #sb-city-stat strong{max-width:120px!important}
+#sb-top-dock #sb-map-theme-toggle,
+#sb-top-dock #sb-game-menu-toggle{
+ display:inline-flex!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;align-items:center!important;justify-content:center!important;
+}
+/* Keep the color palette at its annotated upper-map position and allow touch/mouse
+   horizontal scrolling when the swatch row is wider than its available lane. */
+#sb-line-color-options{
+ overflow-x:auto!important;overflow-y:hidden!important;
+ white-space:nowrap!important;touch-action:pan-x!important;
+ overscroll-behavior-x:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ scrollbar-width:none!important;
+}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options .sb-line-color-option{flex-shrink:0!important}
+#sb-dashboard-dialog{
+ border:0!important;outline:0!important;
+ background:rgba(13,25,42,.72)!important;background-image:none!important;
+ -webkit-backdrop-filter:blur(25px) saturate(175%)!important;
+ backdrop-filter:blur(25px) saturate(175%)!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+#sb-dashboard-dialog:before,#sb-dashboard-dialog:after{border:0!important;outline:0!important;box-shadow:none!important}
+@media(max-width:560px){
+ #sb-top-dock{
+  top:max(7px,env(safe-area-inset-top,0px))!important;
+  left:7px!important;right:7px!important;gap:6px!important;
+  height:56px!important;min-height:56px!important;
+ }
+ #sb-top-dock>.sb-top-panel-theme,
+ #sb-top-dock>.sb-top-panel-menu{
+  flex-basis:56px!important;width:56px!important;min-width:56px!important;max-width:56px!important;
+  height:56px!important;min-height:56px!important;max-height:56px!important;
+ }
+ #sb-top-dock>.sb-top-panel-stats{
+  flex:0 1 488px!important;width:488px!important;
+  max-width:calc(100vw - 124px)!important;height:56px!important;min-height:56px!important;
+  padding:5px 9px!important;
+ }
+ #sb-top-dock #sb-map-theme-toggle,#sb-top-dock #sb-game-menu-toggle{
+  width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ }
+ #sb-top-dock>.sb-top-panel-stats .stats{gap:clamp(4px,1.4vw,8px)!important}
+ #sb-top-dock>.sb-top-panel-stats .stat{font-size:7px!important;letter-spacing:.25px!important}
+ #sb-top-dock>.sb-top-panel-stats .stat strong{font-size:clamp(8px,2.35vw,10px)!important}
+ #sb-top-dock>.sb-top-panel-stats #sb-city-stat strong{max-width:70px!important}
+}
+</style>
 </html>
