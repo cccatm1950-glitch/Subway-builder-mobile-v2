@@ -2515,7 +2515,7 @@ if(mode==='delete'){
   const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
-  // The mobile parallel-track lane spacing remains the existing +/-5 m.
+  // Parallel track centerlines use the desktop 3.81 m standard gauge spacing.
   const OFFSET_TRANSITION_LENGTH_METERS=50;
   const cumulativeTrackMeters=[0];
   for(let i=1;i<points.length;i++){
