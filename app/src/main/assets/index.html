@@ -3009,11 +3009,11 @@ function toggleSimulation(){
   trainMovementTimers.forEach(clearInterval);trainMovementTimers=[];
   trainMarkers.forEach(m=>map.removeLayer(m));trainMarkers=[];
   platformCrowdMarkers.forEach(m=>map.removeLayer(m));platformCrowdMarkers=[];
-  document.getElementById('runBtn').textContent='▶';document.getElementById('runBtn').setAttribute('aria-label','Run trains');document.getElementById('runBtn').title='Run trains';
+  if(window.syncServiceRunControl)window.syncServiceRunControl();
   message('Simulation paused.');return;
  }
  if(stations.length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
- running=true;document.getElementById('runBtn').textContent='Ⅱ';document.getElementById('runBtn').setAttribute('aria-label','Pause trains');document.getElementById('runBtn').title='Pause trains';
+ running=true;if(window.syncServiceRunControl)window.syncServiceRunControl();
  stations.forEach(station=>{if(!Number.isFinite(station.waitingPassengers))station.waitingPassengers=8+Math.floor(Math.random()*17);});
  renderNetwork();
  message('Trains are running — platform crowds are waiting and trains have limited capacity.');
@@ -4199,7 +4199,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search or name a service line" title="Search or name a service line">⌕</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines">Search</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   buildPalette();draw();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
@@ -4299,9 +4299,11 @@ function toggleDefaultDarkOnStart(){
    input.focus({preventScroll:true});
    try{input.click();}catch(_){}
   });
-  input.addEventListener('blur',()=>{
-   if(!input.value.trim())editor.classList.remove('is-editing');
+  const add=document.getElementById('sb-line-add');
+  input.addEventListener('blur',event=>{
+   if(!input.value.trim()&&event.relatedTarget!==add)editor.classList.remove('is-editing');
   });
+  if(add)add.addEventListener('pointerdown',event=>event.preventDefault());
   input.addEventListener('keydown',event=>{
    if(event.key==='Escape'){input.value='';input.blur();editor.classList.remove('is-editing');}
   });
@@ -4313,6 +4315,8 @@ function toggleDefaultDarkOnStart(){
   const setExpanded=(expanded)=>{
    dock.classList.toggle('is-expanded',expanded);
    button.setAttribute('aria-expanded',String(expanded));
+   button.setAttribute('aria-pressed',String(expanded));
+   button.classList.toggle('active',expanded);
    button.setAttribute('aria-label',expanded?'Close service lines':'Open service lines');
    button.title=expanded?'Close service lines':'Service lines';
    if(expanded){
@@ -4328,7 +4332,18 @@ function toggleDefaultDarkOnStart(){
   button.addEventListener('click',()=>setExpanded(!dock.classList.contains('is-expanded')));
   setExpanded(false);
  }
- function bindRunButton(){const button=document.getElementById('runBtn');if(!button||button.dataset.bound)return;button.dataset.bound='true';button.addEventListener('click',()=>toggleSimulation());const sync=()=>{button.textContent=running?'Ⅱ':'▶';button.setAttribute('aria-label',running?'Pause trains':'Run trains');button.title=running?'Pause trains':'Run trains';button.classList.toggle('active',!!running);};sync();const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceRunSync){const wrapped=function(){const result=prior.apply(this,arguments);sync();draw();return result;};wrapped.__sbServiceRunSync=true;window.updateUI=wrapped;}}
+ function bindRunButton(){
+  const button=document.getElementById('runBtn');if(!button||button.dataset.bound)return;button.dataset.bound='true';
+  const sync=()=>{
+   const active=!!running;
+   button.innerHTML=active?'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7 5h4v14H7zM15 5h4v14h-4z" fill="currentColor"/></svg>':'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg>';
+   button.setAttribute('aria-label',active?'Pause trains':'Run trains');button.title=active?'Pause trains':'Run trains';
+   button.setAttribute('aria-pressed',String(active));button.classList.toggle('active',active);
+  };
+  window.syncServiceRunControl=sync;sync();
+  button.addEventListener('click',()=>{toggleSimulation();sync();});
+  const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceRunSync){const wrapped=function(){const result=prior.apply(this,arguments);sync();draw();return result;};wrapped.__sbServiceRunSync=true;window.updateUI=wrapped;}
+ }
  function removeActiveLine(){
   const line=lines.find(item=>item.id===activeLineId);
   if(!line){message('Select a service line to remove.');return;}
@@ -4338,7 +4353,7 @@ function toggleDefaultDarkOnStart(){
   activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();
  }
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-remove-active')removeActiveLine();});
- function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';saveHistory();draw();message(line.name+' created.');}
+ function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';document.getElementById('sb-line-name-editor')?.classList.remove('is-editing');saveHistory();draw();message(line.name+' created.');}
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
  document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
  document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
@@ -6261,5 +6276,32 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 }
 #sb-action-dock #sb-build-dock-btn:active,
 #sb-action-dock #trashModeBtn:active{transform:scale(.94)!important}
+</style>
+<style id="sb-dock-service-controls-unified">
+:root{--sb-dock-glass-bg:rgba(15,25,40,.62);--sb-dock-glass-border:rgba(190,225,250,.16);--sb-dock-glass-shadow:0 12px 32px rgba(0,0,0,.24)}
+#sb-service-dock #sb-service-dock-toggle[aria-pressed="false"]{background:rgba(235,245,255,.055)!important;color:#dbe8f3!important;box-shadow:inset 0 0 0 1px rgba(225,240,255,.09)!important}
+#sb-service-dock #sb-service-dock-toggle[aria-pressed="true"]{background:rgba(54,211,190,.20)!important;color:#75ffe8!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.52),0 0 14px rgba(38,220,196,.22)!important}
+#sb-service-dock #sb-service-dock-toggle{transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .2s ease!important}
+#sb-service-dock #sb-service-lines button#runBtn{color:#fff!important;background:rgba(235,245,255,.075)!important;box-shadow:inset 0 0 0 1px rgba(225,240,255,.12)!important;transition:background .22s ease,color .22s ease,box-shadow .22s ease,transform .22s ease!important}
+#sb-service-dock #sb-service-lines button#runBtn svg{width:21px!important;height:21px!important;display:block!important;pointer-events:none!important}
+#sb-service-dock #sb-service-lines button#runBtn:not(.active){color:#55a7ff!important;background:rgba(55,145,255,.14)!important;box-shadow:inset 0 0 0 1px rgba(85,167,255,.34),0 0 12px rgba(65,145,255,.12)!important}
+#sb-service-dock #sb-service-lines button#runBtn.active{color:#fff!important;background:rgba(235,245,255,.13)!important;box-shadow:inset 0 0 0 1px rgba(245,250,255,.42),0 0 12px rgba(245,250,255,.12)!important;animation:sb-run-active-pulse 1.8s ease-in-out infinite}
+@keyframes sb-run-active-pulse{0%,100%{box-shadow:inset 0 0 0 1px rgba(245,250,255,.28),0 0 7px rgba(245,250,255,.07)}50%{box-shadow:inset 0 0 0 1px rgba(245,250,255,.52),0 0 15px rgba(245,250,255,.17)}}
+#sb-line-name-editor{flex:0 0 66px!important;width:66px!important;min-width:66px!important;height:40px!important;border-radius:999px!important;overflow:hidden!important;gap:0!important;transition:flex-basis .32s cubic-bezier(.2,.8,.2,1),width .32s cubic-bezier(.2,.8,.2,1),background .22s ease!important}
+#sb-line-name-editor #sb-line-name-search{flex:0 0 66px!important;width:66px!important;min-width:66px!important;height:40px!important;border-radius:999px!important;font-size:12px!important;font-weight:750!important;letter-spacing:.15px!important}
+#sb-line-name-editor #sb-new-line-name{flex:1 1 auto!important;min-width:0!important;height:40px!important;opacity:0!important;pointer-events:none!important}
+#sb-line-name-editor #sb-line-add{display:none!important;flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;margin:2px!important;border-radius:50%!important;font-size:21px!important}
+#sb-line-name-editor.is-editing{flex:0 1 204px!important;width:204px!important;min-width:140px!important;border-radius:999px!important;background:rgba(235,245,255,.12)!important}
+#sb-line-name-editor.is-editing #sb-line-name-search{flex:0 0 42px!important;width:42px!important;min-width:42px!important;font-size:11px!important}
+#sb-line-name-editor.is-editing #sb-new-line-name{width:auto!important;min-width:20px!important;padding:0 4px!important;opacity:1!important;pointer-events:auto!important}
+#sb-line-name-editor.is-editing #sb-line-add{display:inline-flex!important}
+#sb-line-name-editor #sb-new-line-name:focus,#sb-line-name-editor #sb-new-line-name:focus-visible{outline:0!important;border:0!important;box-shadow:none!important}
+#sb-line-color-options,#sb-construction-context-menu{background:var(--sb-dock-glass-bg)!important;border:1px solid var(--sb-dock-glass-border)!important;border-radius:28px!important;box-shadow:var(--sb-dock-glass-shadow),inset 0 1px 0 rgba(255,255,255,.06)!important;-webkit-backdrop-filter:blur(26px) saturate(165%)!important;backdrop-filter:blur(26px) saturate(165%)!important}
+#sb-line-color-options{padding:10px!important}
+#sb-construction-context-menu{padding:12px!important}
+#sb-construction-context-menu button{border-radius:50%!important;min-height:44px!important;width:44px!important;height:44px!important;padding:4px!important;background:rgba(235,245,255,.075)!important;border:1px solid rgba(225,240,255,.12)!important}
+#sb-construction-context-menu button:active,#sb-construction-context-menu button.active,#sb-construction-context-menu button[aria-pressed="true"]{background:rgba(54,211,190,.2)!important;border-color:rgba(101,255,228,.52)!important;box-shadow:0 0 13px rgba(38,220,196,.2)!important}
+@media(max-width:700px){#sb-line-name-editor.is-editing{flex-basis:176px!important;width:176px!important;min-width:132px!important}}
+@media(prefers-reduced-motion:reduce){#sb-service-dock #sb-service-lines button#runBtn.active{animation:none!important}}
 </style>
 </html>
