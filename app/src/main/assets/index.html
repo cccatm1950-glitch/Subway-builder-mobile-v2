@@ -4292,7 +4292,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines">Search</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected custom color" title="Select a custom color in the picker to delete it" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines">Search</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected color" title="Select a custom color to enable deletion" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   buildPalette();draw();bindDeleteCustomColor();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
@@ -5541,6 +5541,88 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 </style>
 
 <!-- Removed conflicting construction auto-reopen script 2; toggleToolsPanel is the sole visibility controller. -->
+
+<style id="sb-color-picker-scroll-fill-and-delete-active">
+/* Color deletion is distinct from service-line removal and lights up only for a selected custom swatch. */
+#sb-service-dock #sb-line-remove-active{
+ color:rgba(255,255,255,.48)!important;
+ background:rgba(255,255,255,.07)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.10)!important;
+ transition:color .16s ease,background .16s ease,box-shadow .16s ease,transform .16s ease!important;
+}
+#sb-service-dock #sb-line-remove-active:disabled{
+ opacity:.42!important;cursor:default!important;
+}
+#sb-service-dock #sb-line-remove-active:not(:disabled){
+ color:#fff!important;
+ background:rgba(255,70,91,.22)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.78),
+ 0 0 8px rgba(255,255,255,.52),0 0 17px rgba(255,255,255,.32),
+ 0 0 20px rgba(255,55,78,.28)!important;
+}
+#sb-service-dock #sb-line-remove-active:not(:disabled):active,
+#sb-service-dock #sb-line-remove-active:not(:disabled):focus-visible{
+ transform:scale(.94)!important;
+ box-shadow:inset 0 0 0 1.5px #fff,
+ 0 0 10px rgba(255,255,255,.78),0 0 22px rgba(255,255,255,.46),
+ 0 0 24px rgba(255,55,78,.38)!important;
+ outline:0!important;
+}
+/* Keep all preset and custom colors inside one horizontally scrollable glass panel. */
+#sb-line-color-options{
+ box-sizing:border-box!important;
+ width:min(560px,calc(100vw - 14px))!important;
+ max-width:calc(100vw - 14px)!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ overscroll-behavior-x:contain!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-x!important;
+ scrollbar-width:none!important;
+}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options .sb-line-color-option{
+ position:relative!important;flex:0 0 36px!important;
+ width:36px!important;height:36px!important;
+ min-width:36px!important;min-height:36px!important;
+ max-width:36px!important;max-height:36px!important;
+ box-sizing:border-box!important;padding:4px!important;
+ overflow:visible!important;border:0!important;border-radius:50%!important;
+ background:rgba(255,255,255,.10)!important;
+ transform:scale(1)!important;
+ transition:transform .16s ease,box-shadow .16s ease!important;
+}
+#sb-line-color-options .sb-line-color-option:before{
+ content:""!important;display:block!important;position:absolute!important;
+ inset:4px!important;width:auto!important;height:auto!important;
+ border:0!important;border-radius:50%!important;
+ background:var(--sb-option-color,transparent)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)!important;
+}
+#sb-line-color-options .sb-line-color-option.empty:before{display:none!important}
+#sb-line-color-options .sb-line-color-option[aria-selected="true"],
+#sb-line-color-options .sb-line-color-option[aria-pressed="true"]{
+ transform:scale(1.12)!important;
+ background:rgba(255,255,255,.16)!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.78),
+ 0 0 12px color-mix(in srgb,var(--sb-option-color) 56%,transparent)!important;
+ z-index:2!important;
+}
+#sb-line-color-options .sb-line-color-option[aria-selected="true"]:before,
+#sb-line-color-options .sb-line-color-option[aria-pressed="true"]:before{
+ inset:3px!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.48),
+ 0 0 10px color-mix(in srgb,var(--sb-option-color) 70%,transparent)!important;
+}
+#sb-line-color-options .sb-line-color-option.empty{
+ flex:0 0 36px!important;width:36px!important;height:36px!important;
+ opacity:.65!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-service-dock #sb-line-remove-active,
+ #sb-line-color-options .sb-line-color-option{transition:none!important}
+}
+</style>
+
 </body>
 <style id="sb-nov06-dock-pill-inset-and-service-button-parity">
 /* One shared viewport inset for all three bottom docks, matching the top HUD. */
