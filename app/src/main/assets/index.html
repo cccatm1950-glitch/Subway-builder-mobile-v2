@@ -6139,7 +6139,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 
 
 <style id="sb-final-46px-borderless-glass-controls">
-/* Single source of truth for the controls highlighted in the reference image. */
+/* Unified single-layer glass controls: no solid fills, inset rings, or outlines. */
 :root{--sb-dock-control-size:46px;--sb-service-control-size:46px;--sb-tool-control-size:46px}
 #sb-action-dock button,
 #sb-action-dock .sb-dock-panel button,
@@ -6153,10 +6153,10 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
  flex:0 0 46px!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
  max-width:46px!important;max-height:46px!important;aspect-ratio:1!important;margin:0!important;padding:0!important;
- border:0!important;border-radius:50%!important;background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
- outline:0!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;
- -webkit-backdrop-filter:blur(22px) saturate(160%)!important;backdrop-filter:blur(22px) saturate(160%)!important;
- -webkit-tap-highlight-color:transparent!important;
+ border:0!important;border-radius:50%!important;background:rgba(235,245,255,.055)!important;
+ background-image:none!important;color:#f4f8fc!important;outline:0!important;box-shadow:none!important;
+ text-shadow:none!important;filter:none!important;-webkit-backdrop-filter:blur(24px) saturate(165%)!important;
+ backdrop-filter:blur(24px) saturate(165%)!important;-webkit-tap-highlight-color:transparent!important;
 }
 #sb-action-dock button:hover,#sb-action-dock button:active,#sb-action-dock button:focus,#sb-action-dock button:focus-visible,
 #sb-action-dock button.active,#sb-action-dock button[aria-pressed="true"],
@@ -6166,19 +6166,23 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #sb-service-dock #sb-service-dock-toggle:hover,#sb-service-dock #sb-service-dock-toggle:active,
 #sb-service-dock #sb-service-dock-toggle[aria-pressed="true"],
 #sb-service-lines #runBtn:hover,#sb-service-lines #runBtn:active{
- border:0!important;outline:0!important;box-shadow:none!important;background:rgba(235,245,255,.20)!important;
+ border:0!important;outline:0!important;box-shadow:none!important;background:rgba(235,245,255,.10)!important;
 }
 #sb-action-dock button:before,#sb-action-dock button:after,#sb-panel-toggle:before,#sb-panel-toggle:after,
 #constructionPanel .panel-heading button:before,#constructionPanel .panel-heading button:after,
 #constructionPanel .tool-grid>button:before,#constructionPanel .tool-grid>button:after,
 #sb-service-dock #sb-service-dock-toggle:before,#sb-service-dock #sb-service-dock-toggle:after{
- content:none!important;display:none!important;border:0!important;box-shadow:none!important;
+ content:none!important;display:none!important;border:0!important;outline:0!important;box-shadow:none!important;
 }
-#sb-action-dock #trashModeBtn,#sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{
- border:0!important;background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,
+#sb-action-dock #sb-build-dock-btn,#sb-action-dock #trashModeBtn,
+#sb-action-dock #undoBtn.active,#sb-action-dock #redoBtn.active,
+#sb-action-dock #sb-build-dock-btn.active,#sb-action-dock #trashModeBtn.active,
+#sb-action-dock button[aria-pressed="true"]{
+ border:0!important;background:rgba(235,245,255,.055)!important;background-image:none!important;
+ color:#f4f8fc!important;box-shadow:none!important;outline:0!important;
 }
 #sb-action-dock button:disabled{opacity:.42!important}
-#sb-construction-menu>#sb-panel-toggle{background:rgba(235,245,255,.12)!important}
 #constructionPanel .tool-grid>button svg{width:22px!important;height:22px!important;pointer-events:none!important}
 </style>
 
