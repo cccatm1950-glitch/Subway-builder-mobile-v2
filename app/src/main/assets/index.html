@@ -639,9 +639,9 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
 .play-launch{display:flex;flex-direction:column;align-items:center;gap:18px;padding:26px 32px;text-align:center;pointer-events:none}
 .play-brand{font-size:clamp(19px,5vw,27px);font-weight:900;letter-spacing:3px;color:#f3fbff;text-shadow:0 2px 22px rgba(65,220,220,.35)}#sb-play-button{pointer-events:auto;width:104px;height:104px;min-height:104px;padding:0;margin:0;border-radius:50%!important;display:grid;place-items:center;background:rgba(19,180,163,.22)!important;border:1px solid rgba(142,255,235,.66)!important}#sb-play-button span{font-size:34px;margin-left:5px;color:#eafffb}
 .play-caption{font-size:10px;letter-spacing:3px;color:rgba(230,248,255,.8)}
-#sb-touch-pointer{position:fixed;z-index:5000;left:-100px;top:-100px;width:26px;height:26px;border:2px solid rgba(134,255,236,.95);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);opacity:0;transition:opacity .12s,transform .12s;filter:drop-shadow(0 0 7px rgba(47,255,219,.8))}
-#sb-touch-pointer.visible{opacity:1}
-#sb-touch-pointer span{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#eafffb;transform:translate(-50%,-50%);box-shadow:0 0 8px #5fffe2}
+#sb-touch-pointer{position:fixed;z-index:100000;left:-100px;top:-100px;width:26px;height:26px;border:2px solid rgba(235,246,255,.96);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);opacity:0;visibility:hidden;display:block;transition:opacity .12s,transform .12s;filter:drop-shadow(0 0 4px rgba(220,240,255,.28))}
+#sb-touch-pointer.visible{opacity:1!important;visibility:visible!important;display:block!important}
+#sb-touch-pointer span{position:absolute;left:50%;top:50%;width:5px;height:5px;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:none}
 #sb-touch-pointer.pressed{transform:translate(-50%,-50%) scale(.72);background:rgba(81,255,226,.22)}
 .sb-pointer-click{position:fixed;z-index:4999;width:20px;height:20px;border:2px solid rgba(119,255,229,.9);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);animation:sb-pointer-ripple .38s ease-out forwards}
 @keyframes sb-pointer-ripple{to{width:54px;height:54px;opacity:0;box-shadow:0 0 24px rgba(69,255,220,.5)}}
@@ -2007,7 +2007,7 @@ button.sb-flat-close,[data-flat-close="true"]{
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><p>Simulation paused. Your game is being saved on this device.</p><button class="sb-game-menu-action" type="button" onclick="closeInGameMenu()">▶ Resume game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Show touch trace</button></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><h3>SETTINGS</h3><p>Automatic game saving is on. Your latest network, progress and map view are stored locally on this device.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action" type="button" onclick="exportGameStateToDevice()">Save game to device</button></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -2043,17 +2043,19 @@ button.sb-flat-close,[data-flat-close="true"]{
      SECTION 07 — TOP STATUS BAR
      ======================================================== -->
 
-<div id="sb-top-dock" class="topbar" role="group" aria-label="City status">
- <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu">☰</button>
- <div class="stats">
-  <div id="sb-map-control-stack" role="group" aria-label="Map and pointer controls">
-   <button id="sb-map-theme-toggle" type="button" aria-label="Switch map to dark mode" title="Toggle map appearance" aria-pressed="false">◐</button>
-   <button id="sb-touch-cursor-toggle" class="sb-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span class="sb-switch-track"><span class="sb-switch-thumb"></span></span><span class="sb-switch-label">Touch</span></button>
-   <button id="sb-mouse-pointer-toggle" class="sb-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span class="sb-switch-track"><span class="sb-switch-thumb"></span></span><span class="sb-switch-label">Mouse</span></button>
+<div id="sb-top-dock" class="topbar" role="group" aria-label="Game status and controls">
+ <div class="sb-top-panel sb-top-panel-theme" aria-label="Map appearance">
+  <button id="sb-map-theme-toggle" type="button" aria-label="Switch map to dark mode" title="Toggle map appearance" aria-pressed="false">◐</button>
+ </div>
+ <div class="sb-top-panel sb-top-panel-menu" aria-label="Game menu">
+  <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu" aria-expanded="false">☰</button>
+ </div>
+ <div class="sb-top-panel sb-top-panel-stats" aria-label="City status">
+  <div class="stats">
+   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
+   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
+   <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
   </div>
-  <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
-  <div class="stat">MONEY<strong id="money">$25,000</strong></div>
-  <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
  </div>
  <div id="sb-dashboard-dialog" role="status" aria-live="polite">Tap the map to build your first station.</div>
 </div>
@@ -2778,8 +2780,9 @@ function syncPointerSwitches(){
  if(touch){touch.classList.toggle('active',sbTouchCursorEnabled);touch.setAttribute('aria-checked',String(sbTouchCursorEnabled));}
  if(mouse){mouse.classList.toggle('active',sbMousePointerEnabled);mouse.setAttribute('aria-checked',String(sbMousePointerEnabled));}
  const pointer=document.getElementById('sb-touch-pointer');
- if(pointer)pointer.classList.toggle('visible',sbTouchCursorEnabled||sbMousePointerEnabled);
+ if(pointer&&!sbTouchCursorEnabled&&!sbMousePointerEnabled)pointer.classList.remove('visible');
  document.body.classList.toggle('sb-touch-pointer-enabled',sbTouchCursorEnabled||sbMousePointerEnabled);
+ document.body.classList.toggle('sb-mouse-pointer-enabled',sbMousePointerEnabled);
 }
 function setTouchCursorEnabled(enabled){sbTouchCursorEnabled=!!enabled;syncPointerSwitches();}
 function setMousePointerEnabled(enabled){sbMousePointerEnabled=!!enabled;syncPointerSwitches();}
@@ -3945,11 +3948,20 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const dock=document.getElementById('sb-top-dock');
   const theme=document.getElementById('sb-map-theme-toggle');
   const menu=document.getElementById('sb-game-menu-toggle');
-  if(!dock||!theme||!menu||theme.dataset.slotPlaced==='true')return;
-  const pair=document.createElement('div');pair.className='sb-theme-menu-pair';
-  dock.insertBefore(pair,dock.querySelector('.stats'));
-  pair.appendChild(theme);pair.appendChild(menu);
-  theme.dataset.slotPlaced='true';
+  const stats=dock?.querySelector('.stats');
+  if(!dock||!theme||!menu||!stats)return;
+  const ensurePanel=(element,className)=>{
+   let panel=element.parentElement;
+   if(!panel?.classList.contains(className)){
+    panel=document.createElement('div');panel.className='sb-top-panel '+className;
+    dock.insertBefore(panel,element);
+    panel.appendChild(element);
+   }
+   return panel;
+  };
+  ensurePanel(theme,'sb-top-panel-theme');
+  ensurePanel(menu,'sb-top-panel-menu');
+  ensurePanel(stats,'sb-top-panel-stats');
  }
  function init(){
   placeThemeSlot();
@@ -6396,5 +6408,96 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #sb-map-control-stack .sb-switch-label{font-size:8px!important;letter-spacing:.1px!important}
 .sb-pointer-hover{background:rgba(54,211,190,.2)!important;color:#75ffe8!important;border-color:rgba(101,255,228,.72)!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.28),0 0 12px rgba(38,220,196,.2)!important}
 @media(max-width:700px){#sb-map-control-stack #sb-map-theme-toggle{width:34px!important;height:34px!important;min-height:34px!important;flex-basis:34px!important}#sb-map-control-stack .sb-pointer-switch{width:58px!important;min-width:58px!important}}
+</style>
+
+<style id="sb-three-glass-top-dock-panels-and-menu-pointer-settings">
+/* Three independent top-dock glass surfaces; keep the original screen insets. */
+#sb-top-dock{
+ position:fixed!important;z-index:1450!important;
+ top:max(9px,env(safe-area-inset-top,0px))!important;left:14px!important;right:14px!important;
+ box-sizing:border-box!important;min-height:58px!important;height:58px!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+ gap:10px!important;padding:0!important;margin:0!important;
+ background:transparent!important;background-image:none!important;border:0!important;border-radius:0!important;
+ box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+ overflow:visible!important;pointer-events:none!important;
+}
+#sb-top-dock>.sb-top-panel{
+ box-sizing:border-box!important;display:flex!important;flex:0 0 auto!important;
+ align-items:center!important;justify-content:center!important;
+ height:58px!important;min-height:58px!important;padding:6px!important;margin:0!important;
+ border:1px solid rgba(205,230,248,.15)!important;border-radius:999px!important;
+ background:rgba(13,25,42,.64)!important;background-image:none!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.07)!important;
+ -webkit-backdrop-filter:blur(25px) saturate(175%)!important;backdrop-filter:blur(25px) saturate(175%)!important;
+ pointer-events:auto!important;overflow:visible!important;
+}
+#sb-top-dock>.sb-top-panel-theme,#sb-top-dock>.sb-top-panel-menu{width:58px!important;min-width:58px!important}
+#sb-top-dock>.sb-top-panel-stats{margin-left:auto!important;min-width:0!important;max-width:calc(100% - 136px)!important;padding:6px 14px!important}
+#sb-top-dock .stats{
+ box-sizing:border-box!important;display:flex!important;flex:0 1 auto!important;align-items:center!important;justify-content:flex-end!important;
+ min-width:0!important;width:auto!important;margin:0!important;padding:0!important;gap:clamp(8px,1.7vw,18px)!important;
+ white-space:nowrap!important;background:transparent!important;border:0!important;box-shadow:none!important;
+}
+#sb-top-dock .stat{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;min-width:0!important;margin:0!important;padding:0!important;font-size:8px!important;line-height:1.15!important;letter-spacing:.65px!important;color:rgba(218,233,246,.68)!important}
+#sb-top-dock .stat strong{display:block!important;max-width:100%!important;margin-top:3px!important;overflow:hidden!important;text-overflow:ellipsis!important;font-size:clamp(10px,1.1vw,13px)!important;line-height:1.1!important;letter-spacing:0!important;color:#f4f8fc!important}
+#sb-top-dock #sb-city-stat strong{max-width:90px!important}
+#sb-top-dock #sb-map-theme-toggle,#sb-top-dock #sb-game-menu-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:50%!important;outline:0!important;
+ color:#f4f8fc!important;background:rgba(235,245,255,.055)!important;background-image:none!important;
+ box-shadow:none!important;filter:none!important;transform:none!important;
+ -webkit-backdrop-filter:blur(20px) saturate(160%)!important;backdrop-filter:blur(20px) saturate(160%)!important;
+ font-size:20px!important;line-height:1!important;touch-action:manipulation!important;
+}
+#sb-top-dock #sb-map-theme-toggle:hover,#sb-top-dock #sb-map-theme-toggle:active,
+#sb-top-dock #sb-map-theme-toggle:focus,#sb-top-dock #sb-map-theme-toggle:focus-visible,
+#sb-top-dock #sb-map-theme-toggle.active,#sb-top-dock #sb-map-theme-toggle[aria-pressed="true"],
+#sb-top-dock #sb-game-menu-toggle:hover,#sb-top-dock #sb-game-menu-toggle:active,
+#sb-top-dock #sb-game-menu-toggle:focus,#sb-top-dock #sb-game-menu-toggle:focus-visible,
+#sb-top-dock #sb-game-menu-toggle.active,#sb-top-dock #sb-game-menu-toggle[aria-expanded="true"]{
+ border:0!important;outline:0!important;box-shadow:none!important;filter:none!important;transform:none!important;
+ background:rgba(235,245,255,.075)!important;color:#f4f8fc!important;
+}
+#sb-top-dock #sb-map-theme-toggle:before,#sb-top-dock #sb-map-theme-toggle:after,
+#sb-top-dock #sb-game-menu-toggle:before,#sb-top-dock #sb-game-menu-toggle:after{content:none!important;display:none!important}
+#sb-dashboard-dialog{position:absolute!important;top:calc(100% + 8px)!important;left:50%!important;right:auto!important;
+ transform:translateX(-50%)!important;z-index:1451!important;max-width:calc(100vw - 28px)!important;
+ pointer-events:none!important;white-space:normal!important}
+#sb-game-menu-settings-view .sb-setting-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important}
+#sb-game-menu-settings-view .sb-setting-row>div{min-width:0!important;flex:1 1 auto!important}
+#sb-game-menu-settings-view .sb-setting-row strong{display:block!important}
+#sb-game-menu-settings-view .sb-setting-row small{display:block!important}
+#sb-game-menu-settings-view .sb-menu-pointer-switch{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;
+ position:relative!important;flex:0 0 52px!important;width:52px!important;min-width:52px!important;max-width:52px!important;
+ height:30px!important;min-height:30px!important;max-height:30px!important;padding:3px!important;margin:0!important;
+ border:0!important;border-radius:999px!important;background:rgba(180,195,210,.28)!important;
+ box-shadow:none!important;outline:0!important;transition:background .16s ease!important;
+}
+#sb-game-menu-settings-view .sb-menu-pointer-switch span{display:block!important;position:relative!important;
+ width:24px!important;height:24px!important;min-width:24px!important;min-height:24px!important;
+ border-radius:50%!important;background:#edf6ff!important;box-shadow:none!important;transform:translateX(0)!important;
+ transition:transform .16s ease!important}
+#sb-game-menu-settings-view .sb-menu-pointer-switch[aria-checked="true"]{justify-content:flex-start!important;background:rgba(45,190,170,.58)!important}
+#sb-game-menu-settings-view .sb-menu-pointer-switch[aria-checked="true"] span{transform:translateX(22px)!important;background:#fff!important}
+#sb-game-menu-settings-view .sb-menu-pointer-switch:focus,
+#sb-game-menu-settings-view .sb-menu-pointer-switch:focus-visible,
+#sb-game-menu-settings-view .sb-menu-pointer-switch:active{outline:0!important;box-shadow:none!important}
+@media(max-width:560px){
+ #sb-top-dock{left:7px!important;right:7px!important;top:max(7px,env(safe-area-inset-top,0px))!important;gap:7px!important}
+ #sb-top-dock>.sb-top-panel{height:56px!important;min-height:56px!important;padding:5px!important}
+ #sb-top-dock>.sb-top-panel-theme,#sb-top-dock>.sb-top-panel-menu{width:56px!important;min-width:56px!important}
+ #sb-top-dock #sb-map-theme-toggle,#sb-top-dock #sb-game-menu-toggle{width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important}
+ #sb-top-dock>.sb-top-panel-stats{max-width:calc(100% - 126px)!important;padding:5px 8px!important}
+ #sb-top-dock .stats{gap:clamp(4px,1.4vw,8px)!important}
+ #sb-top-dock .stat{font-size:7px!important;letter-spacing:.25px!important}
+ #sb-top-dock .stat strong{font-size:clamp(8px,2.35vw,10px)!important}
+ #sb-top-dock #sb-city-stat strong{max-width:65px!important}
+ #sb-dashboard-dialog{top:calc(100% + 6px)!important}
+}
+@media(prefers-reduced-motion:reduce){#sb-game-menu-settings-view .sb-menu-pointer-switch,#sb-game-menu-settings-view .sb-menu-pointer-switch span{transition:none!important}}
 </style>
 </html>
