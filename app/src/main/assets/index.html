@@ -2942,7 +2942,7 @@ function syncStationPreviewGestureNodes(){
  stationEndpointPreview.getLayers().forEach(node=>node.setLatLng(crosshair));
 }
 map.on('movestart zoomstart',function(){if(mode==='station'&&pendingStationPlacement){sbStationPreviewGestureActive=true;syncStationPreviewGestureNodes();}});
-map.on('move zoom',function(){if(sbStationPreviewGestureActive)syncStationPreviewGestureNodes();updateStationPlacementPreview();});
+map.on('move zoom',function(){updateStationPlacementPreview();if(sbStationPreviewGestureActive)syncStationPreviewGestureNodes();});
 map.on('moveend zoomend',function(){sbStationPreviewGestureActive=false;updateStationPlacementPreview();syncStationEndpointVisibility();});
 map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPreview();});
 
