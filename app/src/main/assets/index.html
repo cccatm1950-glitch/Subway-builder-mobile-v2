@@ -4289,10 +4289,25 @@ function toggleDefaultDarkOnStart(){
  function buildPalette(){
   const trigger=document.getElementById('sb-line-color-trigger'),palette=document.getElementById('sb-line-color-options');
   if(!trigger||!palette)return;
-  trigger.style.setProperty('--sb-picked-line-color',draftColor);
+  const activeLine=Array.isArray(lines)?lines.find(line=>line.id===activeLineId):null;
+  const visibleColor=activeLine?.color||draftColor;
+  trigger.style.setProperty('--sb-picked-line-color',visibleColor);
+  trigger.style.setProperty('--sb-active-line-color',visibleColor);
+  trigger.setAttribute('aria-label',activeLine?'Color of '+activeLine.name:'Choose service line color');
+  trigger.setAttribute('aria-pressed',String(!!activeLine));
   palette.replaceChildren();
   const choose=(color)=>{
-   draftColor=color;trigger.style.setProperty('--sb-picked-line-color',color);
+   draftColor=color;
+   const selectedLine=Array.isArray(lines)?lines.find(line=>line.id===activeLineId):null;
+   if(selectedLine&&selectedLine.color!==color){
+    selectedLine.color=color;
+    saveHistory();
+    renderNetwork();
+    draw();
+   }else{
+    trigger.style.setProperty('--sb-picked-line-color',color);
+    trigger.style.setProperty('--sb-active-line-color',color);
+   }
    palette.querySelectorAll('[data-color]').forEach(button=>{
     const selected=button.dataset.color===color;
     button.setAttribute('aria-selected',String(selected));
@@ -4382,7 +4397,16 @@ function toggleDefaultDarkOnStart(){
    slot.append(sw,pick,label,count,remove);host.append(slot);
   });
   host.scrollLeft=oldScroll;
-  const trigger=document.getElementById('sb-line-color-trigger');if(trigger)trigger.style.setProperty('--sb-picked-line-color',draftColor);const removeActive=document.getElementById('sb-line-remove-active');if(removeActive){removeActive.disabled=!lines.some(item=>item.id===activeLineId);removeActive.title=removeActive.disabled?'Select a line first':'Remove '+(lines.find(item=>item.id===activeLineId)?.name||'selected line');}
+  const trigger=document.getElementById('sb-line-color-trigger');
+  const activeLine=Array.isArray(lines)?lines.find(line=>line.id===activeLineId):null;
+  const visibleColor=activeLine?.color||draftColor;
+  if(trigger){
+   trigger.style.setProperty('--sb-picked-line-color',visibleColor);
+   trigger.style.setProperty('--sb-active-line-color',visibleColor);
+   trigger.setAttribute('aria-label',activeLine?'Color of '+activeLine.name:'Choose service line color');
+   trigger.setAttribute('aria-pressed',String(!!activeLine));
+  }
+  const removeActive=document.getElementById('sb-line-remove-active');if(removeActive){removeActive.disabled=!lines.some(item=>item.id===activeLineId);removeActive.title=removeActive.disabled?'Select a line first':'Remove '+(lines.find(item=>item.id===activeLineId)?.name||'selected line');}
  }
  function bindServiceNameSearch(){
   const editor=document.getElementById('sb-line-name-editor'),button=document.getElementById('sb-line-name-search'),input=document.getElementById('sb-new-line-name');
@@ -4390,16 +4414,24 @@ function toggleDefaultDarkOnStart(){
   button.dataset.bound='true';
   const createSlot=document.getElementById('sb-service-create-slot');
   const add=document.getElementById('sb-line-add');
-  let slotPlaceholder=null,keyboardActive=false,viewport=null;
+  let slotPlaceholder=null,keyboardActive=false,viewport=null,baseViewportHeight=0,searchBackdrop=null;
   const updateKeyboardInset=()=>{
    const vv=window.visualViewport;
-   const inset=vv?Math.max(0,Math.round(window.innerHeight-vv.height-vv.offsetTop)):0;
+   const visibleHeight=vv?vv.height:window.innerHeight;
+   const offsetTop=vv?vv.offsetTop:0;
+   /* Capture the pre-keyboard viewport once; Android adjustResize can shrink innerHeight too. */
+   const inset=baseViewportHeight?Math.max(0,Math.round(baseViewportHeight-visibleHeight-offsetTop)):0;
    document.documentElement.style.setProperty('--sb-keyboard-inset',inset+'px');
    document.body.classList.toggle('sb-service-search-keyboard',keyboardActive);
+   if(createSlot&&keyboardActive){
+    createSlot.style.bottom='calc('+inset+'px + 12px + env(safe-area-inset-bottom,0px))';
+   }
   };
   const restoreSlot=()=>{
    keyboardActive=false;
    document.body.classList.remove('sb-service-search-keyboard');
+   if(searchBackdrop){searchBackdrop.remove();searchBackdrop=null;}
+   if(createSlot)createSlot.style.removeProperty('bottom');
    if(slotPlaceholder&&slotPlaceholder.parentNode){
     slotPlaceholder.parentNode.insertBefore(createSlot,slotPlaceholder);
     slotPlaceholder.remove();
@@ -4408,10 +4440,13 @@ function toggleDefaultDarkOnStart(){
    if(viewport){viewport.removeEventListener('resize',updateKeyboardInset);viewport.removeEventListener('scroll',updateKeyboardInset);viewport=null;}
    window.removeEventListener('resize',updateKeyboardInset);
    document.documentElement.style.removeProperty('--sb-keyboard-inset');
+   baseViewportHeight=0;
    editor.classList.remove('is-editing');
    editor.removeAttribute('data-keyboard-active');
   };
   const activate=()=>{
+   if(keyboardActive){input.focus({preventScroll:true});return;}
+   baseViewportHeight=window.innerHeight;
    editor.classList.add('is-editing');
    input.setAttribute('aria-hidden','false');
    keyboardActive=true;
@@ -4420,12 +4455,17 @@ function toggleDefaultDarkOnStart(){
     createSlot.parentNode.insertBefore(slotPlaceholder,createSlot);
     document.body.append(createSlot);
    }
+   searchBackdrop=document.createElement('div');
+   searchBackdrop.id='sb-service-search-backdrop';
+   searchBackdrop.setAttribute('aria-hidden','true');
+   document.body.append(searchBackdrop);
    editor.setAttribute('data-keyboard-active','true');
    document.body.classList.add('sb-service-search-keyboard');
    viewport=window.visualViewport||null;
    if(viewport){viewport.addEventListener('resize',updateKeyboardInset);viewport.addEventListener('scroll',updateKeyboardInset);}
    window.addEventListener('resize',updateKeyboardInset);
    updateKeyboardInset();
+   requestAnimationFrame(updateKeyboardInset);
    input.focus({preventScroll:true});
   };
   button.addEventListener('click',activate);
@@ -6804,6 +6844,124 @@ body.sb-service-search-keyboard #sb-service-dock,
 body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 @media(prefers-reduced-motion:reduce){
  body.sb-service-search-keyboard #sb-service-create-slot{transition:none!important}
+}
+</style>
+
+
+<style id="sb-service-search-viewport-and-color-picker-rebuild">
+/* Explicit removable backdrop prevents stale body pseudo-element blur. */
+body.sb-service-search-keyboard:before{content:none!important;display:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+#sb-service-search-backdrop{
+ position:fixed!important;inset:0!important;z-index:14900!important;
+ background:rgba(5,12,22,.24)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(115%)!important;
+ backdrop-filter:blur(7px) saturate(115%)!important;
+ pointer-events:auto!important;
+}
+body.sb-service-search-keyboard #sb-service-create-slot{
+ position:fixed!important;z-index:15010!important;
+ left:50%!important;right:auto!important;top:auto!important;
+ bottom:calc(var(--sb-keyboard-inset,0px) + 12px + env(safe-area-inset-bottom,0px))!important;
+ transform:translateX(-50%)!important;
+ box-sizing:border-box!important;width:max-content!important;max-width:calc(100vw - 20px)!important;
+ min-height:52px!important;height:52px!important;padding:6px 8px!important;margin:0!important;
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+ border:0!important;border-radius:999px!important;background:rgba(15,25,40,.94)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 12px 34px rgba(0,0,0,.3)!important;
+ transition:bottom .18s ease,transform .28s cubic-bezier(.2,.8,.2,1)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor{
+ flex:0 1 min(340px,calc(100vw - 94px))!important;width:min(340px,calc(100vw - 94px))!important;
+ min-width:180px!important;max-width:calc(100vw - 94px)!important;height:40px!important;min-height:40px!important;
+ border-radius:999px!important;background:rgba(235,245,255,.12)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-line-name-search{
+ flex:0 0 48px!important;width:48px!important;min-width:48px!important;height:40px!important;
+ border:0!important;background:transparent!important;color:#f4f8fc!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-new-line-name{
+ flex:1 1 auto!important;width:auto!important;min-width:24px!important;height:40px!important;
+ padding:0 8px!important;opacity:1!important;pointer-events:auto!important;
+ color:#f4f8fc!important;background:transparent!important;border:0!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-line-add{
+ display:inline-flex!important;flex:0 0 38px!important;width:38px!important;height:38px!important;
+ min-width:38px!important;min-height:38px!important;margin:0!important;border:0!important;border-radius:50%!important;
+}
+body.sb-service-search-keyboard #sb-line-color-trigger,
+body.sb-service-search-keyboard #sb-line-remove-active{display:none!important}
+body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
+/* Rebuilt fixed glass color pill: one authoritative position and visibility state. */
+#sb-line-color-options{
+ position:fixed!important;z-index:20000!important;left:50vw!important;right:auto!important;
+ top:calc(max(9px,env(safe-area-inset-top,0px)) + 58px + 10px)!important;bottom:auto!important;
+ box-sizing:border-box!important;width:min(560px,calc(100vw - 28px))!important;max-width:calc(100vw - 28px)!important;
+ min-width:0!important;max-height:calc(100vh - 100px)!important;overflow-x:auto!important;overflow-y:hidden!important;
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;
+ gap:8px!important;padding:9px 11px!important;margin:0!important;border:0!important;outline:0!important;
+ border-radius:999px!important;background:rgba(15,25,40,.9)!important;color:#f4f8fc!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 12px 30px rgba(0,0,0,.28)!important;
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+ transform:translate(calc(-50% + 20px),-8px)!important;
+ transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s!important;
+ scrollbar-width:none!important;
+}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options[hidden]{display:none!important}
+#sb-line-color-options.is-open{
+ display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ transform:translate(-50%,0)!important;transition-delay:0s!important;
+}
+#sb-line-color-options .sb-line-color-option{
+ position:relative!important;box-sizing:border-box!important;flex:0 0 36px!important;
+ width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
+ max-width:36px!important;max-height:36px!important;padding:0!important;margin:0!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ border:0!important;outline:0!important;border-radius:50%!important;
+ background:rgba(235,245,255,.055)!important;color:rgba(220,232,243,.38)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.06)!important;opacity:.48!important;overflow:hidden!important;
+ transition:background .14s ease,color .14s ease,box-shadow .14s ease,opacity .14s ease!important;
+}
+#sb-line-color-options .sb-line-color-option:before{
+ content:""!important;position:absolute!important;inset:5px!important;border-radius:50%!important;
+ background:var(--sb-option-color,transparent)!important;
+}
+#sb-line-color-options .sb-line-color-option.empty:before{display:none!important}
+#sb-line-color-options .sb-line-color-option.empty{
+ background:rgba(235,245,255,.045)!important;color:rgba(220,232,243,.38)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.06)!important;opacity:.42!important;
+}
+#sb-line-color-options .sb-line-color-option[aria-selected="true"],
+#sb-line-color-options .sb-line-color-option[aria-pressed="true"]{
+ background:color-mix(in srgb,var(--sb-option-color) 18%,transparent)!important;
+ color:var(--sb-option-color)!important;opacity:1!important;
+ box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sb-option-color) 62%,transparent),
+ 0 0 13px color-mix(in srgb,var(--sb-option-color) 38%,transparent)!important;
+}
+#sb-line-color-trigger{
+ position:relative!important;overflow:visible!important;
+ background:rgba(235,245,255,.06)!important;border:0!important;
+ box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 42%,transparent),
+ 0 0 11px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 24%,transparent)!important;
+}
+#sb-line-color-trigger:before{
+ content:""!important;position:absolute!important;inset:7px!important;border-radius:50%!important;
+ background:var(--sb-active-line-color,var(--sb-picked-line-color,#ff5263))!important;
+ box-shadow:0 0 10px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 55%,transparent)!important;
+ pointer-events:none!important;
+}
+#sb-line-color-trigger[aria-pressed="true"]{
+ box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 70%,transparent),
+ 0 0 15px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 42%,transparent)!important;
+}
+@media(max-width:560px){
+ #sb-line-color-options{top:calc(max(7px,env(safe-area-inset-top,0px)) + 56px + 8px)!important;
+ width:calc(100vw - 14px)!important;max-width:calc(100vw - 14px)!important;padding:8px 9px!important;gap:7px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-line-color-options,body.sb-service-search-keyboard #sb-service-create-slot{transition:none!important}
 }
 </style>
 
