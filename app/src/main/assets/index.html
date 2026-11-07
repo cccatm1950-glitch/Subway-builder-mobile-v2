@@ -2554,9 +2554,10 @@ if(mode==='delete'){
   }
 }  
 
+  // Desktop standard gauge spacing: 3.81 m between parallel track centerlines.
   if(t.style==='parallel'){
-    drawLine(-5);
-    drawLine(5);
+    drawLine(-1.905);
+    drawLine(1.905);
   }else{
     drawLine(0);
   }
