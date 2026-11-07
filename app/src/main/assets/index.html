@@ -2303,14 +2303,8 @@ function renderNetwork(){
   map.removeLayer(window.networkLayer);
  }
  window.networkLayer=L.layerGroup().addTo(map);
-  /* Keep committed station nodes in their own layer so track redraws cannot clear them. */
-  if(!window.stationNodeLayer)window.stationNodeLayer=L.layerGroup();
-  else window.stationNodeLayer.clearLayers();
-  /* Re-attach the dedicated node layer on every redraw. This guards against
-     map/theme/3D transitions detaching the layer while tracks are rebuilt. */
-  if(!map.hasLayer(window.stationNodeLayer))window.stationNodeLayer.addTo(map);
-  const stationPane=map.getPane('sbStationNodePane');
-  if(stationPane){stationPane.style.zIndex='650';stationPane.style.pointerEvents='auto';}
+  /* Stations are drawn and selected through their platform polygons. */
+  window.stationPlatformHitAreas=[];
 
  tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
@@ -2489,94 +2483,29 @@ if(mode==='delete'){
   let platformHalfLength=(Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):90)/2;
 
   function drawPlatform(acrossOffset){
-    let centerEast=px*acrossOffset;
-    let centerNorth=py*acrossOffset;
-    let halfLength=platformHalfLength;
-    let corners=[];
-
-    for(let along of [-1,1]){
-      for(let across of [-1,1]){
-        let east=centerEast+(dx/len)*halfLength*along
-                         +px*platformHalfWidth*across;
-        let north=centerNorth+(dy/len)*halfLength*along
-                             +py*platformHalfWidth*across;
-
-        corners.push([
-          s.lat+north/111320,
-          s.lng+east/(111320*cos)
-        ]);
-      }
+    let centerEast=px*acrossOffset,centerNorth=py*acrossOffset,corners=[];
+    for(let along of [-1,1])for(let across of [-1,1]){
+      const east=centerEast+(dx/len)*platformHalfLength*along+px*platformHalfWidth*across;
+      const north=centerNorth+(dy/len)*platformHalfLength*along+py*platformHalfWidth*across;
+      corners.push([s.lat+north/111320,s.lng+east/(111320*cos)]);
     }
-
-    L.polygon([
-      corners[0],
-      corners[1],
-      corners[3],
-      corners[2]
-    ],{
-      color:'#a9bac9',weight:1,opacity:0.58,
-      fillColor:'#dce5ed',fillOpacity:0.34,
-      pane:'sbPlatformPane'
+    const polygonCorners=[corners[0],corners[1],corners[3],corners[2]];
+    const platform=L.polygon(polygonCorners,{
+      color:'#a9bac9',weight:1.5,opacity:.78,fillColor:'#dce5ed',fillOpacity:.42,
+      pane:'sbPlatformPane',className:'sb-station-platform'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':''),
+      interactive:true,bubblingMouseEvents:false
     }).addTo(window.networkLayer);
+    window.stationPlatformHitAreas.push({index:i,corners:polygonCorners});
+    let holdTriggered=false,holdTimer=null;
+    platform.on('mousedown touchstart',function(){
+      clearTimeout(holdTimer);holdTriggered=false;if(mode==='delete')return;
+      holdTimer=setTimeout(function(){holdTriggered=true;showStationMenu(i);message('Station options: '+stations[i].name);},550);
+    });
+    platform.on('mouseup touchend touchcancel mouseout',function(){clearTimeout(holdTimer);});
+    platform.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(holdTimer);if(mode==='delete')return;holdTriggered=true;showStationMenu(i);});
+    platform.on('click',function(e){L.DomEvent.stopPropagation(e);if(holdTriggered||stationMenuIndex===i){holdTriggered=false;return;}handleStationClick(i);});
   }
-
-  if((s.platformType||'island')==='side'){
-    drawPlatform(-(platformHalfWidth+4));
-    drawPlatform(platformHalfWidth+4);
-  }else{
-    drawPlatform(0);
-  }
-  /* Legacy teal/white circle marker removed; one centered Leaflet node is retained. */
-  /* Station platform slabs are intentionally disabled until their orientation
-     can follow connected track geometry reliably. Keep the station node only. */
-  let marker=L.marker([s.lat,s.lng],{
- /* Use Leaflet's persistent built-in marker pane; keep nodes above track SVGs. */
- pane:'sbStationNodePane',draggable:false,keyboard:false,riseOnHover:true,zIndexOffset:10000,
- icon:L.divIcon({
-  className:'sb-station-leaflet-icon',
-  html:'<div class="sb-station-marker'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':'')+(mode==='station'?' is-station-mode':'')+'"><span class="sb-station-node"></span></div>',
-  iconSize:[20,20],
-  iconAnchor:[10,10]
- })
-}).addTo(window.stationNodeLayer);
-
-marker.bindTooltip(s.name);
-  if(running){
-   if(!Number.isFinite(s.waitingPassengers))s.waitingPassengers=8+Math.floor(Math.random()*17);
-   const waiting=s.waitingPassengers;
-   const crowd=L.marker([s.lat,s.lng],{pane:'sbInteractionPane',interactive:false,keyboard:false,
-    icon:L.divIcon({className:'',html:'<div class="sb-platform-crowd"><span class="people">●●●</span><strong>'+waiting+'</strong></div>',iconSize:[66,28],iconAnchor:[-12,34]})}).addTo(window.networkLayer);
-   platformCrowdMarkers.push(crowd);
-  }
-
-let stationHoldTriggered=false;
-marker.on('mousedown touchstart',function(e){
- clearTimeout(stationMenuTimer);
- stationHoldTriggered=false;
- if(mode==='delete')return;
- stationMenuTimer=setTimeout(function(){
-  stationHoldTriggered=true;
-  showStationMenu(i);
-  message('Station options: '+stations[i].name);
- },550);
-});
-marker.on('mouseup touchend touchcancel mouseout',function(){
- clearTimeout(stationMenuTimer);
-});
-marker.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(stationMenuTimer);if(mode==='delete'){stationHoldTriggered=false;return;}stationHoldTriggered=true;showStationMenu(i);});
-marker.on('click',function(e){
- L.DomEvent.stopPropagation(e);
- /* Delete is a one-tap action: never let the station long-press/context menu consume it. */
- if(mode==='delete'){
-  stationHoldTriggered=false;
-  if(stationMenuIndex===i)closeStationMenu();
-  handleStationClick(i);
-  return;
- }
- if(stationHoldTriggered||stationMenuIndex===i){stationHoldTriggered=false;return;}
- handleStationClick(i);
-});
-
+  if((s.platformType||'island')==='side'){drawPlatform(-(platformHalfWidth+4));drawPlatform(platformHalfWidth+4);}else{drawPlatform(0);}
 
  });
 }
@@ -2935,21 +2864,12 @@ function stationPlatformGeometry(center,edge){
 }
 
 function updateStationPlacementPreview(){
- if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){
-  clearStationPlacementPreview();return;
- }
- const center=map.getCenter();
- if(!pendingStationPlacement){
-  if(!stationPlacementPreview){
-   stationPlacementPreview=L.marker(center,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
-  }else stationPlacementPreview.setLatLng(center);
-  if(stationPlatformPreview){map.removeLayer(stationPlatformPreview);stationPlatformPreview=null;}
-  return;
- }
- if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
- const geometry=stationPlatformGeometry(pendingStationPlacement,center);
+ if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){clearStationPlacementPreview();return;}
+ if(!pendingStationPlacement){if(stationPlatformPreview){map.removeLayer(stationPlatformPreview);stationPlatformPreview=null;}return;}
+ const edge=map.containerPointToLatLng(map.getSize().divideBy(2));
+ const geometry=stationPlatformGeometry(pendingStationPlacement,edge);
  if(!stationPlatformPreview){
-  stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false}).addTo(map);
+  stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false,className:'sb-station-platform-preview'}).addTo(map);
  }else stationPlatformPreview.setLatLngs(geometry.corners);
 }
 
@@ -2967,7 +2887,7 @@ function handleMapPlacement(latlng){
  // Build placements always use the fixed map-center reticle, never the raw touch coordinate.
  if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
  if(mode==='station'){
-  latlng=map.getCenter();
+  latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
   if(money<500){message('Not enough money for a station.');return;}
   if(!pendingStationPlacement){
    pendingStationPlacement=L.latLng(latlng.lat,latlng.lng);
@@ -3591,10 +3511,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}return;
   }
   /* Reuse the single camera-centered reticle created by the original placement layer. */
-  if(typeof stationPlacementPreview!=='undefined'&&!stationPlacementPreview){
-   stationPlacementPreview=L.marker(map.getCenter(),{interactive:false,keyboard:false,zIndexOffset:1200,
-    icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
-  }
+  /* No point-marker ghost: the platform preview is the only station preview. */
   if(stationPreview){map.removeLayer(stationPreview);stationPreview=null;}
  }
  function clearStationMoveMode(){
@@ -3604,22 +3521,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const b=document.getElementById('sb-station-move-toggle');
   if(b){b.setAttribute('aria-pressed','false');b.textContent='Move Station: Off';}
  }
- window.toggleStationMoveMode=function(){
-  if(stationMoveIndex!==null){clearStationMoveMode();return;}
-  if(stationMenuIndex===null||!stations[stationMenuIndex])return;
-  const index=stationMenuIndex;
-  const marker=window.networkLayer&&window.networkLayer.getLayers().find(layer=>{
-   if(!layer.getLatLng||!layer.options||!layer.options.icon)return false;
-   const p=layer.getLatLng(),s=stations[index];
-   return Math.abs(p.lat-s.lat)<1e-9&&Math.abs(p.lng-s.lng)<1e-9;
-  });
-  if(!marker||!marker.dragging){message('Station marker is not ready to move.');return;}
-  stationMoveIndex=index;stationMoveMarker=marker;marker.dragging.enable();
-  marker.getElement()?.classList.add('sb-station-move-active');
-  const b=document.getElementById('sb-station-move-toggle');
-  if(b){b.setAttribute('aria-pressed','true');b.textContent='Move Station: On';}
-  message('Move mode enabled. Drag this station, then close the menu to turn move mode off.');
- };
+ window.toggleStationMoveMode=function(){clearStationMoveMode();message('Station positions are edited through the platform placement tools.');};
  const oldCloseStationMenu=window.closeStationMenu;
  window.closeStationMenu=function(){
   clearStationMoveMode();
@@ -3873,13 +3775,12 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  }
  function syncCrosshairStation(){
   if(typeof map==='undefined'||!map||!window.networkLayer)return;
-  const center=map.getSize().divideBy(2),radius=19;
-  (window.stationNodeLayer||window.networkLayer).eachLayer(marker=>{
-   if(!marker.getLatLng||!marker.getElement)return;
-   const p=map.latLngToContainerPoint(marker.getLatLng());
-   const el=marker.getElement(),node=el&&el.querySelector('.sb-station-marker');
-   if(!node)return;
-   node.classList.toggle('is-crosshair-target',p.distanceTo(center)<=radius);
+  const target=typeof window.sbStationAtCrosshairIndex==='function'?window.sbStationAtCrosshairIndex():null;
+  window.networkLayer.eachLayer(layer=>{
+   if(!layer.getElement)return;
+   const el=layer.getElement();if(!el||!el.classList.contains('sb-station-platform'))return;
+   const stationIndex=(window.stationPlatformHitAreas||[]).find(area=>area.corners&&area.index===target);
+   el.classList.toggle('is-crosshair-target',!!stationIndex);
   });
  }
  document.addEventListener('DOMContentLoaded',setup,{once:true});
@@ -4798,15 +4699,20 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  window.__sbCrosshairToolRouting=true;
  const CENTER_RADIUS=26;
  function centerPoint(){return map.getSize().divideBy(2);}
+ function pointInPolygon(point,polygon){
+  let inside=false;
+  for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+   const a=map.latLngToContainerPoint(polygon[i]),b=map.latLngToContainerPoint(polygon[j]);
+   if(((a.y>point.y)!==(b.y>point.y))&&point.x<(b.x-a.x)*(point.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+  }
+  return inside;
+ }
  function stationAtCrosshair(){
-  const center=centerPoint();let best=null,bestDistance=CENTER_RADIUS;
-  stations.forEach((station,index)=>{
-   const point=map.latLngToContainerPoint([station.lat,station.lng]);
-   const distance=point.distanceTo(center);
-   if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
-  });
+  const center=centerPoint();let best=null;
+  (window.stationPlatformHitAreas||[]).forEach(area=>{if(area.corners&&pointInPolygon(center,area.corners))best={index:area.index,distance:0};});
   return best;
  }
+ window.sbStationAtCrosshairIndex=function(){const hit=stationAtCrosshair();return hit?hit.index:null;};
  function segmentDistance(point,a,b){
   const dx=b.x-a.x,dy=b.y-a.y,len=dx*dx+dy*dy;
   if(!len)return point.distanceTo(a);
@@ -6268,5 +6174,14 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #sb-build-dock-btn.active{background:rgba(54,211,190,.17)!important;box-shadow:0 0 16px rgba(38,220,196,.13)!important}
 @keyframes sb-construction-menu-in{from{opacity:0;transform:translateY(7px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){#sb-construction-context-menu{animation:none}}
+</style>
+
+<style id="sb-platform-station-interaction-theme">
+#map .sb-station-platform{fill:rgba(220,229,237,.42)!important;stroke:rgba(210,226,239,.82)!important;stroke-width:1.5px!important;cursor:pointer!important;transition:fill .12s ease,stroke .12s ease,filter .12s ease}
+#map .sb-station-platform.is-selected{fill:rgba(255,255,255,.48)!important;stroke:#fff!important;stroke-width:2.5px!important;filter:drop-shadow(0 0 5px rgba(255,255,255,.8))}
+#map .sb-station-platform.is-track-target{stroke:rgba(105,225,255,.95)!important;stroke-width:2.5px!important}
+#map .sb-station-platform.is-crosshair-target{fill:rgba(54,211,190,.46)!important;stroke:#65ffe4!important;stroke-width:3px!important;filter:drop-shadow(0 0 7px rgba(65,255,225,.9))}
+#map .sb-station-platform-preview{pointer-events:none!important}
+#map .sb-station-marker,#map .sb-station-leaflet-icon,#map .sb-placement-preview{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
 </style>
 </html>
