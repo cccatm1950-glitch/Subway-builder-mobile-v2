@@ -55,15 +55,26 @@ public class MainActivity extends Activity {
     }
 
     private void configureSystemBars() {
-        // Keep Android's status and navigation bars available while the game runs.
-        // Use a dark surface so the system controls remain legible around the WebView.
-        getWindow().setStatusBarColor(0xFF101B2B);
-        getWindow().setNavigationBarColor(0xFF101B2B);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            getWindow().setStatusBarContrastEnforced(false);
-            getWindow().setNavigationBarContrastEnforced(false);
+        // Keep the game immersive: hide status and navigation bars on launch
+        // and whenever the activity regains focus.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            android.view.WindowInsetsController controller = getWindow().getInsetsController();
+            if (controller != null) {
+                controller.setSystemBarsBehavior(
+                    android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                );
+                controller.hide(android.view.WindowInsets.Type.systemBars());
+            }
+        } else {
+            getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            );
         }
-        getWindow().getDecorView().setSystemUiVisibility(0);
     }
 
     @Override
