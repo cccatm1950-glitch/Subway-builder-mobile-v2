@@ -2601,6 +2601,7 @@ function setMode(newMode){
 
  renderNetwork();
   syncConstructionControls();
+  if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
 
   if(mode==='station')message('Tap the map to place a station ($500).');
  if(mode==='track')message('Tap one station, then another station to connect them ($150).');
