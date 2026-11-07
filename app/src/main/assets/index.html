@@ -2007,7 +2007,7 @@ button.sb-flat-close,[data-flat-close="true"]{
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-settings" type="button" aria-label="Open menu settings" title="Settings" onclick="toggleInGameMenuSettings()">⚙</button><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -7325,6 +7325,40 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  background:rgba(255,55,78,.2)!important;
  box-shadow:inset 0 0 0 1px rgba(255,110,130,.55),0 0 10px rgba(255,55,78,.24)!important;
 }
+</style>
+
+
+<style id="sb-game-menu-match-dock-glass-surface">
+/* Match the pause menu card to the top and bottom dock glass material. */
+#sb-game-menu-card{
+ box-sizing:border-box!important;
+ border:1px solid rgba(205,230,248,.15)!important;
+ border-radius:22px!important;
+ background:rgba(13,25,42,.64)!important;
+ background-image:none!important;
+ -webkit-backdrop-filter:blur(25px) saturate(175%)!important;
+ backdrop-filter:blur(25px) saturate(175%)!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.07)!important;
+ overflow:hidden!important;
+}
+#sb-game-menu-card .sb-game-menu-header{
+ background:transparent!important;
+ border:0!important;
+ box-shadow:none!important;
+}
+#sb-game-menu-card .sb-game-menu-view{
+ background:transparent!important;
+}
+#sb-game-menu-card .sb-game-menu-action{
+ background:rgba(13,25,42,.64)!important;
+ -webkit-backdrop-filter:blur(25px) saturate(175%)!important;
+ backdrop-filter:blur(25px) saturate(175%)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 4px 12px rgba(0,0,0,.14)!important;
+}
+#sb-game-menu-card .sb-menu-header-actions{
+ right:8px!important;
+}
+#sb-game-menu-settings{display:none!important}
 </style>
 
 </html>
