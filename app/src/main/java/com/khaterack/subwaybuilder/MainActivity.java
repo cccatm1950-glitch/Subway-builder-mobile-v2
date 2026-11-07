@@ -54,22 +54,23 @@ public class MainActivity extends Activity {
         });
     }
 
-    private void hideSystemUI() {
-        getWindow().getDecorView().setSystemUiVisibility(
-            View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            | View.SYSTEM_UI_FLAG_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        );
+    private void configureSystemBars() {
+        // Keep Android's status and navigation bars available while the game runs.
+        // Use a dark surface so the system controls remain legible around the WebView.
+        getWindow().setStatusBarColor(0xFF101B2B);
+        getWindow().setNavigationBarColor(0xFF101B2B);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            getWindow().setStatusBarContrastEnforced(false);
+            getWindow().setNavigationBarContrastEnforced(false);
+        }
+        getWindow().getDecorView().setSystemUiVisibility(0);
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        hideSystemUI();
+        configureSystemBars();
 
         webView = new WebView(this);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -127,7 +128,7 @@ public class MainActivity extends Activity {
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if (hasFocus) {
-            hideSystemUI();
+            configureSystemBars();
         }
     }
 
