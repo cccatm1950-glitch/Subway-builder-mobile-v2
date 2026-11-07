@@ -2336,9 +2336,9 @@ function renderNetwork(){
  /* Offset station approaches to the platform's outside edge. Side-platform
    layouts keep the route in the corridor between their two platforms. */
 function getStationTrackSideOffset(stationIndex,fromPoint,toPoint){
- if(platformType==='side')return 0;
  const station=stations[stationIndex];
  if(!station||!fromPoint||!toPoint)return 0;
+ if((station.platformType||platformType)==='side')return 0;
  const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
  const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
  const magnitude=Math.hypot(east,north);
