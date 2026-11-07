@@ -4282,7 +4282,7 @@ function toggleDefaultDarkOnStart(){
 <script id="sb-service-lines-script">
 (function(){
  const presetColors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff','#ff8bd1','#54d7e8','#ff914d','#a6e35b','#e5e7eb'];
- let draftColor=presetColors[0],customColors=[];
+ let draftColor=presetColors[0],customColors=[],selectedCustomSlot=-1;
  try{const saved=JSON.parse(localStorage.getItem('sbServiceCustomColors')||'[]');if(Array.isArray(saved))customColors=saved.slice(0,10);}catch(_){}
  function saveCustomColors(){try{localStorage.setItem('sbServiceCustomColors',JSON.stringify(customColors.slice(0,10)));}catch(_){}}
  function mount(){
@@ -4292,10 +4292,33 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines">Search</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines">Search</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected custom color" title="Select a custom color in the picker to delete it" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
-  buildPalette();draw();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
+  buildPalette();draw();bindDeleteCustomColor();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
+ }
+ function bindDeleteCustomColor(){
+  const button=document.getElementById('sb-line-remove-active');
+  if(!button||button.dataset.deleteCustomColorBound)return;
+  button.dataset.deleteCustomColorBound='true';
+  button.addEventListener('click',event=>{
+   event.preventDefault();event.stopPropagation();
+   const slot=selectedCustomSlot;
+   if(!Number.isInteger(slot)||slot<0||!customColors[slot])return;
+   customColors[slot]=null;
+   selectedCustomSlot=-1;
+   saveCustomColors();
+   const palette=document.getElementById('sb-line-color-options');
+   const wasOpen=!!palette&&!palette.hidden;
+   buildPalette();
+   if(wasOpen){
+    const rebuilt=document.getElementById('sb-line-color-options');
+    if(rebuilt){rebuilt.hidden=false;rebuilt.style.display='flex';rebuilt.classList.add('is-open');rebuilt.setAttribute('aria-hidden','false');}
+    const trigger=document.getElementById('sb-line-color-trigger');
+    if(trigger)trigger.setAttribute('aria-expanded','true');
+   }
+   draw();
+  });
  }
  function buildPalette(){
   const trigger=document.getElementById('sb-line-color-trigger'),palette=document.getElementById('sb-line-color-options');
@@ -4310,8 +4333,9 @@ function toggleDefaultDarkOnStart(){
   trigger.setAttribute('aria-label',activeLine?'Color of '+activeLine.name:'Choose service line color');
   trigger.setAttribute('aria-pressed',String(!!activeLine));
   palette.replaceChildren();
-  const choose=(color)=>{
+  const choose=(color,customSlot=-1)=>{
    draftColor=color;
+   selectedCustomSlot=Number.isInteger(customSlot)?customSlot:-1;
    const selectedLine=Array.isArray(lines)?lines.find(line=>line.id===activeLineId):null;
    if(selectedLine&&selectedLine.color!==color){
     selectedLine.color=color;
@@ -4340,7 +4364,7 @@ function toggleDefaultDarkOnStart(){
    if(color){
     button.dataset.color=color;button.style.setProperty('--sb-option-color',color);button.title='Custom '+(slot+1)+' '+color;
     button.setAttribute('aria-label','Use custom color '+(slot+1));button.setAttribute('aria-selected',String(color===selectedColor));button.setAttribute('aria-pressed',String(color===selectedColor));
-    button.addEventListener('click',()=>choose(color));
+    button.addEventListener('click',()=>choose(color,slot));
    }else{
     button.classList.add('empty');button.textContent='+';button.title='Add custom color '+(slot+1);
     button.setAttribute('aria-label','Add custom color slot '+(slot+1));
@@ -4353,7 +4377,7 @@ function toggleDefaultDarkOnStart(){
      picker.style.cssText='position:fixed!important;left:50%!important;top:50%!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;border:0!important;padding:0!important;';
      const apply=()=>{
       const value=picker.value.toLowerCase();if(!/^#[0-9a-f]{6}$/.test(value))return;
-      customColors[slot]=value;saveCustomColors();choose(value);
+      customColors[slot]=value;saveCustomColors();choose(value,slot);
       button.dataset.color=value;button.style.setProperty('--sb-option-color',value);
       button.classList.remove('empty');button.title='Custom '+(slot+1)+' '+value;
       button.setAttribute('aria-label','Use custom color '+(slot+1));
@@ -4385,14 +4409,17 @@ function toggleDefaultDarkOnStart(){
   };
   let holdTimer=null,didHold=false;
   const clearHold=()=>{if(holdTimer){clearTimeout(holdTimer);holdTimer=null;}};
-  trigger.addEventListener('pointerdown',event=>{
-   if(event.pointerType==='mouse'&&event.button!==0)return;
-   didHold=false;clearHold();
-   holdTimer=setTimeout(()=>{didHold=true;open(true);},480);
-  });
-  ['pointerup','pointercancel','pointerleave'].forEach(name=>trigger.addEventListener(name,clearHold));
-  trigger.addEventListener('contextmenu',event=>{event.preventDefault();didHold=true;open(true);});
-  trigger.addEventListener('click',event=>{if(didHold){event.preventDefault();event.stopImmediatePropagation();didHold=false;}},true);
+  if(!trigger.dataset.colorPickerEventsBound){
+   trigger.dataset.colorPickerEventsBound='true';
+   trigger.addEventListener('pointerdown',event=>{
+    if(event.pointerType==='mouse'&&event.button!==0)return;
+    didHold=false;clearHold();
+    holdTimer=setTimeout(()=>{didHold=true;open(true);},480);
+   });
+   ['pointerup','pointercancel','pointerleave'].forEach(name=>trigger.addEventListener(name,clearHold));
+   trigger.addEventListener('contextmenu',event=>{event.preventDefault();didHold=true;open(true);});
+   trigger.addEventListener('click',event=>{if(didHold){event.preventDefault();event.stopImmediatePropagation();didHold=false;}},true);
+  }
   if(!palette.dataset.outsideBound){
    palette.dataset.outsideBound='true';
    document.addEventListener('pointerdown',event=>{
@@ -4432,7 +4459,12 @@ function toggleDefaultDarkOnStart(){
    trigger.setAttribute('aria-label',activeLine?'Color of '+activeLine.name:'Choose service line color');
    trigger.setAttribute('aria-pressed',String(!!activeLine));
   }
-  const removeActive=document.getElementById('sb-line-remove-active');if(removeActive){removeActive.disabled=!lines.some(item=>item.id===activeLineId);removeActive.title=removeActive.disabled?'Select a line first':'Remove '+(lines.find(item=>item.id===activeLineId)?.name||'selected line');}
+  const removeActive=document.getElementById('sb-line-remove-active');if(removeActive){
+   const hasCustomSelection=Number.isInteger(selectedCustomSlot)&&selectedCustomSlot>=0&&!!customColors[selectedCustomSlot];
+   removeActive.disabled=!hasCustomSelection;
+   removeActive.setAttribute('aria-label','Delete selected custom color');
+   removeActive.title=hasCustomSelection?'Delete custom color '+(selectedCustomSlot+1):'Select a custom color in the picker to delete it';
+  }
  }
  function bindServiceNameSearch(){
   const editor=document.getElementById('sb-line-name-editor'),button=document.getElementById('sb-line-name-search'),input=document.getElementById('sb-new-line-name');
@@ -7251,6 +7283,41 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 @media(prefers-reduced-motion:reduce){
  #sb-line-color-options{transition:none!important}
+}
+</style>
+
+
+<style id="sb-service-color-trigger-persistent-glow-and-custom-delete">
+/* Keep the selected line color visible with a permanent swatch and color-matched halo. */
+#sb-service-dock #sb-line-color-trigger,
+#sb-line-color-trigger{
+ position:relative!important;
+ isolation:isolate!important;
+ overflow:visible!important;
+ background:rgba(235,245,255,.10)!important;
+ border:0!important;
+ box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 82%,transparent),
+ 0 0 9px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 52%,transparent),
+ 0 0 18px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 34%,transparent)!important;
+}
+#sb-service-dock #sb-line-color-trigger:before,
+#sb-line-color-trigger:before{
+ content:""!important;
+ position:absolute!important;
+ display:block!important;
+ inset:5px!important;
+ width:auto!important;height:auto!important;
+ border:0!important;border-radius:50%!important;
+ background:var(--sb-active-line-color,var(--sb-picked-line-color,#ff5263))!important;
+ box-shadow:0 0 10px color-mix(in srgb,var(--sb-active-line-color,#ff5263) 70%,transparent)!important;
+ opacity:1!important;
+ pointer-events:none!important;
+}
+#sb-service-dock #sb-line-remove-active:disabled{opacity:.3!important}
+#sb-service-dock #sb-line-remove-active:not(:disabled){
+ color:#ff8295!important;
+ background:rgba(255,55,78,.2)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,110,130,.55),0 0 10px rgba(255,55,78,.24)!important;
 }
 </style>
 
