@@ -3943,16 +3943,18 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const button=document.getElementById('sb-build-dock-btn');
   const del=document.getElementById('trashModeBtn');
   const currentMode=typeof mode!=='undefined'?mode:null;
-  const buildMode=['station','track','curve','waypoint','inspect'].includes(currentMode);
   const menuOpen=!!document.getElementById('sb-construction-context-menu');
   const isDelete=currentMode==='delete';
-  const selected=!isDelete&&(menuOpen||buildMode);
+  /* These are independent toggle states: Construction reflects only its
+     context-menu visibility; Delete reflects only the active delete mode. */
   if(button){
-   button.classList.toggle('active',selected);
-   button.setAttribute('aria-pressed',String(selected));
+   button.classList.toggle('active',menuOpen);
+   button.dataset.toggleState=menuOpen?'active':'inactive';
+   button.setAttribute('aria-pressed',String(menuOpen));
   }
   if(del){
    del.classList.toggle('active',isDelete);
+   del.dataset.toggleState=isDelete?'active':'inactive';
    del.setAttribute('aria-pressed',String(isDelete));
   }
  }
@@ -6172,5 +6174,33 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #map .sb-station-platform.is-crosshair-target{fill:rgba(54,211,190,.46)!important;stroke:#65ffe4!important;stroke-width:3px!important;filter:drop-shadow(0 0 7px rgba(65,255,225,.9))}
 #map .sb-station-platform-preview{pointer-events:none!important}
 #map .sb-station-marker,#map .sb-station-leaflet-icon,#map .sb-placement-preview{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}
+</style>
+
+<style id="sb-independent-construction-delete-toggle-states">
+#sb-action-dock #sb-build-dock-btn,
+#sb-action-dock #trashModeBtn{
+ transition:background .16s ease,box-shadow .16s ease,color .16s ease,transform .16s ease!important;
+ background:rgba(235,245,255,.055)!important;
+ color:#f4f8fc!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.08)!important;
+}
+#sb-action-dock #sb-build-dock-btn[aria-pressed="false"],
+#sb-action-dock #trashModeBtn[aria-pressed="false"]{
+ background:rgba(235,245,255,.055)!important;
+ color:#f4f8fc!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.08)!important;
+}
+#sb-action-dock #sb-build-dock-btn[aria-pressed="true"]{
+ background:rgba(54,211,190,.22)!important;
+ color:#75ffe8!important;
+ box-shadow:inset 0 0 0 1px rgba(101,255,228,.58),0 0 15px rgba(38,220,196,.28)!important;
+}
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ background:rgba(255,65,82,.22)!important;
+ color:#ff6877!important;
+ box-shadow:inset 0 0 0 1px rgba(255,92,108,.62),0 0 15px rgba(255,45,65,.28)!important;
+}
+#sb-action-dock #sb-build-dock-btn:active,
+#sb-action-dock #trashModeBtn:active{transform:scale(.94)!important}
 </style>
 </html>
