@@ -41,7 +41,14 @@ for (const required of [
   'toggleSimulation',
   'toggle3DCityView'
 ]) {
-  assert.match(html, new RegExp('function ' + required + '\b|(?:function|const) ' + required + '\b|window\.' + required + '\s*='),
+  const declarations = [
+    'function ' + required + '(',
+    'const ' + required + ' =',
+    'const ' + required + '=',
+    'window.' + required + ' =',
+    'window.' + required + '='
+  ];
+  assert.ok(declarations.some(declaration => html.includes(declaration)),
     'Expected core interaction ' + required + ' to be present');
 }
 
