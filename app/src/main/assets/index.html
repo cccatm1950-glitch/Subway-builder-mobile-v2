@@ -4293,7 +4293,11 @@ function toggleDefaultDarkOnStart(){
   palette.replaceChildren();
   const choose=(color)=>{
    draftColor=color;trigger.style.setProperty('--sb-picked-line-color',color);
-   palette.querySelectorAll('[data-color]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.color===color)));
+   palette.querySelectorAll('[data-color]').forEach(button=>{
+    const selected=button.dataset.color===color;
+    button.setAttribute('aria-selected',String(selected));
+    button.setAttribute('aria-pressed',String(selected));
+   });
   };
   presetColors.forEach(color=>{
    const button=document.createElement('button');button.type='button';button.className='sb-line-color-option';
@@ -4311,19 +4315,28 @@ function toggleDefaultDarkOnStart(){
    }else{
     button.classList.add('empty');button.textContent='+';button.title='Add custom color '+(slot+1);
     button.setAttribute('aria-label','Add custom color slot '+(slot+1));
+    button.setAttribute('aria-pressed','false');
     button.addEventListener('click',()=>{
-     let editor=palette.querySelector('.sb-custom-color-editor');
-     if(editor)editor.remove();
-     const picker=document.createElement('input');picker.type='color';picker.value=/^#[0-9a-fA-F]{6}$/.test(draftColor)?draftColor:'#26c6b5';
-     picker.className='sb-custom-color-native-picker';picker.setAttribute('aria-label','Choose custom service line color');
-     picker.addEventListener('input',()=>{
-      const value=picker.value.toLowerCase();customColors[slot]=value;saveCustomColors();
-      choose(value);button.dataset.color=value;button.style.setProperty('--sb-option-color',value);
+     /* Use a detached native color input: never focus a text field or summon the keyboard. */
+     const picker=document.createElement('input');picker.type='color';
+     picker.value=/^#[0-9a-fA-F]{6}$/.test(draftColor)?draftColor:'#26c6b5';
+     picker.setAttribute('aria-label','Choose color for custom slot '+(slot+1));
+     picker.style.cssText='position:fixed!important;left:50%!important;top:50%!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important;border:0!important;padding:0!important;';
+     const apply=()=>{
+      const value=picker.value.toLowerCase();if(!/^#[0-9a-f]{6}$/.test(value))return;
+      customColors[slot]=value;saveCustomColors();choose(value);
+      button.dataset.color=value;button.style.setProperty('--sb-option-color',value);
       button.classList.remove('empty');button.title='Custom '+(slot+1)+' '+value;
-      button.setAttribute('aria-label','Use custom color '+(slot+1));button.setAttribute('aria-selected','true');
-     });
-     button.append(picker);
-     try{if(typeof picker.showPicker==='function')picker.showPicker();else picker.click();}catch(_){picker.click();}
+      button.setAttribute('aria-label','Use custom color '+(slot+1));
+      button.setAttribute('aria-selected','true');button.setAttribute('aria-pressed','true');
+      picker.remove();
+     };
+     picker.addEventListener('input',apply);
+     picker.addEventListener('change',apply,{once:true});
+     picker.addEventListener('blur',()=>{if(picker.isConnected)picker.remove();},{once:true});
+     document.body.append(picker);
+     try{if(typeof picker.showPicker==='function')picker.showPicker();else picker.click();}
+     catch(_){try{picker.click();}catch(__){picker.remove();}}
     });
    }
    palette.append(button);
@@ -6618,6 +6631,81 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  color:#75ffe8!important;
  filter:none!important;
 }
+</style>
+
+
+<style id="sb-color-picker-glass-pill-top-context-menu">
+/* A single borderless color tray, centered under the top dock and clipped to safe insets. */
+#sb-line-color-options{
+ position:fixed!important;
+ z-index:20000!important;
+ left:50vw!important;right:auto!important;
+ top:calc(max(9px,env(safe-area-inset-top,0px)) + 58px + 10px)!important;
+ bottom:auto!important;
+ box-sizing:border-box!important;
+ width:min(560px,calc(100vw - 28px))!important;
+ max-width:calc(100vw - 28px)!important;
+ min-width:0!important;
+ padding:9px 11px!important;
+ margin:0!important;
+ gap:8px!important;
+ display:flex!important;
+ flex-flow:row nowrap!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ border:0!important;
+ outline:0!important;
+ border-radius:999px!important;
+ background:rgba(15,25,40,.86)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;
+ backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 12px 30px rgba(0,0,0,.28)!important;
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+ transform:translate(calc(-50% + 18px),-8px)!important;
+ transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s!important;
+}
+#sb-line-color-options[hidden]{display:none!important}
+#sb-line-color-options.is-open{
+ display:flex!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ transform:translate(-50%,0)!important;transition-delay:0s!important;
+}
+#sb-line-color-options .sb-line-color-option{
+ position:relative!important;box-sizing:border-box!important;flex:0 0 36px!important;
+ width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;
+ max-width:36px!important;max-height:36px!important;padding:0!important;margin:0!important;
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ border:0!important;outline:0!important;border-radius:50%!important;
+ background:rgba(235,245,255,.055)!important;color:rgba(220,232,243,.38)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.06)!important;opacity:.48!important;
+ overflow:hidden!important;transition:background .14s ease,color .14s ease,box-shadow .14s ease,opacity .14s ease!important;
+}
+#sb-line-color-options .sb-line-color-option:before{
+ content:""!important;position:absolute!important;inset:5px!important;border-radius:50%!important;
+ background:var(--sb-option-color,transparent)!important;
+}
+#sb-line-color-options .sb-line-color-option.empty:before{display:none!important}
+#sb-line-color-options .sb-line-color-option.empty{
+ background:rgba(235,245,255,.045)!important;color:rgba(220,232,243,.38)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.06)!important;opacity:.42!important;
+}
+#sb-line-color-options .sb-line-color-option[aria-selected="true"],
+#sb-line-color-options .sb-line-color-option[aria-pressed="true"]{
+ background:color-mix(in srgb,var(--sb-option-color) 18%,transparent)!important;
+ color:var(--sb-option-color)!important;opacity:1!important;
+ box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sb-option-color) 62%,transparent),
+ 0 0 13px color-mix(in srgb,var(--sb-option-color) 38%,transparent)!important;
+}
+#sb-line-color-options .sb-custom-color-slot:not(.empty):before{inset:5px!important}
+@media(max-width:560px){
+ #sb-line-color-options{
+  top:calc(max(7px,env(safe-area-inset-top,0px)) + 56px + 8px)!important;
+  width:calc(100vw - 14px)!important;max-width:calc(100vw - 14px)!important;
+  padding:8px 9px!important;gap:7px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){#sb-line-color-options{transition:none!important}}
 </style>
 
 </html>
