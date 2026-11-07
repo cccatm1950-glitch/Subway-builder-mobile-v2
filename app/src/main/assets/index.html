@@ -4351,6 +4351,12 @@ function toggleDefaultDarkOnStart(){
     button.setAttribute('aria-selected',String(selected));
     button.setAttribute('aria-pressed',String(selected));
    });
+   const deleteButton=document.getElementById('sb-line-remove-active');
+   if(deleteButton){
+    const canDelete=selectedCustomSlot>=0&&!!customColors[selectedCustomSlot];
+    deleteButton.disabled=!canDelete;
+    deleteButton.title=canDelete?'Delete custom color '+(selectedCustomSlot+1):'Select a custom color in the picker to delete it';
+   }
   };
   presetColors.forEach(color=>{
    const button=document.createElement('button');button.type='button';button.className='sb-line-color-option';
