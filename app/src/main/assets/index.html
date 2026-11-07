@@ -2162,6 +2162,8 @@ function snapshot(){
   stations:stations.map(s=>({
    lat:s.lat,lng:s.lng,name:s.name,elevation:s.elevation||'at',
    platformType:s.platformType||'island',
+   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:90,
+   platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
    waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:null
   })),
   tracks:tracks.map(t=>({
@@ -2193,6 +2195,8 @@ function restoreSnapshot(data){
  stations=data.stations.map((s,i)=>({
   lat:Number(s.lat),lng:Number(s.lng),name:s.name||'Station '+(i+1),
   elevation:s.elevation||'at',platformType:s.platformType||'island',
+  platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):90,
+  platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
   waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:undefined
  })).filter(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lng));
  tracks=data.tracks.map(t=>({
@@ -2284,6 +2288,12 @@ window.getSubway3DStations=function(){
  return stations.map((s,i)=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
   geometry:{type:'Point',coordinates:[s.lng,s.lat]}}));
 };
+
+function getPrimaryStationConnection(stationIndex){
+ // Tracks are appended in connection order. The first surviving connection
+ // remains the station's primary alignment; later junction branches do not rotate it.
+ return tracks.find(track=>track.a===stationIndex||track.b===stationIndex)||null;
+}
 
 function renderNetwork(){
  platformCrowdMarkers.forEach(marker=>map.removeLayer(marker));
@@ -2435,7 +2445,7 @@ if(mode==='delete'){
 });
 
  stations.forEach((s,i)=>{
-  let connected=tracks.find(t=>t.a===i||t.b===i);
+  let connected=getPrimaryStationConnection(i);
   let other=connected?stations[connected.a===i?connected.b:connected.a]:null;
   // Use the first/last curve waypoint as the platform's endpoint tangent.
   let tangentPoint=null;
@@ -2461,6 +2471,10 @@ if(mode==='delete'){
   let orientationPoint=tangentPoint||other;
   let dx=orientationPoint?(orientationPoint.lng-s.lng)*Math.cos(s.lat*Math.PI/180):0;
   let dy=orientationPoint?orientationPoint.lat-s.lat:1;
+  if(!orientationPoint&&Number.isFinite(s.platformBearing)){
+   const bearing=s.platformBearing*Math.PI/180;
+   dx=Math.sin(bearing);dy=Math.cos(bearing);
+  }
   let len=Math.sqrt(dx*dx+dy*dy)||1;
 
   let halfWidth=platformWidth==='narrow'?5:
@@ -2472,11 +2486,12 @@ if(mode==='delete'){
 
     let platformHalfWidth=platformWidth==='narrow'?3:
                         platformWidth==='wide'?7.5:5;
+  let platformHalfLength=(Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):90)/2;
 
   function drawPlatform(acrossOffset){
     let centerEast=px*acrossOffset;
     let centerNorth=py*acrossOffset;
-    let halfLength=45;
+    let halfLength=platformHalfLength;
     let corners=[];
 
     for(let along of [-1,1]){
@@ -2562,38 +2577,7 @@ marker.on('click',function(e){
  handleStationClick(i);
 });
 
-let dragPreviewLines=[];
-marker.on('dragstart',function(){
- clearTimeout(stationMenuTimer);
- if(stationMenuIndex===i)closeStationMenu();
- map.dragging.disable();
- const el=marker.getElement();
- if(el)el.querySelector('.sb-station-marker')?.classList.add('is-dragging');
- dragPreviewLines=tracks.filter(t=>t.a===i||t.b===i).map(t=>{
-  const other=stations[t.a===i?t.b:t.a];
-  return L.polyline([[s.lat,s.lng],[other.lat,other.lng]],{color:'#35e7d0',weight:8,opacity:.95,dashArray:'8 7',className:'sb-track-preview',interactive:false}).addTo(map);
- });
-});
-marker.on('drag',function(){
- const pos=marker.getLatLng();
- const connected=tracks.filter(t=>t.a===i||t.b===i);
- dragPreviewLines.forEach((line,n)=>{
-  const track=connected[n];
-  const other=stations[track.a===i?track.b:track.a];
-  line.setLatLngs([[pos.lat,pos.lng],[other.lat,other.lng]]);
- });
-});
-marker.on('dragend',function(){
- let pos=marker.getLatLng();
- stations[i].lat=pos.lat;
- stations[i].lng=pos.lng;
- dragPreviewLines.forEach(line=>map.removeLayer(line));
- dragPreviewLines=[];
- map.dragging.enable();
- saveHistory();
- renderNetwork();
- message(stations[i].name+' moved successfully.');
-});
+
  });
 }
  /* =========================================================
@@ -2610,6 +2594,7 @@ function updateUI(){
 }
 function setMode(newMode){
  const previousMode=mode;
+ if(newMode!=='station'&&pendingStationPlacement){pendingStationPlacement=null;clearStationPlacementPreview();}
  mode=newMode;
  // Keep the construction drawer open while a tool is active. The user closes
  // it explicitly with the construction toggle; only the selected category collapses.
@@ -2916,20 +2901,57 @@ window.addEventListener('resize',function(){if(stationMenuIndex!==null)positionS
    SECTION 17 — MAP TOUCH INTERACTIONS
    ========================================================= */
 
-// Live placement ghost follows the pointer in station construction mode.
+// Station placement: tap to set its center, pan to stretch/rotate the platform,
+// then tap again to commit the station and its platform footprint.
 let stationPlacementPreview=null;
-map.on('mousemove touchmove',function(){
- if(mode!=='station'||document.getElementById('sb-3d-map').classList.contains('active')){
-  if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
-  return;
+let stationPlatformPreview=null;
+let pendingStationPlacement=null;
+
+function clearStationPlacementPreview(){
+ if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
+ if(stationPlatformPreview){map.removeLayer(stationPlatformPreview);stationPlatformPreview=null;}
+}
+
+function stationPlatformGeometry(center,edge){
+ const a=map.project(center,18),b=map.project(edge,18);
+ let dx=b.x-a.x,dy=b.y-a.y;
+ let halfLength=Math.hypot(dx,dy);
+ if(halfLength<1){dx=0;dy=-1;halfLength=45;}
+ halfLength=Math.max(15,Math.min(150,halfLength));
+ const length=Math.hypot(dx,dy)||1,ux=dx/length,uy=dy/length;
+ const halfWidth=5;
+ const corners=[
+  {x:a.x-ux*halfLength-uy*halfWidth,y:a.y-uy*halfLength+ux*halfWidth},
+  {x:a.x+ux*halfLength-uy*halfWidth,y:a.y+uy*halfLength+ux*halfWidth},
+  {x:a.x+ux*halfLength+uy*halfWidth,y:a.y+uy*halfLength-ux*halfWidth},
+  {x:a.x-ux*halfLength+uy*halfWidth,y:a.y-uy*halfLength-ux*halfWidth}
+ ].map(point=>{const ll=map.unproject(point,18);return [ll.lat,ll.lng];});
+ const bearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
+ return {corners,lengthMeters:halfLength*2,bearing};
+}
+
+function updateStationPlacementPreview(){
+ if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){
+  clearStationPlacementPreview();return;
  }
  const center=map.getCenter();
- if(!stationPlacementPreview){
-  stationPlacementPreview=L.marker(center,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
- }else stationPlacementPreview.setLatLng(center);
-});
-map.on('mouseout',function(){if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}});
-map.on('move zoom',function(){if(mode==='station'&&stationPlacementPreview)stationPlacementPreview.setLatLng(map.getCenter());});
+ if(!pendingStationPlacement){
+  if(!stationPlacementPreview){
+   stationPlacementPreview=L.marker(center,{interactive:false,keyboard:false,zIndexOffset:1200,icon:L.divIcon({className:'sb-preview-icon',html:'<div class="sb-placement-preview"><span class="sb-placement-node"></span></div>',iconSize:[48,48],iconAnchor:[24,24]})}).addTo(map);
+  }else stationPlacementPreview.setLatLng(center);
+  if(stationPlatformPreview){map.removeLayer(stationPlatformPreview);stationPlatformPreview=null;}
+  return;
+ }
+ if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
+ const geometry=stationPlatformGeometry(pendingStationPlacement,center);
+ if(!stationPlatformPreview){
+  stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false}).addTo(map);
+ }else stationPlatformPreview.setLatLngs(geometry.corners);
+}
+
+map.on('mousemove touchmove',updateStationPlacementPreview);
+map.on('move zoom',updateStationPlacementPreview);
+map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPreview();});
 
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
@@ -2941,25 +2963,29 @@ function handleMapPlacement(latlng){
  // Build placements always use the fixed map-center reticle, never the raw touch coordinate.
  if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
  if(mode==='station'){
-  /* Station placement is locked to the map/camera center, matching the fixed preview reticle. */
-  latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
-  if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
-  if(money<500){
-   message('Not enough money for a station.');
+  latlng=map.getCenter();
+  if(money<500){message('Not enough money for a station.');return;}
+  if(!pendingStationPlacement){
+   pendingStationPlacement=L.latLng(latlng.lat,latlng.lng);
+   updateStationPlacementPreview();
+   message('Station center set. Move the map to stretch and rotate the platform, then tap again to place it.');
    return;
   }
-
+  const geometry=stationPlatformGeometry(pendingStationPlacement,latlng);
+  const center=pendingStationPlacement;
+  pendingStationPlacement=null;
+  clearStationPlacementPreview();
   money-=500;
   stations.push({
-   lat:latlng.lat,
-   lng:latlng.lng,
+   lat:center.lat,lng:center.lng,
    name:'Station '+(stations.length+1),
-   platformType:platformType
+   platformType:platformType,
+   platformLengthMeters:geometry.lengthMeters,
+   platformBearing:geometry.bearing
   });
-
   saveHistory();
   renderNetwork();
-  message('Station built successfully.');
+  message('Station and platform placed successfully.');
  }
 else if(mode==='delete'){
   message('Tap a station, track, or waypoint to delete it.');
