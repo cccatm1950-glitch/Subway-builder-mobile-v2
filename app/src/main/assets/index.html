@@ -4396,23 +4396,11 @@ function toggleDefaultDarkOnStart(){
    input.focus({preventScroll:true});
    try{input.click();}catch(_){}
   });
-  const collapseWhenKeyboardCloses=()=>{
-   // Android WebView can hide the IME with Back while the input remains focused.
-   // visualViewport reports that transition even when no blur event is dispatched.
-   const viewport=window.visualViewport;
-   const keyboardOpen=!!(viewport&&window.innerHeight-viewport.height>120);
-   if(!keyboardOpen&&!input.value.trim())editor.classList.remove('is-editing');
-  };
   input.addEventListener('blur',()=>{
-   // Let the WebView finish dismissing the keyboard before checking its state.
-   window.setTimeout(collapseWhenKeyboardCloses,80);
+   if(!input.value.trim())editor.classList.remove('is-editing');
   });
-  if(window.visualViewport){
-   window.visualViewport.addEventListener('resize',collapseWhenKeyboardCloses);
-  }
-  window.addEventListener('resize',collapseWhenKeyboardCloses);
   input.addEventListener('keydown',event=>{
-   if(event.key==='Escape'){input.value='';input.blur();window.setTimeout(collapseWhenKeyboardCloses,80);}
+   if(event.key==='Escape'){input.value='';input.blur();editor.classList.remove('is-editing');}
   });
  }
  function bindServiceDockToggle(){
