@@ -2492,7 +2492,7 @@ if(mode==='delete'){
     const polygonCorners=[corners[0],corners[1],corners[3],corners[2]];
     const platform=L.polygon(polygonCorners,{
       color:'#a9bac9',weight:1.5,opacity:.78,fillColor:'#dce5ed',fillOpacity:.42,
-      pane:'sbPlatformPane',className:'sb-station-platform'+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':''),
+      pane:'sbPlatformPane',className:'sb-station-platform sb-station-platform-'+i+(selected===i?' is-selected':'')+(mode==='track'?' is-track-target':''),
       interactive:true,bubblingMouseEvents:false
     }).addTo(window.networkLayer);
     window.stationPlatformHitAreas.push({index:i,corners:polygonCorners});
@@ -3779,8 +3779,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   window.networkLayer.eachLayer(layer=>{
    if(!layer.getElement)return;
    const el=layer.getElement();if(!el||!el.classList.contains('sb-station-platform'))return;
-   const stationIndex=(window.stationPlatformHitAreas||[]).find(area=>area.corners&&area.index===target);
-   el.classList.toggle('is-crosshair-target',!!stationIndex);
+   el.classList.toggle('is-crosshair-target',target!==null&&el.classList.contains('sb-station-platform-'+target));
   });
  }
  document.addEventListener('DOMContentLoaded',setup,{once:true});
