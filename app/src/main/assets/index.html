@@ -2003,39 +2003,7 @@ button.sb-flat-close,[data-flat-close="true"]{
  </div>
  <div id="sb-dashboard-dialog" role="status" aria-live="polite">Tap the map to build your first station.</div>
 </div>
-<details id="sb-construction-menu" class="sb-menu-shell">
- <summary id="sb-panel-toggle" class="menu-hamburger" aria-controls="constructionPanel" aria-label="Open construction drawer" title="Construction drawer" aria-expanded="false" onclick="event.preventDefault();toggleToolsPanel();"><svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3.5 17.5a2.1 2.1 0 0 0 3 3l4.8-4.8a5 5 0 0 0 6.4-6.4l-3 3-3.5-3.5 3.5-3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
 
-<!-- ========================================================
-     SECTION 08 — CONSTRUCTION PANEL
-     ======================================================== -->
-
- <nav id="constructionPanel" class="panel" aria-label="Construction tools" aria-hidden="true">
- <div class="panel-heading">
-  <span class="panel-title">CONSTRUCTION</span>
-  <button class="sb-menu-close" type="button" aria-label="Close construction menu" onclick="toggleToolsPanel(false)">×</button>
- </div>
- <details class="tool-group" open>
-  <summary>BUILD TOOLS</summary>
-  <div class="tool-grid">
-   <button type="button" data-panel-action="mode-station" aria-label="Add station" title="Add station"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V8l8-5 8 5v12M8 20v-7h8v7M2 20h20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="8" r="1.5" fill="currentColor"/></svg></button>
-   <button type="button" data-panel-action="draw-track" aria-label="Add track" title="Connect two stations"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3v18M20 3v18M2 6h20M2 11h20M2 16h20M2 21h20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M7 3v18M17 3v18" stroke="currentColor" stroke-width="1" opacity=".55"/></svg></button>
-   <button type="button" data-panel-action="curve-track" aria-label="Curve track" title="Add a curve point"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19C7 19 7 5 13 5h8M17 1l4 4-4 4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-   <button type="button" data-panel-action="mode-inspect" aria-label="Inspect network" title="Inspect stations and tracks"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 5 5M11 7v8M7 11h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-   <button type="button" data-panel-action="mode-waypoint" aria-label="Add waypoint" title="Place a waypoint between stations"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-7 7-13a7 7 0 1 0-14 0c0 6 7 13 7 13Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="9" r="2.5" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
-   <button type="button" data-panel-action="track-single" aria-label="Single track mode" title="Use single track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2v20M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-   <button type="button" data-panel-action="track-parallel" aria-label="Parallel track mode" title="Use parallel tracks"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2v20M18 2v20M2 6h20M2 12h20M2 18h20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-   <button type="button" data-panel-action="tunnel" aria-label="Tunnel mode" title="Toggle tunnel construction mode"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21V12a9 9 0 0 1 18 0v9M7 21v-9a5 5 0 0 1 10 0v9M2 21h20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-
-
-
-
-
-
-
-
-  </div>
- </details>
 </nav>
 </details>
 
@@ -2826,114 +2794,9 @@ function moveTouchPointer(x,y,visible=true){
  document.addEventListener('touchstart',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
  document.addEventListener('touchend',()=>{if(sbTouchPointerEnabled)pointer.classList.remove('pressed');});
 })();
-function toggleToolsPanel(open){
- const menu=document.getElementById('sb-construction-menu');
- const panel=document.getElementById('constructionPanel');
- const toggle=document.getElementById('sb-panel-toggle');
- if(!menu||!panel||!toggle)return;
- menu.open=typeof open==='boolean'?open:!menu.open;
- const expanded=menu.open;
- toggle.setAttribute('aria-expanded',String(expanded));
- const hamburger=toggle.querySelector('.menu-hamburger');
- if(hamburger){hamburger.setAttribute('aria-expanded',String(expanded));hamburger.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');}
- toggle.setAttribute('aria-label','Construction menu');
- toggle.setAttribute('title',expanded?'Close construction menu':'Construction menu');
- panel.setAttribute('aria-hidden',String(!expanded));
- if(expanded)requestAnimationFrame(()=>{if(window.map&&typeof map.invalidateSize==='function')map.invalidateSize({pan:false});});
-}
-function syncConstructionControls(){
-  const selectedAction={station:'mode-station',track:'draw-track',curve:'curve-track',waypoint:'mode-waypoint',inspect:'mode-inspect'}[mode]||null;
-  document.querySelectorAll('#constructionPanel [data-panel-action]').forEach(button=>{
-   const action=button.dataset.panelAction;let active=action===selectedAction;
-   if(action==='track-single')active=trackStyle==='single';
-   if(action==='track-parallel')active=trackStyle==='parallel';
-   if(action==='curve')active=!!curveMode;
-   if(action==='tunnel')active=!!tunnelMode;
-   button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));
-  });
-  document.querySelectorAll('[data-platform-width]').forEach(button=>{const active=button.dataset.platformWidth===platformWidth;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
-  document.querySelectorAll('[data-platform-type]').forEach(button=>{const active=button.dataset.platformType===platformType;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
-  const ids={station:'stationBtn',track:'trackBtn',waypoint:'waypointBtn',inspect:'inspectBtn'};
-  document.querySelectorAll('#stationBtn,#trackBtn,#waypointBtn,#inspectBtn').forEach(button=>{const active=button.id===ids[mode];button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
-  const deleteButton=document.getElementById('trashModeBtn');
-  if(deleteButton){const active=mode==='delete';deleteButton.classList.toggle('active',active);deleteButton.setAttribute('aria-pressed',String(active));}
-  const states={curveBtn:!!curveMode,tunnelModeBtn:!!tunnelMode,runBtn:!!running,'sb-3d-toggle':!!document.getElementById('sb-3d-map')?.classList.contains('active')};
-  Object.entries(states).forEach(([id,active])=>{const button=document.getElementById(id);if(button){button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));}});
-  const themeButton=document.getElementById('themeToggleBtn'),themeMenu=document.getElementById('mapMenu');
-  if(themeButton&&themeMenu)themeButton.setAttribute('aria-expanded',String(themeMenu.style.display!=='none'));
-}
-function bindConstructionPanelControls(){
- const panel=document.getElementById('constructionPanel');
- const menu=document.getElementById('sb-construction-menu');
- const toggle=document.getElementById('sb-panel-toggle');
- if(!panel)return;
- if(menu&&menu.dataset.stateBound!=='true'){
-  menu.dataset.stateBound='true';
-  menu.addEventListener('toggle',()=>{
-   const expanded=menu.open;
-   if(toggle){
-    toggle.setAttribute('aria-expanded',String(expanded));
-    const hamburger=toggle.querySelector('.menu-hamburger');
-    if(hamburger){hamburger.setAttribute('aria-expanded',String(expanded));hamburger.setAttribute('aria-label',expanded?'Close construction menu':'Open construction menu');}
-    toggle.setAttribute('aria-label','Construction menu');
-    toggle.setAttribute('title','Construction menu');
-   }
-   panel.setAttribute('aria-hidden',String(!expanded));
-  });
- }
- if(panel.dataset.controlsBound!=='true'){
-  panel.dataset.controlsBound='true';
-  const actions={
-   'mode-station':()=>setMode('station'),'mode-track':()=>setMode('track'),
-   'mode-waypoint':()=>setMode('waypoint'),'mode-inspect':()=>setMode('inspect'),'draw-track':()=>setMode('track'),'curve-track':()=>setMode('curve'),
-   'track-single':()=>setTrackStyle('single'),'track-parallel':()=>setTrackStyle('parallel'),
-   'curve':()=>toggleCurveMode(),'tunnel':()=>toggleTunnelMode(),
-   'theme-menu':()=>toggleMapMenu(),
-   'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
-   'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
-   'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
-   'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
-   'toggle-3d':()=>window.toggle3DCityView()
-  };
-  // Bind each real button directly. This avoids relying on click bubbling
-  // through nested native <details> elements in Android WebView.
-  panel.querySelectorAll('button[data-panel-action]').forEach(button=>{
-   if(button.dataset.actionBound==='true')return;
-   button.dataset.actionBound='true';
-   button.addEventListener('click',async event=>{
-    event.preventDefault();
-    event.stopPropagation();
-    const action=button.dataset.panelAction;
-    try{
-     if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
-     else if(action==='platform-type')setPlatformType(button.dataset.platformType);
-     else if(typeof actions[action]==='function')await actions[action]();
-     else{console.warn('Unwired construction action:',action);message('This construction tool is not connected yet.');}
-     const group=button.closest('details.tool-group');
-     if(group&&['track-single','track-parallel','curve','tunnel','platform-width','platform-type','theme-dark','theme-light'].includes(action))group.open=false;
-     syncConstructionControls();
-    }catch(error){
-     console.error('Construction tool action failed:',action,error);
-     message('Could not run '+(button.getAttribute('aria-label')||button.title||'that tool')+'. Please try again.');
-    }
-   });
-  });
-  panel.querySelectorAll('details.tool-group').forEach(group=>{
-   const summary=group.querySelector('summary');if(!summary)return;
-   const update=()=>{summary.setAttribute('aria-expanded',String(group.open));group.classList.toggle('is-open',group.open);};
-   summary.addEventListener('click',event=>{event.preventDefault();group.open=!group.open;update();});
-   summary.addEventListener('keydown',event=>{
-    if(event.key!=='Enter'&&event.key!==' ')return;
-    event.preventDefault();group.open=!group.open;update();
-   });
-   group.addEventListener('toggle',update);update();
-  });
- }
- if(menu)menu.open=false;
- if(toggle)toggle.setAttribute('aria-expanded','false');
- panel.setAttribute('aria-hidden','true');
- syncConstructionControls();
-}
+function toggleToolsPanel(){ return false; }
+function syncConstructionControls(){ return; }
+function bindConstructionPanelControls(){ return; }
 function resetSelection(){
  selected=null;
  renderNetwork();
@@ -4079,14 +3942,14 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const button=document.createElement('button');
   button.type='button';button.id='sb-build-dock-btn';
   button.className='sb-build-dock-btn';
-  button.setAttribute('aria-label','Construction tools');
-  button.title='Construction tools';
+  button.setAttribute('aria-label','Construction toggle');
+  button.title='Construction toggle';
   button.setAttribute('aria-pressed','false');
   button.innerHTML='<svg viewBox="0 0 24 24" width="23" height="23" aria-hidden="true"><path d="M14.7 6.3a5 5 0 0 0-6.4 6.4L3.5 17.5a2.1 2.1 0 0 0 3 3l4.8-4.8a5 5 0 0 0 6.4-6.4l-3 3-3.5-3.5 3.5-3.5Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   button.addEventListener('click',function(){
-   if(mode==='delete')setMode('station');
-   if(typeof toggleToolsPanel==='function')toggleToolsPanel();
-   syncBuildState();
+   const active=button.getAttribute('aria-pressed')!=='true';
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
   });
   dock.appendChild(button);
   if(original)original.setAttribute('aria-hidden','true');
