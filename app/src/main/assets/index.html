@@ -6236,4 +6236,21 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 }
 </style>
 
+
+<style id="sb-undo-redo-no-white-rings">
+/* Remove legacy white button rings from undo and redo controls. */
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,
+#sb-action-dock #undoBtn:hover,#sb-action-dock #redoBtn:hover,
+#sb-action-dock #undoBtn:active,#sb-action-dock #redoBtn:active,
+#sb-action-dock #undoBtn:focus,#sb-action-dock #redoBtn:focus,
+#sb-action-dock #undoBtn:focus-visible,#sb-action-dock #redoBtn:focus-visible,
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(235,245,255,.055)!important;background-image:none!important;
+}
+#sb-action-dock #undoBtn:before,#sb-action-dock #redoBtn:before,
+#sb-action-dock #undoBtn:after,#sb-action-dock #redoBtn:after{
+ content:none!important;display:none!important;border:0!important;outline:0!important;box-shadow:none!important;
+}
+</style>
 </html>
