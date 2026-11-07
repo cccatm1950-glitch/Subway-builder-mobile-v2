@@ -1936,7 +1936,53 @@ button.sb-flat-close,[data-flat-close="true"]{
 #sb-construction-context-menu .sb-platform-size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 #sb-construction-context-menu .sb-platform-size-grid button{min-width:0;min-height:38px;border-radius:999px;border:1px solid rgba(220,240,255,.16);background:rgba(235,245,255,.07);color:#e8f2fa;font-size:12px;font-weight:700}
 #sb-construction-context-menu .sb-platform-size-grid button.active{background:rgba(54,211,190,.22);border-color:rgba(101,255,228,.68);color:#75ffe8;box-shadow:0 0 12px rgba(38,220,196,.22)}
-</style></head>
+</style>
+<style id="sb-requested-top-dock-menu-and-history-neutral-state">
+/* Remove undo/redo active-state borders and rings without changing availability. */
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,
+#sb-action-dock #undoBtn:hover,#sb-action-dock #redoBtn:hover,
+#sb-action-dock #undoBtn:active,#sb-action-dock #redoBtn:active,
+#sb-action-dock #undoBtn:focus,#sb-action-dock #redoBtn:focus,
+#sb-action-dock #undoBtn:focus-visible,#sb-action-dock #redoBtn:focus-visible,
+#sb-action-dock #undoBtn.active,#sb-action-dock #redoBtn.active,
+#sb-action-dock #undoBtn[aria-pressed="true"],#sb-action-dock #redoBtn[aria-pressed="true"],
+#sb-action-dock #undoBtn[aria-pressed="false"],#sb-action-dock #redoBtn[aria-pressed="false"]{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background-image:none!important;
+}
+#sb-action-dock #undoBtn:before,#sb-action-dock #redoBtn:before,
+#sb-action-dock #undoBtn:after,#sb-action-dock #redoBtn:after{
+ content:none!important;display:none!important;
+}
+/* Menu is the first control in the top dock, aligned to its standard inset. */
+#sb-top-dock{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ gap:10px!important;padding:7px 10px!important;
+}
+#sb-top-dock #sb-game-menu-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ order:0!important;flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:50%!important;outline:0!important;
+ color:#f4f8fc!important;background:rgba(235,245,255,.055)!important;background-image:none!important;
+ box-shadow:none!important;-webkit-backdrop-filter:blur(20px) saturate(160%)!important;
+ backdrop-filter:blur(20px) saturate(160%)!important;font-size:20px!important;line-height:1!important;
+}
+#sb-top-dock #sb-game-menu-toggle:hover,
+#sb-top-dock #sb-game-menu-toggle:active,
+#sb-top-dock #sb-game-menu-toggle:focus,
+#sb-top-dock #sb-game-menu-toggle:focus-visible{
+ border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(235,245,255,.09)!important;
+}
+#sb-top-dock .stats{order:1!important;flex:1 1 auto!important;min-width:0!important;margin:0 0 0 auto!important;justify-content:flex-end!important}
+#sb-top-dock .brand{display:none!important}
+@media(max-width:560px){
+ #sb-top-dock{gap:8px!important;padding:6px 8px!important}
+ #sb-top-dock #sb-game-menu-toggle{flex-basis:46px!important;width:46px!important;min-width:46px!important;height:46px!important;min-height:46px!important}
+}
+</style>
+</head>
 <body class="sb-start-menu-open">
 
 <!-- ========================================================
@@ -1998,14 +2044,13 @@ button.sb-flat-close,[data-flat-close="true"]{
      ======================================================== -->
 
 <div id="sb-top-dock" class="topbar" role="group" aria-label="City status">
- <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
+ <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu">☰</button>
  <div class="stats">
   <div id="sb-map-control-stack" role="group" aria-label="Map and pointer controls">
    <button id="sb-map-theme-toggle" type="button" aria-label="Switch map to dark mode" title="Toggle map appearance" aria-pressed="false">◐</button>
    <button id="sb-touch-cursor-toggle" class="sb-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span class="sb-switch-track"><span class="sb-switch-thumb"></span></span><span class="sb-switch-label">Touch</span></button>
    <button id="sb-mouse-pointer-toggle" class="sb-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span class="sb-switch-track"><span class="sb-switch-thumb"></span></span><span class="sb-switch-label">Mouse</span></button>
   </div>
-  <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu">☰</button>
   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
   <div class="stat">PASSENGERS<strong id="passengers">0</strong></div>
