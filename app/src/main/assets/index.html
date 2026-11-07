@@ -4061,14 +4061,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 </script>
 
 
-<style id="sb-build-delete-paired-neon">/* Construction and Delete share one paired, mutually exclusive neon treatment. */
-#sb-action-dock #trashModeBtn,
-#sb-action-dock #sb-build-dock-btn{
- border:0!important;
- background:rgba(255,255,255,.07)!important;transform:none!important}#sb-action-dock #sb-build-dock-btn{font-size:22px!important}#sb-action-dock .sb-dock-divider,#sb-action-dock .dock-divider,
-#sb-action-dock #sb-build-dock-btn:before{border:0!important;display:none!important;content:none!important}
-#sb-panel-toggle.menu-hamburger{display:none!important}
-</style>
+
 <script id="sb-history-and-build-dock-repair">
 (function(){
  function syncHistoryButtons(){
@@ -6007,35 +6000,27 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 }
 </style>
 <style id="sb-remove-all-button-highlight-effects">
-/* No neon, glow, outline, shadow, pulse, scale, or selected-state treatment on buttons.
-   Functional active/pressed classes remain available to the app logic. */
+/* Keep legacy neutral button feedback without overriding service-dock motion. */
 #sb-top-dock button,#sb-action-dock button,#constructionPanel button,
-#sb-game-menu button,#sb-service-lines button,#sb-line-color-options button,
-#stationContextMenu button,
+#sb-game-menu button,#sb-line-color-options button,#stationContextMenu button,
 #sb-top-dock button:hover,#sb-top-dock button:active,#sb-top-dock button:focus,#sb-top-dock button:focus-visible,
 #sb-action-dock button:hover,#sb-action-dock button:active,#sb-action-dock button:focus,#sb-action-dock button:focus-visible,
 #sb-action-dock button.active,#sb-action-dock button[aria-pressed="true"],
 #constructionPanel button:hover,#constructionPanel button:active,#constructionPanel button:focus,#constructionPanel button:focus-visible,
 #constructionPanel button.active,#constructionPanel button[aria-pressed="true"],
-#sb-service-lines button:hover,#sb-service-lines button:active,#sb-service-lines button:focus,#sb-service-lines button:focus-visible,
-#sb-service-lines button.active,#sb-service-lines button[aria-pressed="true"],
 #sb-line-color-options button:hover,#sb-line-color-options button:active,#sb-line-color-options button:focus,
 #sb-line-color-options button:focus-visible,#sb-line-color-options button[aria-selected="true"]{
  box-shadow:none!important;outline:none!important;filter:none!important;text-shadow:none!important;
- animation:none!important;transform:none!important;
 }
 #sb-top-dock button:before,#sb-top-dock button:after,
 #sb-action-dock button:before,#sb-action-dock button:after,
 #constructionPanel button:before,#constructionPanel button:after,
-#sb-service-lines button:before,#sb-service-lines button:after,
 #sb-line-color-options button:before,#sb-line-color-options button:after,
 #stationContextMenu button:before,#stationContextMenu button:after{
  content:none!important;display:none!important;box-shadow:none!important;filter:none!important;
 }
 #sb-top-dock button svg,#sb-action-dock button svg,#constructionPanel button svg,
-#sb-service-lines button svg,#stationContextMenu button svg{
- filter:none!important;drop-shadow:none!important;text-shadow:none!important;
-}
+#stationContextMenu button svg{filter:none!important;drop-shadow:none!important;text-shadow:none!important}
 </style>
 
 <style id="sb-service-dock-motion-and-control-parity">
@@ -6159,132 +6144,83 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 @media(prefers-reduced-motion:reduce){#sb-line-name-editor,#sb-line-color-options{transition:none!important}}
 </style>
 
-<style id="sb-service-toggle-dock-inset-alignment">
-/* Service toggle mirrors the right-hand dock button: same 46px circle,
-   matching inset ring, and a compact dock that hugs the toggle when closed. */
+
+
+
+</html>
+
+<style id="sb-dock-style-revert-and-service-motion-restore">
+/* Revert the newer enclosing dock cards: retain three separate bottom dock
+   groups (history, service, and construction/delete) without inset borders. */
+#sb-action-dock{
+ background:transparent!important;background-image:none!important;
+ border:0!important;box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+ padding:0!important;overflow:visible!important;
+}
+#sb-action-dock .sb-dock-panel{
+ background:transparent!important;background-image:none!important;
+ border:0!important;box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+ border-radius:0!important;padding:0!important;
+}
+#sb-action-dock .sb-dock-panel-left,
+#sb-action-dock .sb-dock-panel-right{
+ gap:8px!important;padding:0!important;
+}
 #sb-service-dock{
- box-sizing:border-box!important;display:flex!important;align-items:center!important;
- justify-content:center!important;gap:8px!important;
- min-height:60px!important;height:60px!important;
- padding:7px!important;margin:0 4px!important;
- border:1px solid rgba(205,232,239,.25)!important;border-radius:999px!important;
- background:rgba(23,48,67,.72)!important;background-image:none!important;
- box-shadow:0 10px 30px rgba(0,0,0,.20)!important;
- -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
- backdrop-filter:blur(28px) saturate(175%)!important;
- overflow:hidden!important;
-}
-#sb-service-dock #sb-service-dock-toggle{
- box-sizing:border-box!important;position:relative!important;isolation:isolate!important;
- display:inline-flex!important;flex:0 0 46px!important;
- width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
- max-width:46px!important;max-height:46px!important;aspect-ratio:1!important;
- align-items:center!important;justify-content:center!important;
- margin:0!important;padding:0!important;border-radius:50%!important;
- border:1px solid rgba(235,245,255,.28)!important;
- background:rgba(30,43,60,.48)!important;color:#f4f8fc!important;
- box-shadow:none!important;outline:0!important;filter:none!important;
- -webkit-backdrop-filter:blur(20px) saturate(170%)!important;
- backdrop-filter:blur(20px) saturate(170%)!important;
-}
-#sb-service-dock #sb-service-dock-toggle:before{
- content:""!important;position:absolute!important;inset:3px!important;
- display:block!important;border:1px solid rgba(255,255,255,.36)!important;
- border-radius:50%!important;box-shadow:none!important;pointer-events:none!important;
-}
-#sb-service-dock #sb-service-dock-toggle:after{content:none!important;display:none!important}
-#sb-service-dock:not(.is-expanded){
- flex:0 0 60px!important;width:60px!important;min-width:60px!important;max-width:60px!important;
- padding:6px!important;gap:0!important;justify-content:center!important;
-}
-#sb-service-dock:not(.is-expanded) #sb-service-lines{
- display:none!important;flex:0 0 0!important;width:0!important;min-width:0!important;
+ min-height:48px!important;height:48px!important;
+ flex:0 0 48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;
+ margin:0!important;padding:4px!important;gap:0!important;
+ border:0!important;border-radius:50%!important;
+ background:rgba(15,25,40,.46)!important;background-image:none!important;
+ box-shadow:none!important;
+ -webkit-backdrop-filter:blur(22px) saturate(160%)!important;
+ backdrop-filter:blur(22px) saturate(160%)!important;
 }
 #sb-service-dock.is-expanded{
  flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;
- padding:6px 8px!important;gap:8px!important;justify-content:flex-start!important;
-}
-#sb-service-dock.is-expanded #sb-service-dock-toggle{flex:0 0 46px!important}
-#sb-service-dock.is-expanded #sb-service-lines{min-width:0!important;flex:1 1 0!important}
-@media(max-width:700px){
- #sb-service-dock:not(.is-expanded){flex-basis:60px!important;width:60px!important;min-width:60px!important;max-width:60px!important}
- #sb-service-dock.is-expanded{flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important}
-}
-</style>
-
-<style id="sb-unified-theme-aware-glass-docks">
-/* Every primary dock shares the service dock's translucent glass surface.
-   The map appearance switch also changes the dock glass palette. */
-:root{
- --sb-dock-surface:rgba(23,48,67,.72);
- --sb-dock-border:rgba(205,232,239,.25);
- --sb-dock-ink:#f4f8fc;
- --sb-dock-shadow:0 10px 30px rgba(0,0,0,.20);
-}
-:root[data-sb-theme="light"]{
- --sb-dock-surface:rgba(235,243,250,.72);
- --sb-dock-border:rgba(70,95,120,.22);
- --sb-dock-ink:#172536;
- --sb-dock-shadow:0 10px 30px rgba(25,45,65,.14);
-}
-#sb-top-dock,
-#sb-action-dock,
-#constructionPanel,
-#sb-service-dock{
- background:var(--sb-dock-surface)!important;
- background-image:none!important;
- border:1px solid var(--sb-dock-border)!important;
- color:var(--sb-dock-ink)!important;
- box-shadow:var(--sb-dock-shadow)!important;
- -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
- backdrop-filter:blur(28px) saturate(175%)!important;
-}
-#sb-top-dock .brand,
-#sb-top-dock .stat,
-#sb-top-dock .stat strong,
-#constructionPanel,
-#constructionPanel h3{
- color:var(--sb-dock-ink)!important;
-}
-#sb-action-dock button,
-#sb-top-dock #sb-map-theme-toggle,
-#sb-top-dock #sb-game-menu-toggle,
-#sb-service-dock #sb-service-dock-toggle{
- color:var(--sb-dock-ink)!important;
+ height:58px!important;min-height:58px!important;padding:6px 10px!important;
+ border-radius:999px!important;
 }
 #sb-service-dock #sb-service-dock-toggle{
- border:0!important;
- background:rgba(235,245,255,.12)!important;
- box-shadow:none!important;
- -webkit-backdrop-filter:none!important;
- backdrop-filter:none!important;
+ box-sizing:border-box!important;flex:0 0 40px!important;
+ width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
+ max-width:40px!important;max-height:40px!important;border:0!important;
+ border-radius:50%!important;background:rgba(235,245,255,.12)!important;
+ box-shadow:none!important;outline:0!important;
 }
 #sb-service-dock #sb-service-dock-toggle:before,
-#sb-service-dock #sb-service-dock-toggle:after{
- content:none!important;
- display:none!important;
- border:0!important;
- box-shadow:none!important;
+#sb-service-dock #sb-service-dock-toggle:after{content:none!important;display:none!important}
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,
+#sb-action-dock #trashModeBtn,#sb-action-dock #sb-build-dock-btn{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 46px!important;width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;
+ aspect-ratio:1!important;margin:0!important;padding:0!important;border-radius:50%!important;
+ border:1.5px solid rgba(235,245,255,.28)!important;
+ background:rgba(30,43,60,.48)!important;color:#f5f9ff!important;
+ box-shadow:none!important;outline:0!important;
 }
-#sb-service-dock #sb-service-dock-toggle svg{
- display:block!important;
- width:25px!important;height:25px!important;
- min-width:25px!important;min-height:25px!important;
- max-width:25px!important;max-height:25px!important;
- pointer-events:none!important;
+#sb-action-dock #trashModeBtn{background:rgba(255,55,78,.16)!important;color:#ff9aa8!important;border-color:rgba(255,140,155,.42)!important}
+#sb-action-dock #sb-build-dock-btn{font-size:22px!important}
+#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{opacity:.42!important}
+#sb-action-dock #undoBtn:before,#sb-action-dock #undoBtn:after,
+#sb-action-dock #redoBtn:before,#sb-action-dock #redoBtn:after,
+#sb-action-dock #trashModeBtn:before,#sb-action-dock #trashModeBtn:after,
+#sb-action-dock #sb-build-dock-btn:before,#sb-action-dock #sb-build-dock-btn:after{content:none!important;display:none!important}
+#sb-service-dock,#sb-service-dock *{
+ animation-play-state:running!important;
 }
-:root[data-sb-theme="light"] #sb-action-dock button,
-:root[data-sb-theme="light"] #sb-service-lines button,
-:root[data-sb-theme="light"] #sb-line-name-editor,
-:root[data-sb-theme="light"] #sb-line-name-editor #sb-new-line-name{
- color:#172536!important;
+#sb-service-lines button,#sb-service-dock-toggle{
+ transition:background-color .18s ease,opacity .24s ease,transform .34s cubic-bezier(.2,.8,.2,1)!important;
 }
-:root[data-sb-theme="light"] #sb-service-lines button,
-:root[data-sb-theme="light"] #sb-line-name-editor{
- background:rgba(255,255,255,.42)!important;
-}
-:root[data-sb-theme="light"] #sb-line-name-editor #sb-new-line-name::placeholder{
- color:rgba(23,37,54,.48)!important;
+#sb-service-lines .sb-line-color-trigger:before{display:block!important;content:""!important}
+#sb-service-lines .sb-line-color-trigger{position:relative!important;overflow:hidden!important}
+#sb-service-dock.is-expanded #sb-service-create-slot,
+#sb-service-dock.is-expanded #sb-service-run-slot,
+#sb-service-dock.is-expanded #sb-service-lines-content,
+#sb-service-dock.is-expanded #sb-service-lines-content .sb-line-slot{
+ opacity:1!important;transform:translateX(0)!important;
 }
 </style>
-</html>
