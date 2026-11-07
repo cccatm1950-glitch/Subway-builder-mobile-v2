@@ -2893,6 +2893,7 @@ function handleMapPlacement(latlng){
    return;
   }
   const geometry=stationPlatformGeometry(pendingStationPlacement,latlng);
+  if(geometry.lengthMeters<30){message('Extend the platform at least 30 metres before placing it.');return;}
   const center=geometry.center;
   pendingStationPlacement=null;
   clearStationPlacementPreview();
