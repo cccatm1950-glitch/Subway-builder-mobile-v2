@@ -2512,6 +2512,23 @@ if(mode==='delete'){
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
   const startOffset=getStationTrackSideOffset(t.a,points[0],points[1],t.style);
+  // Desktop-engine offset transitions: station-side offsets flare smoothly
+  // over at most 50 m at each end, instead of drifting across the full route.
+  // The mobile parallel-track lane spacing remains the existing +/-5 m.
+  const OFFSET_TRANSITION_LENGTH_METERS=50;
+  const cumulativeTrackMeters=[0];
+  for(let i=1;i<points.length;i++){
+   cumulativeTrackMeters[i]=cumulativeTrackMeters[i-1]+map.distance(points[i-1],points[i]);
+  }
+  const totalTrackMeters=cumulativeTrackMeters[cumulativeTrackMeters.length-1]||0;
+  const transitionMeters=Math.min(OFFSET_TRANSITION_LENGTH_METERS,totalTrackMeters/2);
+  const smoothstep01=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
+  const stationOffsets=cumulativeTrackMeters.map(distance=>{
+   if(transitionMeters<=0)return 0;
+   const fromStart=startOffset*(1-smoothstep01(distance/transitionMeters));
+   const fromEnd=endOffset*smoothstep01((distance-(totalTrackMeters-transitionMeters))/transitionMeters);
+   return fromStart+fromEnd;
+  });
   const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
