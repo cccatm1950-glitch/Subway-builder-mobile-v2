@@ -2,9 +2,9 @@ name: Android APK build
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "feat/top-dock-map-theme-toggle-and-state-guards" ]
   push:
-    branches: [ "main" ]
+    branches: [ "main", "fix/glass-dock-crosshair-stations" ]
   workflow_dispatch:
 
 permissions:
