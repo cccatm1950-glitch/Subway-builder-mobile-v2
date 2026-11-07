@@ -2892,13 +2892,24 @@ function handleStationClick(index){
   let first=selected;
   let second=index;
 
-  if(tracks.some(t=>
+  const existingTrack=tracks.find(t=>
    (t.a===first&&t.b===second)||
    (t.a===second&&t.b===first)
-  )){
-   selected=null;
-   renderNetwork();
-   message('These stations are already connected.');
+  );
+  if(existingTrack){
+   const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
+   const assignedLineIds=Array.isArray(existingTrack.lineIds)?existingTrack.lineIds:[];
+   if(activeLine&&!assignedLineIds.includes(activeLine.id)){
+    existingTrack.lineIds=[...assignedLineIds,activeLine.id];
+    selected=null;
+    saveHistory();
+    renderNetwork();
+    message(activeLine.name+' now shares the existing track.');
+   }else{
+    selected=null;
+    renderNetwork();
+    message(activeLine?'This track is already assigned to '+activeLine.name+'.':'These stations are already connected.');
+   }
    return;
   }
 
