@@ -6585,4 +6585,39 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  stroke-linejoin:round!important;
 }
 </style>
+
+<style id="sb-undo-redo-teal-active-glow">
+/* Match the construction tool's teal activation glow without restoring a white ring. */
+#sb-action-dock #undoBtn,
+#sb-action-dock #redoBtn{
+ transition:background .14s ease,color .14s ease,box-shadow .14s ease,transform .14s ease!important;
+ -webkit-tap-highlight-color:transparent!important;
+}
+#sb-action-dock #undoBtn:active,
+#sb-action-dock #redoBtn:active,
+#sb-action-dock #undoBtn.active,
+#sb-action-dock #redoBtn.active,
+#sb-action-dock #undoBtn[aria-pressed="true"],
+#sb-action-dock #redoBtn[aria-pressed="true"]{
+ background:rgba(54,211,190,.22)!important;
+ color:#75ffe8!important;
+ border:0!important;
+ outline:0!important;
+ box-shadow:inset 0 0 0 1px rgba(101,255,228,.58),0 0 15px rgba(38,220,196,.28)!important;
+ filter:none!important;
+ -webkit-filter:none!important;
+ text-shadow:none!important;
+ transform:scale(.96)!important;
+}
+#sb-action-dock #undoBtn:active svg,
+#sb-action-dock #redoBtn:active svg,
+#sb-action-dock #undoBtn.active svg,
+#sb-action-dock #redoBtn.active svg,
+#sb-action-dock #undoBtn[aria-pressed="true"] svg,
+#sb-action-dock #redoBtn[aria-pressed="true"] svg{
+ color:#75ffe8!important;
+ filter:none!important;
+}
+</style>
+
 </html>
