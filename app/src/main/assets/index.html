@@ -2512,6 +2512,7 @@ if(mode==='delete'){
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
   const startOffset=getStationTrackSideOffset(t.a,points[0],points[1],t.style);
+  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
   // The mobile parallel-track lane spacing remains the existing +/-5 m.
@@ -2529,7 +2530,6 @@ if(mode==='delete'){
    const fromEnd=endOffset*smoothstep01((distance-(totalTrackMeters-transitionMeters))/transitionMeters);
    return fromStart+fromEnd;
   });
-  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
       let prev=points[Math.max(0,i-1)];
@@ -2537,8 +2537,7 @@ if(mode==='delete'){
       let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
       let dy=next[0]-prev[0];
       let length=Math.sqrt(dx*dx+dy*dy)||1;
-      const progress=points.length>1?i/(points.length-1):0;
-      const lateralOffset=startOffset+(endOffset-startOffset)*progress+offset;
+      const lateralOffset=stationOffsets[i]+offset;
       return [
         p[0]+(dx/length)*lateralOffset/111320,
         p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
@@ -2568,9 +2567,7 @@ if(mode==='delete'){
     const prev=points[Math.max(0,index-1)],next=points[Math.min(points.length-1,index+1)];
     const dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180),dy=next[0]-prev[0];
     const length=Math.sqrt(dx*dx+dy*dy)||1;
-    const progress=points.length>1?index/(points.length-1):0;
-    const stationOffset=startOffset+(endOffset-startOffset)*progress;
-    const lateralOffset=stationOffset+offset;
+    const lateralOffset=stationOffsets[index]+offset;
     return [p[0]+(dx/length)*lateralOffset/111320,p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))];
    });
    L.polyline(overlay,{pane:'sbTrackPane',color:line.color,weight:4,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
