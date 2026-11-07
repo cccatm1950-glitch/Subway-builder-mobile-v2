@@ -2163,6 +2163,13 @@ let platformSize='standard';
 let platformType='island';
 const PLATFORM_SIZE_PRESETS={compact:{width:6,label:'Compact'},standard:{width:8,label:'Standard'},long:{width:10,label:'Long'}};
 const DEFAULT_PLATFORM_LENGTH_METERS=90;
+// Match the Windows heavy-metro platform clearance and standard track geometry.
+const MOBILE_DEFAULT_TRAIN_WIDTH_METERS=3.05;
+const MOBILE_TRACK_WIDTH_METERS=1.435;
+const MOBILE_PARALLEL_TRACK_SPACING_METERS=3.81;
+const MOBILE_PLATFORM_TRAIN_GAP_METERS=0.1;
+const MOBILE_PLATFORM_CLEARANCE_METERS=MOBILE_DEFAULT_TRAIN_WIDTH_METERS/2+MOBILE_PLATFORM_TRAIN_GAP_METERS;
+const MOBILE_SIDE_PLATFORM_OFFSET_METERS=MOBILE_TRACK_WIDTH_METERS/2+MOBILE_PARALLEL_TRACK_SPACING_METERS/2+MOBILE_PLATFORM_CLEARANCE_METERS;
 function getPlatformDimensions(size){return PLATFORM_SIZE_PRESETS[size]||PLATFORM_SIZE_PRESETS.standard;}
 function setPlatformSize(size){
  if(!PLATFORM_SIZE_PRESETS[size])return;
@@ -2470,7 +2477,7 @@ function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
  const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
  const width=dimensions.width/2;
  const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
- return side*(support+1.2);
+ return side*(support+MOBILE_PLATFORM_CLEARANCE_METERS);
 }
 tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
@@ -2742,7 +2749,7 @@ if(mode==='delete'){
     platform.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(holdTimer);if(mode==='delete')return;holdTriggered=true;showStationMenu(i);});
     platform.on('click',function(e){L.DomEvent.stopPropagation(e);if(holdTriggered||stationMenuIndex===i){holdTriggered=false;return;}handleStationClick(i);});
   }
-  if((s.platformType||'island')==='side'){drawPlatform(-(platformHalfWidth+4));drawPlatform(platformHalfWidth+4);}else{drawPlatform(0);}
+  if((s.platformType||'island')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
 
  });
  syncStationEndpointVisibility();
