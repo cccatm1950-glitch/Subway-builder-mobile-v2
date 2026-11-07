@@ -4357,7 +4357,7 @@ function toggleDefaultDarkOnStart(){
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
  document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
  document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
- const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceLineDraw){const wrapped=function(){const result=prior.apply(this,arguments);draw();const run=document.getElementById('runBtn');if(run){run.textContent=running?'Ⅱ':'▶';run.classList.toggle('active',!!running);}return result;};wrapped.__sbServiceLineDraw=true;window.updateUI=wrapped;}
+ const prior=window.updateUI;if(typeof prior==='function'&&!prior.__sbServiceLineDraw){const wrapped=function(){const result=prior.apply(this,arguments);draw();if(window.syncServiceRunControl)window.syncServiceRunControl();return result;};wrapped.__sbServiceLineDraw=true;window.updateUI=wrapped;}
  window.sbDrawServiceLines=draw;
 })();
 </script>
