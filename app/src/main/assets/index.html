@@ -7361,4 +7361,69 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 #sb-game-menu-settings{display:none!important}
 </style>
 
+
+<style id="sb-startup-dark-switch-and-crosshair-contrast">
+/* Startup dark-map preference uses the exact geometry of the cursor switches. */
+#sb-game-menu-settings-view #sb-default-dark-toggle.sb-ios-switch,
+#sb-game-menu-settings-view #sb-touch-cursor-toggle.sb-ios-switch,
+#sb-game-menu-settings-view #sb-mouse-pointer-toggle.sb-ios-switch{
+ box-sizing:border-box!important;
+ display:inline-flex!important;align-items:center!important;justify-content:flex-start!important;
+ width:48px!important;height:28px!important;min-width:48px!important;min-height:28px!important;
+ max-width:48px!important;max-height:28px!important;flex:0 0 48px!important;
+ padding:3px!important;border:0!important;border-radius:999px!important;overflow:hidden!important;
+ background:rgba(150,165,180,.28)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.18)!important;
+ transition:background .18s ease,box-shadow .18s ease!important;
+}
+#sb-game-menu-settings-view #sb-default-dark-toggle.sb-ios-switch span,
+#sb-game-menu-settings-view #sb-touch-cursor-toggle.sb-ios-switch span,
+#sb-game-menu-settings-view #sb-mouse-pointer-toggle.sb-ios-switch span{
+ display:block!important;position:static!important;
+ width:22px!important;height:22px!important;min-width:22px!important;min-height:22px!important;
+ max-width:22px!important;max-height:22px!important;flex:0 0 22px!important;
+ margin:0!important;border:0!important;border-radius:50%!important;
+ background:#fff!important;box-shadow:0 1px 4px rgba(0,0,0,.28)!important;
+ transform:translateX(0)!important;transition:transform .18s ease!important;
+}
+#sb-game-menu-settings-view #sb-default-dark-toggle[aria-checked="true"],
+#sb-game-menu-settings-view #sb-touch-cursor-toggle[aria-checked="true"],
+#sb-game-menu-settings-view #sb-mouse-pointer-toggle[aria-checked="true"]{
+ justify-content:flex-end!important;
+ background:rgba(48,209,88,.88)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.22),0 0 9px rgba(48,209,88,.2)!important;
+}
+#sb-game-menu-settings-view #sb-default-dark-toggle[aria-checked="true"] span,
+#sb-game-menu-settings-view #sb-touch-cursor-toggle[aria-checked="true"] span,
+#sb-game-menu-settings-view #sb-mouse-pointer-toggle[aria-checked="true"] span{
+ transform:translateX(0)!important;
+}
+/* Dual dark/light rings keep the map placement reticle readable over any tile or terrain. */
+#map .sb-map-crosshair{
+ width:36px!important;height:36px!important;
+ border:2px solid rgba(255,255,255,.98)!important;border-radius:50%!important;
+ background:transparent!important;
+ box-shadow:0 0 0 2px rgba(4,12,22,.96),0 0 0 5px rgba(58,221,210,.95),
+ 0 0 12px rgba(58,221,210,.72),0 1px 5px rgba(0,0,0,.9)!important;
+ opacity:1!important;visibility:visible!important;
+}
+#map .sb-map-crosshair:before{
+ content:""!important;position:absolute!important;left:50%!important;top:50%!important;
+ width:5px!important;height:5px!important;transform:translate(-50%,-50%)!important;
+ border-radius:50%!important;background:#fff!important;
+ box-shadow:0 0 0 2px rgba(4,12,22,.95),0 0 8px rgba(255,255,255,.95)!important;
+}
+#map .sb-map-crosshair:after{
+ content:""!important;position:absolute!important;left:50%!important;top:50%!important;
+ width:1px!important;height:52px!important;transform:translate(-50%,-50%)!important;
+ background:linear-gradient(to bottom,transparent,rgba(255,255,255,.9) 22%,rgba(255,255,255,.9) 78%,transparent)!important;
+ box-shadow:0 0 0 1px rgba(4,12,22,.42)!important;
+}
+#map .sb-map-crosshair{outline:0!important}
+@media(prefers-reduced-motion:reduce){
+ #sb-game-menu-settings-view #sb-default-dark-toggle.sb-ios-switch,
+ #sb-game-menu-settings-view #sb-default-dark-toggle.sb-ios-switch span{transition:none!important}
+}
+</style>
+
 </html>
