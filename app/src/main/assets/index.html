@@ -2445,10 +2445,10 @@ if(mode==='delete'){
     });
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
   if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
-  L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive?.3:.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive ? 0.3 : 0.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   if(elevation==='below'){
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:routeOpacity,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
-   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:trackIsActive?.22:.08}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:routeOpacity,fillColor:routeColor}).addTo(window.networkLayer);});
+   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:trackIsActive ? 0.22 : 0.08}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:routeOpacity,fillColor:routeColor}).addTo(window.networkLayer);});
   }else{
    L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:routeOpacity,lineCap:'round',lineJoin:'round',dashArray:trackIsActive?(elevation==='at'?null:'10 8'):'8 7'}).addTo(window.networkLayer);
   }
@@ -2467,7 +2467,10 @@ if(mode==='delete'){
     const prev=points[Math.max(0,index-1)],next=points[Math.min(points.length-1,index+1)];
     const dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180),dy=next[0]-prev[0];
     const length=Math.sqrt(dx*dx+dy*dy)||1;
-    return [p[0]+(dx/length)*offset/111320,p[1]-(dy/length)*offset/(111320*Math.cos(p[0]*Math.PI/180))];
+    const progress=points.length>1?index/(points.length-1):0;
+    const stationOffset=startOffset+(endOffset-startOffset)*progress;
+    const lateralOffset=stationOffset+offset;
+    return [p[0]+(dx/length)*lateralOffset/111320,p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))];
    });
    L.polyline(overlay,{pane:'sbTrackPane',color:line.color,weight:4,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   });
