@@ -2601,7 +2601,7 @@ if(mode==='delete'){
    let lastMeasureDistance=-Infinity;
    for(let i=1;i<smoothRadii.length-1;i++){
     const radius=smoothRadii[i];
-    if(radius===null||radius>=(smoothRadii[i-1]??Infinity)||radius>(smoothRadii[i+1]??Infinity))continue;
+    if(radius===null||radius>(smoothRadii[i-1]??Infinity)||radius>(smoothRadii[i+1]??Infinity))continue;
     const distanceAlong=cumulativeTrackMeters[i]||0;
     if(distanceAlong-lastMeasureDistance<35)continue;
     lastMeasureDistance=distanceAlong;
