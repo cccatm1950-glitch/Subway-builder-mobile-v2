@@ -7184,7 +7184,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 #sb-line-color-options{
  position:fixed!important;
  z-index:20000!important;
- left:50%!important;
+ left:14px!important;
  right:auto!important;
  top:calc(max(9px,env(safe-area-inset-top,0px)) + 58px + 10px)!important;
  bottom:auto!important;
@@ -7218,7 +7218,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  opacity:0!important;
  visibility:hidden!important;
  pointer-events:none!important;
- transform:translate(-50%,-8px)!important;
+ transform:translateY(-8px)!important;
  transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s!important;
 }
 #sb-line-color-options::-webkit-scrollbar{display:none!important}
@@ -7228,7 +7228,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  opacity:1!important;
  visibility:visible!important;
  pointer-events:auto!important;
- transform:translate(-50%,0)!important;
+ transform:translateY(0)!important;
  transition-delay:0s!important;
 }
 #sb-line-color-options .sb-line-color-option{
@@ -7240,6 +7240,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 @media(max-width:560px){
  #sb-line-color-options{
+  left:7px!important;
   top:calc(max(7px,env(safe-area-inset-top,0px)) + 56px + 8px)!important;
   width:calc(100vw - 14px)!important;
   max-width:calc(100vw - 14px)!important;
