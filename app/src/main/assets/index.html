@@ -2000,8 +2000,11 @@ button.sb-flat-close,[data-flat-close="true"]{
 <div id="sb-top-dock" class="topbar" role="group" aria-label="City status">
  <div class="brand"><span>▣ SUBWAY BUILDER</span></div>
  <div class="stats">
-  <button id="sb-pointer-toggle" type="button" aria-label="Enable touch cursor / mouse pointer" title="Enable touch cursor / mouse pointer" aria-pressed="false" onclick="toggleTouchPointer()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3.5 18.5 14l-6.2.7-3.1 5.1z" fill="currentColor" stroke="currentColor" stroke-linejoin="round"/></svg></button>
-  <button id="sb-map-theme-toggle" type="button" aria-label="Switch map to dark mode" title="Toggle map appearance" aria-pressed="false">◐</button>
+  <div id="sb-map-control-stack" role="group" aria-label="Map and pointer controls">
+   <button id="sb-map-theme-toggle" type="button" aria-label="Switch map to dark mode" title="Toggle map appearance" aria-pressed="false">◐</button>
+   <button id="sb-touch-cursor-toggle" class="sb-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span class="sb-switch-track"><span class="sb-switch-thumb"></span></span><span class="sb-switch-label">Touch</span></button>
+   <button id="sb-mouse-pointer-toggle" class="sb-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span class="sb-switch-track"><span class="sb-switch-thumb"></span></span><span class="sb-switch-label">Mouse</span></button>
+  </div>
   <button id="sb-game-menu-toggle" type="button" aria-label="Open in-game menu" title="Game menu">☰</button>
   <div class="stat" id="sb-city-stat">CITY<strong>San Francisco</strong></div>
   <div class="stat">MONEY<strong id="money">$25,000</strong></div>
@@ -2723,16 +2726,22 @@ function setStationElevation(level){
    ========================================================= */
 
 function toggleDashboardDialog(open){const dialog=document.getElementById("sb-dashboard-dialog");if(open===false){dialog.classList.remove("open");clearTimeout(sbMessageTimer);}else message("Build stations, connect routes, adjust track settings, and run trains.");}
-let sbTouchPointerEnabled=false;
-function setTouchPointerEnabled(enabled){
- sbTouchPointerEnabled=!!enabled;
- document.body.classList.toggle('sb-touch-pointer-enabled',sbTouchPointerEnabled);
- const button=document.getElementById('sb-pointer-toggle');
- if(button){button.classList.toggle('active',sbTouchPointerEnabled);button.setAttribute('aria-pressed',String(sbTouchPointerEnabled));button.title=sbTouchPointerEnabled?'Switch to normal mouse/touch controls':'Enable touch cursor / mouse pointer';button.setAttribute('aria-label',button.title);}
+let sbTouchCursorEnabled=false;
+let sbMousePointerEnabled=false;
+function syncPointerSwitches(){
+ const touch=document.getElementById('sb-touch-cursor-toggle'),mouse=document.getElementById('sb-mouse-pointer-toggle');
+ if(touch){touch.classList.toggle('active',sbTouchCursorEnabled);touch.setAttribute('aria-checked',String(sbTouchCursorEnabled));}
+ if(mouse){mouse.classList.toggle('active',sbMousePointerEnabled);mouse.setAttribute('aria-checked',String(sbMousePointerEnabled));}
  const pointer=document.getElementById('sb-touch-pointer');
- if(pointer){pointer.classList.toggle('visible',sbTouchPointerEnabled);if(!sbTouchPointerEnabled)pointer.classList.remove('pressed');}
+ if(pointer)pointer.classList.toggle('visible',sbTouchCursorEnabled||sbMousePointerEnabled);
+ document.body.classList.toggle('sb-touch-pointer-enabled',sbTouchCursorEnabled||sbMousePointerEnabled);
 }
-function toggleTouchPointer(){setTouchPointerEnabled(!sbTouchPointerEnabled);message(sbTouchPointerEnabled?'Touch pointer enabled. Tap or drag with the pointer; turn it off for normal touch controls.':'Normal touch controls enabled.');}
+function setTouchCursorEnabled(enabled){sbTouchCursorEnabled=!!enabled;syncPointerSwitches();}
+function setMousePointerEnabled(enabled){sbMousePointerEnabled=!!enabled;syncPointerSwitches();}
+function toggleTouchCursor(){setTouchCursorEnabled(!sbTouchCursorEnabled);message(sbTouchCursorEnabled?'Touch cursor enabled.':'Touch cursor disabled.');}
+function toggleMousePointer(){setMousePointerEnabled(!sbMousePointerEnabled);message(sbMousePointerEnabled?'Mouse pointer enabled.':'Mouse pointer disabled.');}
+function setTouchPointerEnabled(enabled){setTouchCursorEnabled(enabled);}
+function toggleTouchPointer(){toggleTouchCursor();}
 function moveTouchPointer(x,y,visible=true){
  const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
  pointer.style.left=x+'px';pointer.style.top=y+'px';pointer.classList.toggle('visible',!!visible);
@@ -2744,14 +2753,14 @@ function moveTouchPointer(x,y,visible=true){
 }
 (function installTouchPointer(){
  const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
- document.addEventListener('pointermove',e=>{if(sbTouchPointerEnabled||document.getElementById('startMenu')?.style.display!=='none')moveTouchPointer(e.clientX,e.clientY,true);});
- document.addEventListener('pointerdown',e=>{if(sbTouchPointerEnabled||document.getElementById('startMenu')?.style.display!=='none'){moveTouchPointer(e.clientX,e.clientY,true);pointer.classList.add('pressed');}});
+ document.addEventListener('pointermove',e=>{if((e.pointerType==='mouse'&&sbMousePointerEnabled)||document.getElementById('startMenu')?.style.display!=='none')moveTouchPointer(e.clientX,e.clientY,true);});
+ document.addEventListener('pointerdown',e=>{if((e.pointerType==='mouse'&&sbMousePointerEnabled)||document.getElementById('startMenu')?.style.display!=='none'){moveTouchPointer(e.clientX,e.clientY,true);pointer.classList.add('pressed');}});
  document.addEventListener('pointerup',()=>pointer.classList.remove('pressed'));
  document.addEventListener('pointercancel',()=>pointer.classList.remove('pressed'));
- document.addEventListener('click',e=>{if(!sbTouchPointerEnabled&&document.getElementById('startMenu')?.style.display==='none')return;const ripple=document.createElement('i');ripple.className='sb-pointer-click';ripple.style.left=e.clientX+'px';ripple.style.top=e.clientY+'px';document.body.appendChild(ripple);setTimeout(()=>ripple.remove(),420);});
- document.addEventListener('touchmove',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
- document.addEventListener('touchstart',e=>{if(!sbTouchPointerEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
- document.addEventListener('touchend',()=>{if(sbTouchPointerEnabled)pointer.classList.remove('pressed');});
+ document.addEventListener('click',e=>{if(!sbTouchCursorEnabled&&!sbMousePointerEnabled&&document.getElementById('startMenu')?.style.display==='none')return;const ripple=document.createElement('i');ripple.className='sb-pointer-click';ripple.style.left=e.clientX+'px';ripple.style.top=e.clientY+'px';document.body.appendChild(ripple);setTimeout(()=>ripple.remove(),420);});
+ document.addEventListener('touchmove',e=>{if(!sbTouchCursorEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
+ document.addEventListener('touchstart',e=>{if(!sbTouchCursorEnabled||!e.touches.length)return;const t=e.touches[0];moveTouchPointer(t.clientX,t.clientY,true);},{passive:true});
+ document.addEventListener('touchend',()=>{if(sbTouchCursorEnabled)pointer.classList.remove('pressed');});
 })();
 function toggleToolsPanel(){ return false; }
 function syncConstructionControls(){ return; }
@@ -2926,7 +2935,15 @@ function updateStationPlacementPreview(){
 }
 
 map.on('mousemove touchmove',updateStationPlacementPreview);
-map.on('move zoom moveend zoomend',function(){updateStationPlacementPreview();syncStationEndpointVisibility();});
+let sbStationPreviewGestureActive=false;
+function syncStationPreviewGestureNodes(){
+ if(!stationEndpointPreview||!sbStationPreviewGestureActive)return;
+ const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
+ stationEndpointPreview.getLayers().forEach(node=>node.setLatLng(crosshair));
+}
+map.on('movestart zoomstart',function(){if(mode==='station'&&pendingStationPlacement){sbStationPreviewGestureActive=true;syncStationPreviewGestureNodes();}});
+map.on('move zoom',function(){if(sbStationPreviewGestureActive)syncStationPreviewGestureNodes();updateStationPlacementPreview();});
+map.on('moveend zoomend',function(){sbStationPreviewGestureActive=false;updateStationPlacementPreview();syncStationEndpointVisibility();});
 map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPreview();});
 
 let lastTouchPlacementAt=0;
@@ -6321,35 +6338,18 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #sb-action-dock #sb-build-dock-btn[aria-pressed="false"],#sb-action-dock #trashModeBtn[aria-pressed="false"]{background:rgba(235,245,255,.055)!important;color:#f4f8fc!important;box-shadow:inset 0 0 0 1px rgba(225,240,255,.08)!important}
 #map .sb-station-platform-preview{pointer-events:none!important;transform-origin:center!important}
 </style>
-<style id="sb-compact-desktop-dock-scale-and-pointer-hover">
-#sb-top-dock{min-height:58px!important;padding:7px 11px!important;left:12px!important;right:12px!important;gap:10px!important;border-radius:22px!important}
-#sb-top-dock .brand{font-size:clamp(10px,1.1vw,14px)!important;letter-spacing:.8px!important}
-#sb-top-dock .stats{gap:clamp(6px,1.2vw,13px)!important}
-#sb-top-dock .stat{font-size:7px!important}
-#sb-top-dock .stat strong{font-size:clamp(9px,.95vw,12px)!important}
-#sb-top-dock #sb-pointer-toggle,#sb-top-dock #sb-map-theme-toggle{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;flex-basis:36px!important}
-#sb-action-dock{gap:6px!important;padding:6px!important;border-radius:20px!important}
-#sb-action-dock button{width:40px!important;height:40px!important;min-height:40px!important;flex-basis:40px!important;font-size:16px!important}
-#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{flex-basis:40px!important;width:40px!important;height:40px!important;min-width:40px!important;max-width:40px!important;min-height:40px!important;max-height:40px!important}
-#sb-service-dock{min-height:44px!important;border-radius:22px!important}
-#sb-service-dock #sb-service-dock-toggle,#sb-service-lines button{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}
-#sb-construction-menu[open]>#constructionPanel{width:112px!important;min-width:112px!important;max-width:112px!important;padding:8px!important;border-radius:18px!important}
-#constructionPanel .tool-grid{grid-template-columns:repeat(2,36px)!important;grid-auto-columns:36px!important;grid-auto-rows:36px!important;gap:5px!important;padding:6px!important}
-#constructionPanel .tool-grid button,#constructionPanel button{min-height:36px!important}
-#sb-line-color-options,#sb-construction-context-menu{padding:9px!important;border-radius:22px!important}
-#sb-construction-context-menu button{width:38px!important;height:38px!important;min-height:38px!important}
-#sb-line-name-editor{height:36px!important}
-#sb-line-name-editor #sb-line-name-search,#sb-line-name-editor #sb-new-line-name{height:36px!important}
-#sb-touch-pointer{width:22px!important;height:22px!important;border-width:2px!important}
-.sb-pointer-hover{background:rgba(54,211,190,.2)!important;color:#75ffe8!important;border-color:rgba(101,255,228,.72)!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.28),0 0 12px rgba(38,220,196,.2)!important;transition:background .12s ease,color .12s ease,box-shadow .12s ease!important}
-#sb-top-dock button:hover:not(:disabled),#sb-action-dock button:hover:not(:disabled),#sb-service-dock button:hover:not(:disabled),#constructionPanel button:hover:not(:disabled),#sb-construction-context-menu button:hover:not(:disabled),#sb-line-color-options button:hover:not(:disabled){background:rgba(54,211,190,.17)!important;color:#75ffe8!important;border-color:rgba(101,255,228,.62)!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.2),0 0 10px rgba(38,220,196,.16)!important}
-@media(max-width:700px){#sb-top-dock{min-height:54px!important;padding:6px 8px!important;left:7px!important;right:7px!important;gap:5px!important}#sb-top-dock #sb-pointer-toggle,#sb-top-dock #sb-map-theme-toggle{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;flex-basis:32px!important}#sb-action-dock button{width:38px!important;height:38px!important;min-height:38px!important;flex-basis:38px!important}#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{width:38px!important;height:38px!important;min-width:38px!important;max-width:38px!important;min-height:38px!important;max-height:38px!important;flex-basis:38px!important}#sb-construction-menu[open]>#constructionPanel{width:106px!important;min-width:106px!important;max-width:106px!important}#constructionPanel .tool-grid{grid-template-columns:repeat(2,34px)!important;grid-auto-columns:34px!important;grid-auto-rows:34px!important}}
-@media(prefers-reduced-motion:reduce){.sb-pointer-hover{transition:none!important}}
-</style>
-<style id="sb-pointer-switch-compact-glass">
-#sb-top-dock #sb-pointer-toggle{display:inline-flex!important;align-items:center!important;justify-content:center!important;border-radius:50%!important;background:rgba(235,245,255,.075)!important;color:#edf6ff!important;border:1px solid rgba(225,240,255,.12)!important}
-#sb-top-dock #sb-pointer-toggle svg{width:17px!important;height:17px!important;display:block!important}
-#sb-top-dock #sb-pointer-toggle[aria-pressed="true"]{background:rgba(54,211,190,.2)!important;color:#75ffe8!important;border-color:rgba(101,255,228,.62)!important;box-shadow:0 0 12px rgba(38,220,196,.2)!important}
-@media(max-width:700px){#sb-top-dock #sb-pointer-toggle svg{width:15px!important;height:15px!important}}
+
+
+<style id="sb-pointer-switch-stack-and-hover">
+#sb-map-control-stack{display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;flex:0 0 auto!important}
+#sb-map-control-stack #sb-map-theme-toggle{order:0!important;width:38px!important;height:38px!important;min-height:38px!important;flex:0 0 38px!important}
+#sb-map-control-stack .sb-pointer-switch{order:1!important;display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:5px!important;width:62px!important;min-width:62px!important;height:23px!important;min-height:23px!important;flex:0 0 23px!important;padding:2px 4px!important;margin:0!important;border:0!important;border-radius:14px!important;background:rgba(235,245,255,.075)!important;color:#edf6ff!important;box-shadow:inset 0 0 0 1px rgba(225,240,255,.12)!important;font-size:8px!important;line-height:1!important}
+#sb-map-control-stack .sb-pointer-switch .sb-switch-track{position:relative!important;display:block!important;flex:0 0 25px!important;width:25px!important;height:14px!important;border-radius:10px!important;background:rgba(180,195,210,.28)!important;transition:background .16s ease!important}
+#sb-map-control-stack .sb-pointer-switch .sb-switch-thumb{position:absolute!important;left:2px!important;top:2px!important;width:10px!important;height:10px!important;border-radius:50%!important;background:#edf6ff!important;transition:transform .16s ease!important}
+#sb-map-control-stack .sb-pointer-switch[aria-checked="true"] .sb-switch-track{background:rgba(45,220,194,.62)!important}
+#sb-map-control-stack .sb-pointer-switch[aria-checked="true"] .sb-switch-thumb{transform:translateX(11px)!important;background:#fff!important}
+#sb-map-control-stack .sb-switch-label{font-size:8px!important;letter-spacing:.1px!important}
+.sb-pointer-hover{background:rgba(54,211,190,.2)!important;color:#75ffe8!important;border-color:rgba(101,255,228,.72)!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.28),0 0 12px rgba(38,220,196,.2)!important}
+@media(max-width:700px){#sb-map-control-stack #sb-map-theme-toggle{width:34px!important;height:34px!important;min-height:34px!important;flex-basis:34px!important}#sb-map-control-stack .sb-pointer-switch{width:58px!important;min-width:58px!important}}
 </style>
 </html>
