@@ -2239,6 +2239,7 @@ function snapshot(){
   tunnelMode:tunnelMode,
   stations:stations.map(s=>({
    lat:s.lat,lng:s.lng,name:s.name,elevation:s.elevation||'at',
+   elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
    platformType:s.platformType||'island',
    platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
    platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:DEFAULT_PLATFORM_LENGTH_METERS,
@@ -2277,7 +2278,9 @@ function restoreSnapshot(data){
  curveMode=!!data.curveMode;tunnelMode=!!data.tunnelMode;
  stations=data.stations.map((s,i)=>({
   lat:Number(s.lat),lng:Number(s.lng),name:s.name||'Station '+(i+1),
-  elevation:s.elevation||'at',platformType:s.platformType||'island',
+  elevation:s.elevation||'at',
+  elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
+  platformType:s.platformType||'island',
   platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS,
   platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
@@ -2395,6 +2398,24 @@ function syncStationEndpointVisibility(){
 /* Desktop-compatible track elevation profile. Heights are metres above/below grade.
    Legacy categorical saves are migrated without changing their visible intent. */
 function legacyTrackElevation(level){return level==='below'?-25:level==='above'?5:0;}
+// Mobile currently uses the desktop default heavy-metro profile until per-line train types are exposed.
+const MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE=5.5;
+function resolveStationElevation(stationIndex){
+ const station=stations[stationIndex];
+ if(!station)return {isValid:false,error:'Station endpoint is missing.'};
+ const connectedElevations=[];
+ tracks.forEach(track=>{
+  if(track.a===stationIndex)connectedElevations.push(Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation));
+  else if(track.b===stationIndex)connectedElevations.push(Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation));
+ });
+ if(connectedElevations.length){
+  const minimum=Math.min(...connectedElevations),maximum=Math.max(...connectedElevations);
+  if(maximum-minimum>0.1)return {isValid:false,error:'Connected tracks at '+(station.name||'this station')+' do not share one station elevation. Align their endpoints before adding another connection.'};
+  return {isValid:true,elevation:connectedElevations.reduce((sum,value)=>sum+value,0)/connectedElevations.length,connected:true};
+ }
+ if(Number.isFinite(station.elevationMeters))return {isValid:true,elevation:station.elevationMeters,connected:false};
+ return {isValid:true,elevation:tunnelMode?-25:legacyTrackElevation(station.elevation),connected:false};
+}
 function getTrackConstructionType(height){
  if(height<=-24)return 'deepBore';
  if(height<=-10)return 'standardTunnel';
@@ -3049,6 +3070,21 @@ function handleStationClick(index){
    return;
   }
 
+  const startElevationProfile=resolveStationElevation(first);
+  const endElevationProfile=resolveStationElevation(second);
+  if(!startElevationProfile.isValid||!endElevationProfile.isValid){
+   selected=null;renderNetwork();
+   message(startElevationProfile.error||endElevationProfile.error||'Station elevations are incompatible.');
+   return;
+  }
+  const proposedStartElevation=startElevationProfile.elevation;
+  const proposedEndElevation=endElevationProfile.elevation;
+  const proposedSlopePercentage=Math.abs(proposedEndElevation-proposedStartElevation)/proposedTrackLengthMeters*100;
+  if(proposedSlopePercentage>MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE+1e-9){
+   selected=null;renderNetwork();
+   message('Track grade is '+proposedSlopePercentage.toFixed(2)+'%. The default heavy-metro limit is '+MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE+'%. Add an intermediate station to create a longer grade transition.');
+   return;
+  }
   if(money<150){
    selected=null;
    renderNetwork();
@@ -3057,14 +3093,16 @@ function handleStationClick(index){
   }
 
   money-=150;
+  stations[first].elevationMeters=proposedStartElevation;
+  stations[second].elevationMeters=proposedEndElevation;
   tracks.push({
   a:first,
   b:second,
   style:trackStyle,
   curve:curveMode,
   elevation:tunnelMode?"below":"at",
-  startElevation:tunnelMode?-25:0,
-  endElevation:tunnelMode?-25:0,
+  startElevation:proposedStartElevation,
+  endElevation:proposedEndElevation,
   waypoints:[],
   lineIds:activeLineId?[activeLineId]:[]
 });
