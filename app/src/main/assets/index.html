@@ -6222,4 +6222,50 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  opacity:1!important;transform:translateX(0)!important;
 }
 </style>
+
+
+<style id="sb-uniform-borderless-glass-dock-buttons">
+/* One borderless service-glass treatment for every persistent dock toggle. */
+#sb-action-dock button,
+#sb-action-dock .sb-dock-panel button,
+#sb-panel-toggle,
+#sb-construction-menu>#sb-panel-toggle,
+#constructionPanel .panel-heading button,
+#constructionPanel .tool-grid>button,
+#constructionPanel #mapMenu button,
+#sb-service-dock,
+#sb-service-dock #sb-service-dock-toggle,
+#sb-service-lines button,
+#sb-game-menu button,
+#sb-top-dock #sb-map-theme-toggle,
+#sb-top-dock #sb-game-menu-toggle{
+ box-sizing:border-box!important;border:0!important;outline:0!important;box-shadow:none!important;
+ background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
+ -webkit-backdrop-filter:blur(22px) saturate(160%)!important;backdrop-filter:blur(22px) saturate(160%)!important;
+}
+#sb-action-dock button,#sb-action-dock .sb-dock-panel button,#sb-panel-toggle,
+#constructionPanel .panel-heading button,#constructionPanel .tool-grid>button,
+#constructionPanel #mapMenu button,#sb-service-dock #sb-service-dock-toggle,#sb-service-lines button{
+ border-radius:50%!important;
+}
+#sb-action-dock button:hover,#sb-action-dock button:active,#sb-action-dock button:focus,#sb-action-dock button:focus-visible,
+#sb-panel-toggle:hover,#sb-panel-toggle:active,#sb-panel-toggle:focus,#sb-panel-toggle:focus-visible,
+#constructionPanel .tool-grid>button:hover,#constructionPanel .tool-grid>button:active,
+#constructionPanel .tool-grid>button.active,#constructionPanel .tool-grid>button[aria-pressed="true"],
+#sb-service-dock #sb-service-dock-toggle:hover,#sb-service-dock #sb-service-dock-toggle:active,
+#sb-service-dock #sb-service-dock-toggle[aria-pressed="true"],#sb-service-lines button:hover,#sb-service-lines button:active{
+ border:0!important;outline:0!important;box-shadow:none!important;background:rgba(235,245,255,.20)!important;
+}
+#sb-action-dock button:before,#sb-action-dock button:after,#sb-panel-toggle:before,#sb-panel-toggle:after,
+#constructionPanel .panel-heading button:before,#constructionPanel .panel-heading button:after,
+#constructionPanel .tool-grid>button:before,#constructionPanel .tool-grid>button:after,
+#sb-service-dock #sb-service-dock-toggle:before,#sb-service-dock #sb-service-dock-toggle:after{
+ content:none!important;display:none!important;border:0!important;box-shadow:none!important;
+}
+#sb-action-dock #trashModeBtn,#sb-action-dock #trashModeBtn.active,#sb-action-dock #trashModeBtn[aria-pressed="true"]{
+ border:0!important;background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
+}
+#sb-action-dock button:disabled{opacity:.42!important}
+</style>
+
 </html>
