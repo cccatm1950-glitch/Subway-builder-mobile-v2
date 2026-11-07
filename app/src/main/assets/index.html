@@ -2915,19 +2915,23 @@ function clearStationPlacementPreview(){
 function stationPlatformGeometry(center,edge){
  const a=map.project(center,18),b=map.project(edge,18);
  let dx=b.x-a.x,dy=b.y-a.y;
- let halfLength=Math.hypot(dx,dy);
- if(halfLength<1){dx=0;dy=-1;halfLength=45;}
- halfLength=Math.max(15,Math.min(150,halfLength));
- const length=Math.hypot(dx,dy)||1,ux=dx/length,uy=dy/length;
+ let directionLength=Math.hypot(dx,dy);
+ let halfLengthMeters=map.distance(center,edge);
+ if(directionLength<1||halfLengthMeters<1){dx=0;dy=-1;directionLength=1;halfLengthMeters=45;}
+ halfLengthMeters=Math.max(15,Math.min(150,halfLengthMeters));
+ const onePixel=map.unproject({x:a.x+1,y:a.y},18);
+ const metersPerPixel=Math.max(.001,map.distance(center,onePixel));
+ const halfLengthPixels=halfLengthMeters/metersPerPixel;
+ const length=directionLength||1,ux=dx/length,uy=dy/length;
  const halfWidth=5;
  const corners=[
-  {x:a.x-ux*halfLength-uy*halfWidth,y:a.y-uy*halfLength+ux*halfWidth},
-  {x:a.x+ux*halfLength-uy*halfWidth,y:a.y+uy*halfLength+ux*halfWidth},
-  {x:a.x+ux*halfLength+uy*halfWidth,y:a.y+uy*halfLength-ux*halfWidth},
-  {x:a.x-ux*halfLength+uy*halfWidth,y:a.y-uy*halfLength-ux*halfWidth}
+  {x:a.x-ux*halfLengthPixels-uy*halfWidth,y:a.y-uy*halfLengthPixels+ux*halfWidth},
+  {x:a.x+ux*halfLengthPixels-uy*halfWidth,y:a.y+uy*halfLengthPixels+ux*halfWidth},
+  {x:a.x+ux*halfLengthPixels+uy*halfWidth,y:a.y+uy*halfLengthPixels-ux*halfWidth},
+  {x:a.x-ux*halfLengthPixels+uy*halfWidth,y:a.y-uy*halfLengthPixels-ux*halfWidth}
  ].map(point=>{const ll=map.unproject(point,18);return [ll.lat,ll.lng];});
  const bearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
- return {corners,lengthMeters:halfLength*2,bearing};
+ return {corners,lengthMeters:halfLengthMeters*2,bearing};
 }
 
 function updateStationPlacementPreview(){
