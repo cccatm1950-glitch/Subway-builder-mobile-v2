@@ -7427,21 +7427,22 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 </style>
 
 
-<style id="sb-hide-topbar-and-relocate-color-picker">
-/* Remove the complete top status/control bar without disturbing the lower edit docks. */
+
+<style id="sb-color-picker-upper-annotated-placement">
+/* Keep the original top dock and its menu/map-theme controls visible. */
 #sb-top-dock,
 #sb-dashboard-dialog{
- display:none!important;
+ display:revert!important;
 }
-/* The palette floats above the lower dock, with a bounded right inset so it never
-   runs beneath the right-side edit controls or beyond the screen padding. */
+/* Move the palette into the annotated upper map lane. The right inset stops
+   before the stats panel; the left inset leaves room for the two round controls. */
 #sb-line-color-options{
  position:fixed!important;
  z-index:20000!important;
- left:clamp(72px,15vw,300px)!important;
- right:clamp(72px,11vw,220px)!important;
- top:auto!important;
- bottom:calc(env(safe-area-inset-bottom,0px) + 96px)!important;
+ left:clamp(180px,18.5vw,350px)!important;
+ right:clamp(180px,30.5vw,566px)!important;
+ top:max(12px,env(safe-area-inset-top,0px))!important;
+ bottom:auto!important;
  box-sizing:border-box!important;
  width:auto!important;
  max-width:none!important;
@@ -7471,7 +7472,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  opacity:0!important;
  visibility:hidden!important;
  pointer-events:none!important;
- transform:translate(18px,10px)!important;
+ transform:translate(-22px,12px)!important;
  transition:opacity .22s ease,transform .3s cubic-bezier(.2,.8,.2,1),visibility 0s linear .3s!important;
 }
 #sb-line-color-options::-webkit-scrollbar{display:none!important}
@@ -7493,9 +7494,9 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 @media(max-width:700px){
  #sb-line-color-options{
-  left:clamp(58px,17vw,118px)!important;
-  right:clamp(58px,17vw,118px)!important;
-  bottom:calc(env(safe-area-inset-bottom,0px) + 88px)!important;
+  left:clamp(58px,16vw,112px)!important;
+  right:clamp(58px,16vw,112px)!important;
+  top:max(8px,env(safe-area-inset-top,0px))!important;
   height:54px!important;min-height:54px!important;max-height:54px!important;
   padding:6px 10px!important;gap:7px!important;
  }
