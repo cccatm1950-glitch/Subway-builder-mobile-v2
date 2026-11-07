@@ -20,9 +20,12 @@ const panelActions = [...html.matchAll(/data-panel-action="([^"]+)"/g)]
   .map((match) => match[1]);
 const actionBlockStart = html.indexOf('const actions={');
 assert.notEqual(actionBlockStart, -1, 'Construction panel action map must exist');
-const actionBlockEnd = html.indexOf("panel.querySelectorAll('button[data-panel-action]')", actionBlockStart);
-assert.notEqual(actionBlockEnd, -1, 'Construction panel button binding must follow the action map');
+const actionBlockEnd = html.indexOf("\n   if(action==='platform-width')", actionBlockStart);
+assert.notEqual(actionBlockEnd, -1, 'Construction panel action dispatch must follow the action map');
 const actionBlock = html.slice(actionBlockStart, actionBlockEnd);
+assert.match(html, /function findButton\\(target\\)/, 'Construction controls must use delegated button lookup');
+assert.match(html, /document\\.addEventListener\\('pointerdown'/, 'Construction controls must bind pointer input');
+assert.match(html, /document\\.addEventListener\\('click'/, 'Construction controls must retain click fallback');
 const mappedActions = [...actionBlock.matchAll(/'([^']+)'\s*:/g)]
   .map((match) => match[1]);
 const specialActions = new Set(['platform-width', 'platform-type']);
