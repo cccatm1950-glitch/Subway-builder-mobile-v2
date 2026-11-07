@@ -23,9 +23,9 @@ assert.notEqual(actionBlockStart, -1, 'Construction panel action map must exist'
 const actionBlockEnd = html.indexOf("\n   if(action==='platform-width')", actionBlockStart);
 assert.notEqual(actionBlockEnd, -1, 'Construction panel action dispatch must follow the action map');
 const actionBlock = html.slice(actionBlockStart, actionBlockEnd);
-assert.match(html, /function findButton\\(target\\)/, 'Construction controls must use delegated button lookup');
-assert.match(html, /document\\.addEventListener\\('pointerdown'/, 'Construction controls must bind pointer input');
-assert.match(html, /document\\.addEventListener\\('click'/, 'Construction controls must retain click fallback');
+assert.match(html, /function findButton\(target\)/, 'Construction controls must use delegated button lookup');
+assert.match(html, /document\.addEventListener\('pointerdown'/, 'Construction controls must bind pointer input');
+assert.match(html, /document\.addEventListener\('click'/, 'Construction controls must retain click fallback');
 const mappedActions = [...actionBlock.matchAll(/'([^']+)'\s*:/g)]
   .map((match) => match[1]);
 const specialActions = new Set(['platform-width', 'platform-type']);
@@ -41,7 +41,7 @@ for (const required of [
   'toggleSimulation',
   'toggle3DCityView'
 ]) {
-  assert.match(html, new RegExp('function ' + required + '\\b|(?:function|const) ' + required + '\\b|window\\.' + required + '\\s*='),
+  assert.match(html, new RegExp('function ' + required + '\b|(?:function|const) ' + required + '\b|window\.' + required + '\s*='),
     'Expected core interaction ' + required + ' to be present');
 }
 
