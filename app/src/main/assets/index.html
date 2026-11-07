@@ -2470,8 +2470,8 @@ if(mode==='delete'){
       interactive:true,bubblingMouseEvents:false
     }).addTo(window.networkLayer);
     window.stationPlatformHitAreas.push({index:i,corners:polygonCorners});
-    const backPoint=[s.lat-(dy/len)*platformHalfLength/111320,s.lng-(dx/len)*platformHalfLength/(111320*cos)];
-    const frontPoint=[s.lat+(dy/len)*platformHalfLength/111320,s.lng+(dx/len)*platformHalfLength/(111320*cos)];
+    const backPoint=[s.lat+(py*acrossOffset-dy/len*platformHalfLength)/111320,s.lng+(px*acrossOffset-dx/len*platformHalfLength)/(111320*cos)];
+    const frontPoint=[s.lat+(py*acrossOffset+dy/len*platformHalfLength)/111320,s.lng+(px*acrossOffset+dx/len*platformHalfLength)/(111320*cos)];
     [backPoint,frontPoint].forEach(endpoint=>L.circleMarker(endpoint,{pane:'sbPlatformPane',radius:4.5,color:'#f5fbff',weight:1.5,fillColor:'#f5fbff',fillOpacity:1,interactive:false,className:'sb-station-platform-endpoint'}).addTo(window.networkLayer));
     let holdTriggered=false,holdTimer=null;
     platform.on('mousedown touchstart',function(){
@@ -2502,6 +2502,7 @@ function setMode(newMode){
  const previousMode=mode;
  if(newMode!=='station'&&pendingStationPlacement){pendingStationPlacement=null;clearStationPlacementPreview();}
  mode=newMode;
+ if(mode==='station')updateStationPlacementPreview();else clearStationPlacementPreview();
  // Keep the construction drawer open while a tool is active. The user closes
  // it explicitly with the construction toggle; only the selected category collapses.
  document.querySelectorAll('#constructionPanel details.tool-group').forEach(group=>{group.open=false;});
