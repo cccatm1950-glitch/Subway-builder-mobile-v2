@@ -5936,68 +5936,11 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  document.addEventListener('touchcancel',clear,{capture:true,passive:true});
 })();
 </script>
-<style id="sb-canonical-button-dimensions-and-highlights">/* Single source of truth for interactive button geometry and active feedback. */
-:root{
- --sb-dock-control-size:46px;
- --sb-service-control-size:40px;
- --sb-tool-control-size:40px;
- --sb-highlight-white:rgba(255,255,255,.92);
- --sb-highlight-white-glow:rgba(255,255,255,.32);
- --sb-highlight-teal:#74ffd0;
- --sb-highlight-teal-glow:rgba(55,245,180,.48);
- --sb-highlight-red:#ff6680;
- --sb-highlight-red-glow:rgba(255,65,95,.48)}/* Main edit/action docks: same fixed circular footprint as the wrench. */
-#sb-action-dock .sb-dock-panel-left button,
-#sb-action-dock .sb-dock-panel-right button,
-#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,#sb-action-dock #trashModeBtn{
- box-sizing:border-box!important;flex:0 0 var(--sb-dock-control-size)!important;
- width:var(--sb-dock-control-size)!important;height:var(--sb-dock-control-size)!important;
- min-width:var(--sb-dock-control-size)!important;min-height:var(--sb-dock-control-size)!important;
- max-width:var(--sb-dock-control-size)!important;max-height:var(--sb-dock-control-size)!important;
- aspect-ratio:1!important;padding:0!important;margin:0!important;border-radius:50%!important;
- display:inline-flex!important;align-items:center!important;justify-content:center!important}/* Shared idle and pressed states; color accents are assigned only by tool purpose. */
-#sb-action-dock .sb-dock-panel-left button,
-#sb-action-dock .sb-dock-panel-right button,
-#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,#sb-action-dock #trashModeBtn,
-#constructionPanel .tool-grid button,
-#sb-line-color-trigger,#sb-line-add,#sb-line-remove-active,#sb-service-lines #runBtn,
-#sb-service-lines .sb-line-select,#sb-service-lines .sb-line-remove,#sb-service-lines .sb-line-link{
- box-sizing:border-box!important;position:relative!important;isolation:isolate!important;
- border:1.5px solid rgba(235,245,255,.28)!important;
- background:rgba(30,43,60,.48)!important;color:#f5f9ff!important}/* Edit history buttons use neutral white feedback. */
-#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{
- color:#fff!important;border-color:rgba(255,255,255,.72)!important}#sb-service-lines .sb-line-remove,#sb-line-remove-active{
- color:#ff9aa8!important;background:rgba(255,55,78,.14)!important}/* Construction tools have one fixed grid size and no independent transform rules. */
-#constructionPanel .tool-grid button{
- box-sizing:border-box!important;display:grid!important;place-items:center!important;
- width:var(--sb-tool-control-size)!important;height:var(--sb-tool-control-size)!important;
- min-width:var(--sb-tool-control-size)!important;min-height:var(--sb-tool-control-size)!important;
- max-width:var(--sb-tool-control-size)!important;max-height:var(--sb-tool-control-size)!important;
- flex:none!important;margin:0!important;padding:0!important;border-radius:50%!important}#constructionPanel .tool-grid button svg{
- display:block!important;width:22px!important;height:22px!important;
- min-width:22px!important;min-height:22px!important;max-width:22px!important;max-height:22px!important;
- pointer-events:none!important}/* Service dock fixed actions; only the line collection scrolls. */
-#sb-line-color-trigger,#sb-line-add,#sb-service-lines #runBtn{
- flex:0 0 var(--sb-service-control-size)!important;
- width:var(--sb-service-control-size)!important;height:var(--sb-service-control-size)!important;
- min-width:var(--sb-service-control-size)!important;min-height:var(--sb-service-control-size)!important;
- max-width:var(--sb-service-control-size)!important;max-height:var(--sb-service-control-size)!important;
- border-radius:50%!important;padding:0!important;display:inline-flex!important;
- align-items:center!important;justify-content:center!important}#sb-service-lines .sb-line-select{
- flex:0 0 36px!important;width:36px!important;height:36px!important;
- min-width:36px!important;min-height:36px!important;border-radius:50%!important}#sb-service-lines .sb-line-remove,#sb-line-remove-active{
- flex:0 0 36px!important;width:36px!important;height:36px!important;
- min-width:36px!important;min-height:36px!important;border-radius:50%!important}#sb-line-color-trigger:before{
- content:""!important;position:absolute!important;inset:4px!important;
- border:0!important;border-radius:50%!important;
- background:var(--sb-picked-line-color,#ff5263)!important}#sb-line-color-options .sb-line-color-option{
- box-sizing:border-box!important;flex:0 0 36px!important;width:36px!important;height:36px!important;
- min-width:36px!important;min-height:36px!important;max-width:36px!important;max-height:36px!important;
- padding:4px!important;border:0!important;border-radius:50%!important;position:relative!important}#sb-line-color-options .sb-line-color-option:before{
- content:""!important;position:absolute!important;inset:4px!important;border-radius:50%!important;
- background:var(--sb-option-color,transparent)!important}#sb-action-dock button:disabled,#sb-service-lines button:disabled{opacity:.4!important}
-@media(prefers-reduced-motion:reduce){#sb-action-dock button,#constructionPanel .tool-grid button,#sb-service-lines button{}
-}
+<style id="sb-canonical-button-dimensions-and-highlights">
+
+/* Shared dock dimensions are finalized in sb-final-46px-borderless-glass-controls. */
+:root{--sb-dock-control-size:46px;--sb-service-control-size:46px;--sb-tool-control-size:46px}
+
 </style>
 <style id="sb-remove-all-button-highlight-effects">
 /* Keep legacy neutral button feedback without overriding service-dock motion. */
@@ -6148,84 +6091,56 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 
 
 <style id="sb-dock-style-revert-and-service-motion-restore">
-/* Revert the newer enclosing dock cards: retain three separate bottom dock
-   groups (history, service, and construction/delete) without inset borders. */
+
+/* Preserve separate dock groups and the service dock's expansion behavior.
+   Button geometry and surface styling are centralized in the final control rule. */
 #sb-action-dock{
- background:transparent!important;background-image:none!important;
- border:0!important;box-shadow:none!important;
- -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
- padding:0!important;overflow:visible!important;
+ background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;padding:0!important;overflow:visible!important;
 }
 #sb-action-dock .sb-dock-panel{
- background:transparent!important;background-image:none!important;
- border:0!important;box-shadow:none!important;
- -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
- border-radius:0!important;padding:0!important;
+ background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;border-radius:0!important;padding:0!important;
 }
-#sb-action-dock .sb-dock-panel-left,
-#sb-action-dock .sb-dock-panel-right{
- gap:8px!important;padding:0!important;
-}
+#sb-action-dock .sb-dock-panel-left,#sb-action-dock .sb-dock-panel-right{gap:8px!important;padding:0!important}
 #sb-service-dock{
- min-height:48px!important;height:48px!important;
- flex:0 0 48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;
- margin:0!important;padding:4px!important;gap:0!important;
- border:0!important;border-radius:50%!important;
- background:rgba(15,25,40,.46)!important;background-image:none!important;
- box-shadow:none!important;
- -webkit-backdrop-filter:blur(22px) saturate(160%)!important;
+ box-sizing:border-box!important;min-height:48px!important;height:48px!important;flex:0 0 48px!important;
+ width:48px!important;min-width:48px!important;max-width:48px!important;margin:0!important;padding:1px!important;
+ gap:0!important;border:0!important;border-radius:50%!important;background:rgba(15,25,40,.46)!important;
+ background-image:none!important;box-shadow:none!important;-webkit-backdrop-filter:blur(22px) saturate(160%)!important;
  backdrop-filter:blur(22px) saturate(160%)!important;
 }
 #sb-service-dock.is-expanded{
  flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;
- height:58px!important;min-height:58px!important;padding:6px 10px!important;
- border-radius:999px!important;
+ height:58px!important;min-height:58px!important;padding:6px 10px!important;border-radius:999px!important;
 }
 #sb-service-dock #sb-service-dock-toggle{
- box-sizing:border-box!important;flex:0 0 40px!important;
- width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;
- max-width:40px!important;max-height:40px!important;border:0!important;
- border-radius:50%!important;background:rgba(235,245,255,.12)!important;
- box-shadow:none!important;outline:0!important;
-}
-#sb-service-dock #sb-service-dock-toggle:before,
-#sb-service-dock #sb-service-dock-toggle:after{content:none!important;display:none!important}
-#sb-action-dock #undoBtn,#sb-action-dock #redoBtn,
-#sb-action-dock #trashModeBtn,#sb-action-dock #sb-build-dock-btn{
- box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
- flex:0 0 46px!important;width:46px!important;height:46px!important;
+ box-sizing:border-box!important;flex:0 0 46px!important;width:46px!important;height:46px!important;
  min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;
- aspect-ratio:1!important;margin:0!important;padding:0!important;border-radius:50%!important;
- border:1.5px solid rgba(235,245,255,.28)!important;
- background:rgba(30,43,60,.48)!important;color:#f5f9ff!important;
- box-shadow:none!important;outline:0!important;
+ border:0!important;border-radius:50%!important;background:rgba(235,245,255,.12)!important;box-shadow:none!important;outline:0!important;
 }
-#sb-action-dock #trashModeBtn{background:rgba(255,55,78,.16)!important;color:#ff9aa8!important;border-color:rgba(255,140,155,.42)!important}
-#sb-action-dock #sb-build-dock-btn{font-size:22px!important}
-#sb-action-dock #undoBtn:disabled,#sb-action-dock #redoBtn:disabled{opacity:.42!important}
-#sb-action-dock #undoBtn:before,#sb-action-dock #undoBtn:after,
-#sb-action-dock #redoBtn:before,#sb-action-dock #redoBtn:after,
-#sb-action-dock #trashModeBtn:before,#sb-action-dock #trashModeBtn:after,
-#sb-action-dock #sb-build-dock-btn:before,#sb-action-dock #sb-build-dock-btn:after{content:none!important;display:none!important}
-#sb-service-dock,#sb-service-dock *{
- animation-play-state:running!important;
-}
+#sb-service-dock #sb-service-dock-toggle:before,#sb-service-dock #sb-service-dock-toggle:after{content:none!important;display:none!important}
 #sb-service-lines button,#sb-service-dock-toggle{
  transition:background-color .18s ease,opacity .24s ease,transform .34s cubic-bezier(.2,.8,.2,1)!important;
 }
 #sb-service-lines .sb-line-color-trigger:before{display:block!important;content:""!important}
 #sb-service-lines .sb-line-color-trigger{position:relative!important;overflow:hidden!important}
-#sb-service-dock.is-expanded #sb-service-create-slot,
-#sb-service-dock.is-expanded #sb-service-run-slot,
-#sb-service-dock.is-expanded #sb-service-lines-content,
-#sb-service-dock.is-expanded #sb-service-lines-content .sb-line-slot{
+#sb-service-dock,#sb-service-dock *{animation-play-state:running!important}
+#sb-service-dock.is-expanded #sb-service-create-slot,#sb-service-dock.is-expanded #sb-service-run-slot,
+#sb-service-dock.is-expanded #sb-service-lines-content,#sb-service-dock.is-expanded #sb-service-lines-content .sb-line-slot{
  opacity:1!important;transform:translateX(0)!important;
 }
+
 </style>
 
 
-<style id="sb-uniform-borderless-glass-dock-buttons">
-/* One borderless service-glass treatment for every persistent dock toggle. */
+
+
+
+
+<style id="sb-final-46px-borderless-glass-controls">
+/* Single source of truth for the controls highlighted in the reference image. */
+:root{--sb-dock-control-size:46px;--sb-service-control-size:46px;--sb-tool-control-size:46px}
 #sb-action-dock button,
 #sb-action-dock .sb-dock-panel button,
 #sb-panel-toggle,
@@ -6233,27 +6148,24 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #constructionPanel .panel-heading button,
 #constructionPanel .tool-grid>button,
 #constructionPanel #mapMenu button,
-#sb-service-dock,
 #sb-service-dock #sb-service-dock-toggle,
-#sb-service-lines button,
-#sb-game-menu button,
-#sb-top-dock #sb-map-theme-toggle,
-#sb-top-dock #sb-game-menu-toggle{
- box-sizing:border-box!important;border:0!important;outline:0!important;box-shadow:none!important;
- background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
+#sb-service-lines #runBtn{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 46px!important;width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;aspect-ratio:1!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:50%!important;background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
+ outline:0!important;box-shadow:none!important;text-shadow:none!important;filter:none!important;
  -webkit-backdrop-filter:blur(22px) saturate(160%)!important;backdrop-filter:blur(22px) saturate(160%)!important;
-}
-#sb-action-dock button,#sb-action-dock .sb-dock-panel button,#sb-panel-toggle,
-#constructionPanel .panel-heading button,#constructionPanel .tool-grid>button,
-#constructionPanel #mapMenu button,#sb-service-dock #sb-service-dock-toggle,#sb-service-lines button{
- border-radius:50%!important;
+ -webkit-tap-highlight-color:transparent!important;
 }
 #sb-action-dock button:hover,#sb-action-dock button:active,#sb-action-dock button:focus,#sb-action-dock button:focus-visible,
+#sb-action-dock button.active,#sb-action-dock button[aria-pressed="true"],
 #sb-panel-toggle:hover,#sb-panel-toggle:active,#sb-panel-toggle:focus,#sb-panel-toggle:focus-visible,
 #constructionPanel .tool-grid>button:hover,#constructionPanel .tool-grid>button:active,
 #constructionPanel .tool-grid>button.active,#constructionPanel .tool-grid>button[aria-pressed="true"],
 #sb-service-dock #sb-service-dock-toggle:hover,#sb-service-dock #sb-service-dock-toggle:active,
-#sb-service-dock #sb-service-dock-toggle[aria-pressed="true"],#sb-service-lines button:hover,#sb-service-lines button:active{
+#sb-service-dock #sb-service-dock-toggle[aria-pressed="true"],
+#sb-service-lines #runBtn:hover,#sb-service-lines #runBtn:active{
  border:0!important;outline:0!important;box-shadow:none!important;background:rgba(235,245,255,.20)!important;
 }
 #sb-action-dock button:before,#sb-action-dock button:after,#sb-panel-toggle:before,#sb-panel-toggle:after,
@@ -6266,6 +6178,8 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  border:0!important;background:rgba(235,245,255,.12)!important;color:#f4f8fc!important;
 }
 #sb-action-dock button:disabled{opacity:.42!important}
+#sb-construction-menu>#sb-panel-toggle{background:rgba(235,245,255,.12)!important}
+#constructionPanel .tool-grid>button svg{width:22px!important;height:22px!important;pointer-events:none!important}
 </style>
 
 </html>
