@@ -2546,7 +2546,7 @@ if(mode==='delete'){
   }
   // Keep shared service routes visually distinct while retaining one physical track edge.
   assignedLines.slice(1).forEach((line,lineIndex)=>{
-   const offset=(lineIndex-(assignedLines.length-2)/2)*5;
+   const offset=(lineIndex%2===0?-1:1)*(Math.floor(lineIndex/2)+1)*2.5;
    const overlay=points.map((p,index)=>{
     const prev=points[Math.max(0,index-1)],next=points[Math.min(points.length-1,index+1)];
     const dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180),dy=next[0]-prev[0];
