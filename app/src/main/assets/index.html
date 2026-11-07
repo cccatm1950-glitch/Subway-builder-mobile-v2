@@ -4388,20 +4388,66 @@ function toggleDefaultDarkOnStart(){
   const editor=document.getElementById('sb-line-name-editor'),button=document.getElementById('sb-line-name-search'),input=document.getElementById('sb-new-line-name');
   if(!editor||!button||!input||button.dataset.bound)return;
   button.dataset.bound='true';
-  button.addEventListener('click',()=>{
+  const createSlot=document.getElementById('sb-service-create-slot');
+  const add=document.getElementById('sb-line-add');
+  let slotPlaceholder=null,keyboardActive=false,viewport=null;
+  const updateKeyboardInset=()=>{
+   const vv=window.visualViewport;
+   const inset=vv?Math.max(0,Math.round(window.innerHeight-vv.height-vv.offsetTop)):0;
+   document.documentElement.style.setProperty('--sb-keyboard-inset',inset+'px');
+   document.body.classList.toggle('sb-service-search-keyboard',keyboardActive);
+  };
+  const restoreSlot=()=>{
+   keyboardActive=false;
+   document.body.classList.remove('sb-service-search-keyboard');
+   if(slotPlaceholder&&slotPlaceholder.parentNode){
+    slotPlaceholder.parentNode.insertBefore(createSlot,slotPlaceholder);
+    slotPlaceholder.remove();
+   }
+   slotPlaceholder=null;
+   if(viewport){viewport.removeEventListener('resize',updateKeyboardInset);viewport.removeEventListener('scroll',updateKeyboardInset);viewport=null;}
+   window.removeEventListener('resize',updateKeyboardInset);
+   document.documentElement.style.removeProperty('--sb-keyboard-inset');
+   editor.classList.remove('is-editing');
+   editor.removeAttribute('data-keyboard-active');
+  };
+  const activate=()=>{
    editor.classList.add('is-editing');
    input.setAttribute('aria-hidden','false');
+   keyboardActive=true;
+   if(createSlot&&createSlot.parentNode&&!slotPlaceholder){
+    slotPlaceholder=document.createComment('service-create-slot-position');
+    createSlot.parentNode.insertBefore(slotPlaceholder,createSlot);
+    document.body.append(createSlot);
+   }
+   editor.setAttribute('data-keyboard-active','true');
+   document.body.classList.add('sb-service-search-keyboard');
+   viewport=window.visualViewport||null;
+   if(viewport){viewport.addEventListener('resize',updateKeyboardInset);viewport.addEventListener('scroll',updateKeyboardInset);}
+   window.addEventListener('resize',updateKeyboardInset);
+   updateKeyboardInset();
    input.focus({preventScroll:true});
-   try{input.click();}catch(_){}
+  };
+  button.addEventListener('click',activate);
+  input.addEventListener('focus',()=>{
+   if(!keyboardActive)activate();
+   else updateKeyboardInset();
   });
-  const add=document.getElementById('sb-line-add');
-  input.addEventListener('blur',event=>{
-   if(!input.value.trim()&&event.relatedTarget!==add)editor.classList.remove('is-editing');
-  });
+  /* Do not collapse on blur: Android can blur the field during IME transitions. */
+  input.addEventListener('blur',()=>{if(keyboardActive)updateKeyboardInset();});
   if(add)add.addEventListener('pointerdown',event=>event.preventDefault());
   input.addEventListener('keydown',event=>{
-   if(event.key==='Escape'){input.value='';input.blur();editor.classList.remove('is-editing');}
+   if(event.key==='Enter'){
+    event.preventDefault();
+    addLine();
+   }else if(event.key==='Escape'){
+    event.preventDefault();
+    input.value='';
+    input.blur();
+    restoreSlot();
+   }
   });
+  window.sbCloseServiceSearchKeyboard=restoreSlot;
  }
  function bindServiceDockToggle(){
   const dock=document.getElementById('sb-service-dock'),button=document.getElementById('sb-service-dock-toggle');
@@ -4448,7 +4494,7 @@ function toggleDefaultDarkOnStart(){
   activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();
  }
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-remove-active')removeActiveLine();});
- function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';document.getElementById('sb-line-name-editor')?.classList.remove('is-editing');saveHistory();draw();message(line.name+' created.');}
+ function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';input.blur();if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard();document.getElementById('sb-line-name-editor')?.classList.remove('is-editing');saveHistory();draw();message(line.name+' created.');}
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
  document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
  document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
@@ -6706,6 +6752,59 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  }
 }
 @media(prefers-reduced-motion:reduce){#sb-line-color-options{transition:none!important}}
+</style>
+
+
+<style id="sb-service-search-keyboard-overlay">
+/* Dim and blur the game while keeping only the floating search controls crisp. */
+body.sb-service-search-keyboard:before{
+ content:""!important;position:fixed!important;inset:0!important;z-index:14900!important;
+ background:rgba(5,12,22,.22)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(115%)!important;
+ backdrop-filter:blur(7px) saturate(115%)!important;
+ pointer-events:auto!important;
+}
+body.sb-service-search-keyboard #sb-service-create-slot{
+ position:fixed!important;z-index:15010!important;
+ left:50%!important;right:auto!important;top:auto!important;
+ bottom:calc(var(--sb-keyboard-inset,0px) + 12px + env(safe-area-inset-bottom,0px))!important;
+ transform:translateX(-50%)!important;
+ box-sizing:border-box!important;width:max-content!important;max-width:calc(100vw - 20px)!important;
+ min-height:52px!important;height:52px!important;padding:6px 8px!important;margin:0!important;
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:center!important;gap:6px!important;
+ border:0!important;border-radius:999px!important;
+ background:rgba(15,25,40,.92)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(180%)!important;backdrop-filter:blur(26px) saturate(180%)!important;
+ box-shadow:0 12px 34px rgba(0,0,0,.3)!important;
+ transition:bottom .18s ease,transform .28s cubic-bezier(.2,.8,.2,1)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor{
+ flex:0 1 min(340px,calc(100vw - 94px))!important;
+ width:min(340px,calc(100vw - 94px))!important;min-width:180px!important;max-width:calc(100vw - 94px)!important;
+ height:40px!important;min-height:40px!important;border-radius:999px!important;
+ background:rgba(235,245,255,.12)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-line-name-search{
+ flex:0 0 48px!important;width:48px!important;min-width:48px!important;height:40px!important;
+ border:0!important;background:transparent!important;color:#f4f8fc!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-new-line-name{
+ flex:1 1 auto!important;width:auto!important;min-width:24px!important;height:40px!important;
+ padding:0 8px!important;opacity:1!important;pointer-events:auto!important;
+ color:#f4f8fc!important;background:transparent!important;border:0!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-line-add{
+ display:inline-flex!important;flex:0 0 38px!important;width:38px!important;height:38px!important;
+ min-width:38px!important;min-height:38px!important;margin:0!important;
+ border:0!important;border-radius:50%!important;
+}
+body.sb-service-search-keyboard #sb-line-color-trigger,
+body.sb-service-search-keyboard #sb-line-remove-active{display:none!important}
+body.sb-service-search-keyboard #sb-service-dock,
+body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
+@media(prefers-reduced-motion:reduce){
+ body.sb-service-search-keyboard #sb-service-create-slot{transition:none!important}
+}
 </style>
 
 </html>
