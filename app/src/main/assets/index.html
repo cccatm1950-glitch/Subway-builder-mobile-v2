@@ -3940,7 +3940,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const menu=document.getElementById('sb-construction-context-menu');
   const toggle=document.getElementById('sb-build-dock-btn');
   if(menu)menu.remove();
-  if(toggle){toggle.classList.remove('active');toggle.setAttribute('aria-pressed','false');}
+  syncBuildState();
  }
  function positionConstructionContextMenu(menu,toggle){
   const rect=toggle.getBoundingClientRect();
@@ -3980,8 +3980,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   });
   document.body.appendChild(menu);
   positionConstructionContextMenu(menu,toggle);
-  toggle.classList.add('active');
-  toggle.setAttribute('aria-pressed','true');
+  syncBuildState();
   requestAnimationFrame(()=>positionConstructionContextMenu(menu,toggle));
  }
  document.addEventListener('pointerdown',function(event){
@@ -4015,19 +4014,22 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  }
  function syncBuildState(){
   const button=document.getElementById('sb-build-dock-btn');
-  const menu=document.getElementById('sb-construction-menu');
   const del=document.getElementById('trashModeBtn');
-  if(!button)return;
-  const open=!!(menu&&menu.open)&&mode!=='delete';
-  button.classList.toggle('active',open);
-  button.setAttribute('aria-pressed',String(open));
+  const currentMode=typeof mode!=='undefined'?mode:null;
+  const buildMode=['station','track','curve','waypoint','inspect'].includes(currentMode);
+  const menuOpen=!!document.getElementById('sb-construction-context-menu');
+  const isDelete=currentMode==='delete';
+  const selected=!isDelete&&(menuOpen||buildMode);
+  if(button){
+   button.classList.toggle('active',selected);
+   button.setAttribute('aria-pressed',String(selected));
+  }
   if(del){
-   const isDelete=typeof mode!=='undefined'&&mode==='delete';
    del.classList.toggle('active',isDelete);
    del.setAttribute('aria-pressed',String(isDelete));
-   if(isDelete)button.classList.remove('active');
   }
  }
+ window.syncBuildDockSelectedState=syncBuildState;
  const oldUpdateUI=window.updateUI;
  if(typeof oldUpdateUI==='function')window.updateUI=function(){const result=oldUpdateUI.apply(this,arguments);syncHistoryButtons();syncBuildState();return result;};
  const oldSaveHistory=window.saveHistory;
@@ -4891,19 +4893,9 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
  if(window.__sbBuildDockSelectedToolState)return;
  window.__sbBuildDockSelectedToolState=true;
  function sync(){
-  const button=document.getElementById('sb-build-dock-btn');
-  const menu=document.getElementById('sb-construction-menu');
-  if(!button)return;
-  const currentMode=typeof mode!=='undefined'?mode:null;
-  const buildMode=['station','track','curve','waypoint','inspect'].includes(currentMode);
-  const active=!!(menu&&menu.open)||buildMode;
-  const selected=active&&currentMode!=='delete';
-  button.classList.toggle('active',selected);
-  button.setAttribute('aria-pressed',String(selected));
+  if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
  }
  document.addEventListener('DOMContentLoaded',sync);
- const menu=document.getElementById('sb-construction-menu');
- if(menu)new MutationObserver(sync).observe(menu,{attributes:true,attributeFilter:['open']});
  const panel=document.getElementById('constructionPanel');
  if(panel)panel.addEventListener('click',event=>{
   if(event.target.closest('[data-panel-action]'))requestAnimationFrame(sync);
