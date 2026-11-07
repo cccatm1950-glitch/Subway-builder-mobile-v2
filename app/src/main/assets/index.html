@@ -7178,4 +7178,79 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 </style>
 
+
+<style id="sb-line-color-picker-match-top-dock-pill">
+/* Match the top dock's glass pill geometry while keeping the entire color row scrollable. */
+#sb-line-color-options{
+ position:fixed!important;
+ z-index:20000!important;
+ left:50%!important;
+ right:auto!important;
+ top:calc(max(9px,env(safe-area-inset-top,0px)) + 58px + 10px)!important;
+ bottom:auto!important;
+ box-sizing:border-box!important;
+ width:min(560px,calc(100vw - 28px))!important;
+ max-width:calc(100vw - 28px)!important;
+ min-width:0!important;
+ height:58px!important;
+ min-height:58px!important;
+ max-height:58px!important;
+ margin:0!important;
+ padding:6px 16px!important;
+ gap:8px!important;
+ display:flex!important;
+ flex-flow:row nowrap!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ overscroll-behavior-x:contain!important;
+ scroll-padding-inline:16px!important;
+ scrollbar-width:none!important;
+ border:1px solid rgba(205,230,248,.15)!important;
+ outline:0!important;
+ border-radius:999px!important;
+ background:rgba(13,25,42,.64)!important;
+ background-image:none!important;
+ -webkit-backdrop-filter:blur(25px) saturate(175%)!important;
+ backdrop-filter:blur(25px) saturate(175%)!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.07)!important;
+ opacity:0!important;
+ visibility:hidden!important;
+ pointer-events:none!important;
+ transform:translate(-50%,-8px)!important;
+ transition:opacity .2s ease,transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s linear .28s!important;
+}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options[hidden]{display:none!important}
+#sb-line-color-options.is-open{
+ display:flex!important;
+ opacity:1!important;
+ visibility:visible!important;
+ pointer-events:auto!important;
+ transform:translate(-50%,0)!important;
+ transition-delay:0s!important;
+}
+#sb-line-color-options .sb-line-color-option{
+ flex:0 0 36px!important;
+ width:36px!important;height:36px!important;
+ min-width:36px!important;min-height:36px!important;
+ max-width:36px!important;max-height:36px!important;
+ margin:0!important;
+}
+@media(max-width:560px){
+ #sb-line-color-options{
+  top:calc(max(7px,env(safe-area-inset-top,0px)) + 56px + 8px)!important;
+  width:calc(100vw - 14px)!important;
+  max-width:calc(100vw - 14px)!important;
+  height:56px!important;min-height:56px!important;max-height:56px!important;
+  padding:6px 16px!important;
+  scroll-padding-inline:16px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-line-color-options{transition:none!important}
+}
+</style>
+
 </html>
