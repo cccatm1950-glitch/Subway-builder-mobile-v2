@@ -2094,7 +2094,7 @@ setMapTheme(currentTheme);
    SECTION 11 — GAME STATE AND SETTINGS
    ========================================================= */
 
-var mode='station';
+var mode='none';
 let trackStyle='single';
 let platformWidth='default';
 let platformSize='standard';
@@ -2554,8 +2554,10 @@ function updateUI(){
  const passengersEl=document.getElementById('passengers');if(passengersEl)passengersEl.textContent=passengers.toLocaleString();
  const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
  const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
- const undoEl=document.getElementById('undoBtn');if(undoEl)undoEl.disabled=historyIndex<=0;
- const redoEl=document.getElementById('redoBtn');if(redoEl)redoEl.disabled=historyIndex>=sbEditHistory.length-1;
+ const canUndo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex>0;
+ const canRedo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex<sbEditHistory.length-1;
+ const undoEl=document.getElementById('undoBtn');if(undoEl){undoEl.disabled=!canUndo;undoEl.setAttribute('aria-disabled',String(!canUndo));undoEl.setAttribute('aria-pressed',String(canUndo));}
+ const redoEl=document.getElementById('redoBtn');if(redoEl){redoEl.disabled=!canRedo;redoEl.setAttribute('aria-disabled',String(!canRedo));redoEl.setAttribute('aria-pressed',String(canRedo));}
 }
 function setMode(newMode){
  const previousMode=mode;
@@ -2881,30 +2883,32 @@ function clearStationPlacementPreview(){
 }
 
 function stationPlatformGeometry(anchor,edge){
- const a=map.project(anchor,18),b=map.project(edge,18);
- let dx=b.x-a.x,dy=b.y-a.y,rawPixels=Math.hypot(dx,dy);
- if(rawPixels<.5){dx=1;dy=0;rawPixels=1;}
- const onePixel=map.unproject({x:a.x+1,y:a.y},18),metersPerPixel=Math.max(.001,map.distance(anchor,onePixel));
- const dimensions=getPlatformDimensions(platformSize),lengthMeters=dimensions.length;
- const scale=(lengthMeters/metersPerPixel)/rawPixels;
- dx*=scale;dy*=scale;
- const pixels=Math.hypot(dx,dy),ux=pixels?dx/pixels:0,uy=pixels?dy/pixels:0;
- const endpoint={x:a.x+dx,y:a.y+dy},centerPoint={x:(a.x+endpoint.x)/2,y:(a.y+endpoint.y)/2};
- const halfWidth=(dimensions.width/2)/metersPerPixel,halfLength=pixels/2;
+ const a=map.project(anchor,18),dimensions=getPlatformDimensions(platformSize);
+ const onePixel=map.unproject({x:a.x+1,y:a.y},18);
+ const metersPerPixel=Math.max(.001,map.distance(anchor,onePixel));
+ let dx=1,dy=0;
+ if(edge){
+  const b=map.project(edge,18);dx=b.x-a.x;dy=b.y-a.y;
+  const magnitude=Math.hypot(dx,dy);
+  if(magnitude>.5){dx/=magnitude;dy/=magnitude;}else{dx=1;dy=0;}
+ }
+ const halfLength=(dimensions.length/2)/metersPerPixel;
+ const halfWidth=(dimensions.width/2)/metersPerPixel;
+ const back={x:a.x-dx*halfLength,y:a.y-dy*halfLength};
+ const front={x:a.x+dx*halfLength,y:a.y+dy*halfLength};
  const corners=[
-  {x:centerPoint.x-ux*halfLength-uy*halfWidth,y:centerPoint.y-uy*halfLength+ux*halfWidth},
-  {x:centerPoint.x+ux*halfLength-uy*halfWidth,y:centerPoint.y+uy*halfLength+ux*halfWidth},
-  {x:centerPoint.x+ux*halfLength+uy*halfWidth,y:centerPoint.y+uy*halfLength-ux*halfWidth},
-  {x:centerPoint.x-ux*halfLength+uy*halfWidth,y:centerPoint.y-uy*halfLength-ux*halfWidth}
+  {x:a.x-dx*halfLength-dy*halfWidth,y:a.y-dy*halfLength+dx*halfWidth},
+  {x:a.x+dx*halfLength-dy*halfWidth,y:a.y+dy*halfLength+dx*halfWidth},
+  {x:a.x+dx*halfLength+dy*halfWidth,y:a.y+dy*halfLength-dx*halfWidth},
+  {x:a.x-dx*halfLength+dy*halfWidth,y:a.y-dy*halfLength-dx*halfWidth}
  ].map(point=>{const ll=map.unproject(point,18);return [ll.lat,ll.lng];});
- const bearing=pixels?(Math.atan2(dx,-dy)*180/Math.PI+360)%360:90;
- return {corners,lengthMeters,bearing,center:map.unproject(centerPoint,18),back:map.unproject(a,18),front:map.unproject(endpoint,18),widthMeters:dimensions.width};
+ const bearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
+ return {corners,lengthMeters:dimensions.length,bearing,center:anchor,back:map.unproject(back,18),front:map.unproject(front,18),widthMeters:dimensions.width};
 }
-
 function updateStationPlacementPreview(){
  if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){clearStationPlacementPreview();return;}
  const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
- const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair):{corners:[[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng]],back:crosshair,front:crosshair};
+ const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair):stationPlatformGeometry(crosshair,null);
  if(!stationPlatformPreview)stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false,className:'sb-station-platform-preview'}).addTo(map);
  else stationPlatformPreview.setLatLngs(geometry.corners);
  if(!stationEndpointPreview){
@@ -2939,7 +2943,7 @@ function handleMapPlacement(latlng){
   if(!pendingStationPlacement){
    pendingStationPlacement=L.latLng(latlng.lat,latlng.lng);
    updateStationPlacementPreview();
-   message('Rear platform node fixed. Pan or zoom to move the opposite node freely, then tap again to place the station.');
+   message('Platform center fixed under the crosshair. Pan to set its direction, then tap again to place the station.');
    return;
   }
   const geometry=stationPlatformGeometry(pendingStationPlacement,latlng);
@@ -3083,6 +3087,7 @@ function toggleSimulation(){
 
 bindConstructionPanelControls();
 if(!restoreSavedGame()){sbEditHistory=[snapshot()];historyIndex=0;}
+setMode('none');
 updateUI();
 renderNetwork();
 persistGameState();
@@ -3993,6 +3998,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   button.addEventListener('click',function(event){
    event.preventDefault();
    event.stopPropagation();
+   if(typeof mode!=='undefined'&&mode==='delete'&&typeof setMode==='function')setMode('none');
    toggleConstructionContextMenu(button);
   });
   dock.appendChild(button);
@@ -4004,12 +4010,13 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const currentMode=typeof mode!=='undefined'?mode:null;
   const menuOpen=!!document.getElementById('sb-construction-context-menu');
   const isDelete=currentMode==='delete';
-  /* These are independent toggle states: Construction reflects only its
-     context-menu visibility; Delete reflects only the active delete mode. */
+  const isConstruction=['station','track','curve','waypoint'].includes(currentMode);
+  /* Construction is active for a selected build tool or an open tool menu; Delete is exclusive. */
   if(button){
-   button.classList.toggle('active',menuOpen);
-   button.dataset.toggleState=menuOpen?'active':'inactive';
-   button.setAttribute('aria-pressed',String(menuOpen));
+   const active=menuOpen||isConstruction;
+   button.classList.toggle('active',active);
+   button.dataset.toggleState=active?'active':'inactive';
+   button.setAttribute('aria-pressed',String(active));
   }
   if(del){
    del.classList.toggle('active',isDelete);
@@ -6303,5 +6310,14 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #sb-construction-context-menu button:active,#sb-construction-context-menu button.active,#sb-construction-context-menu button[aria-pressed="true"]{background:rgba(54,211,190,.2)!important;border-color:rgba(101,255,228,.52)!important;box-shadow:0 0 13px rgba(38,220,196,.2)!important}
 @media(max-width:700px){#sb-line-name-editor.is-editing{flex-basis:176px!important;width:176px!important;min-width:132px!important}}
 @media(prefers-reduced-motion:reduce){#sb-service-dock #sb-service-lines button#runBtn.active{animation:none!important}}
+</style>
+<style id="sb-history-toggle-and-centered-platform-fix">
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{transition:background .16s ease,color .16s ease,box-shadow .16s ease,opacity .16s ease!important}
+#sb-action-dock #undoBtn[aria-pressed="true"],#sb-action-dock #redoBtn[aria-pressed="true"]{background:rgba(54,211,190,.17)!important;color:#75ffe8!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.48),0 0 12px rgba(38,220,196,.18)!important;opacity:1!important}
+#sb-action-dock #undoBtn[aria-pressed="false"],#sb-action-dock #redoBtn[aria-pressed="false"]{background:rgba(235,245,255,.045)!important;color:rgba(220,232,243,.38)!important;box-shadow:inset 0 0 0 1px rgba(225,240,255,.06)!important;opacity:.42!important}
+#sb-action-dock #sb-build-dock-btn[aria-pressed="true"]{background:rgba(54,211,190,.22)!important;color:#75ffe8!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.58),0 0 15px rgba(38,220,196,.28)!important}
+#sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,65,82,.22)!important;color:#ff6877!important;box-shadow:inset 0 0 0 1px rgba(255,92,108,.62),0 0 15px rgba(255,45,65,.28)!important}
+#sb-action-dock #sb-build-dock-btn[aria-pressed="false"],#sb-action-dock #trashModeBtn[aria-pressed="false"]{background:rgba(235,245,255,.055)!important;color:#f4f8fc!important;box-shadow:inset 0 0 0 1px rgba(225,240,255,.08)!important}
+#map .sb-station-platform-preview{pointer-events:none!important;transform-origin:center!important}
 </style>
 </html>
