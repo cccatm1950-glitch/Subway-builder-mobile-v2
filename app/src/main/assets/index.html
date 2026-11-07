@@ -4537,8 +4537,8 @@ function toggleDefaultDarkOnStart(){
    if(!keyboardActive)activate();
    else updateKeyboardInset();
   });
-  /* Do not collapse on blur: Android can blur the field during IME transitions. */
-  input.addEventListener('blur',()=>{if(keyboardActive)updateKeyboardInset();});
+  /* Close the floating search surface when text entry loses focus. */
+  input.addEventListener('blur',()=>{if(keyboardActive)restoreSlot();});
   if(add)add.addEventListener('pointerdown',event=>event.preventDefault());
   input.addEventListener('keydown',event=>{
    if(event.key==='Enter'){
@@ -7632,4 +7632,40 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 </style>
 
 
+
+<style id="sb-color-picker-borderless-active-glow-and-delete-feedback">
+/* Remove only the palette shell outline; preserve its glass material. */
+#sb-line-color-options{
+ border:0!important;
+ outline:0!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+#sb-line-color-options.is-open{
+ border:0!important;
+ box-shadow:0 0 0 1px rgba(255,255,255,.18),
+ 0 0 13px rgba(255,255,255,.22),
+ 0 9px 26px rgba(0,0,0,.22),
+ inset 0 1px 0 rgba(255,255,255,.09)!important;
+}
+/* Enabled delete-custom-color control gets a clear white active/focus glow. */
+#sb-service-dock #sb-line-remove-active:not(:disabled){
+ border:0!important;
+ outline:0!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.78),
+ 0 0 7px rgba(255,255,255,.72),
+ 0 0 15px rgba(255,255,255,.42),
+ 0 0 10px rgba(255,55,78,.25)!important;
+ transition:box-shadow .16s ease,filter .16s ease!important;
+}
+#sb-service-dock #sb-line-remove-active:not(:disabled):active,
+#sb-service-dock #sb-line-remove-active:not(:disabled):focus-visible{
+ box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.98),
+ 0 0 9px rgba(255,255,255,.92),
+ 0 0 19px rgba(255,255,255,.58),
+ 0 0 12px rgba(255,55,78,.32)!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-service-dock #sb-line-remove-active{transition:none!important}
+}
+</style>
 </html>
