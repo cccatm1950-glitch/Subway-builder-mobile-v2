@@ -2097,6 +2097,7 @@ function setMapTheme(theme){
  }
 
  currentTheme=theme;
+ document.documentElement.setAttribute('data-sb-theme',theme);
  localStorage.setItem('mapTheme',theme);
 }
 
@@ -4293,7 +4294,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines">≡</button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search or name a service line" title="Search or name a service line">⌕</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search or name a service line" title="Search or name a service line">⌕</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Remove selected line" title="Remove selected line" disabled>×</button><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains">▶</button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   buildPalette();draw();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
@@ -6208,6 +6209,82 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 @media(max-width:700px){
  #sb-service-dock:not(.is-expanded){flex-basis:60px!important;width:60px!important;min-width:60px!important;max-width:60px!important}
  #sb-service-dock.is-expanded{flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important}
+}
+</style>
+
+<style id="sb-unified-theme-aware-glass-docks">
+/* Every primary dock shares the service dock's translucent glass surface.
+   The map appearance switch also changes the dock glass palette. */
+:root{
+ --sb-dock-surface:rgba(23,48,67,.72);
+ --sb-dock-border:rgba(205,232,239,.25);
+ --sb-dock-ink:#f4f8fc;
+ --sb-dock-shadow:0 10px 30px rgba(0,0,0,.20);
+}
+:root[data-sb-theme="light"]{
+ --sb-dock-surface:rgba(235,243,250,.72);
+ --sb-dock-border:rgba(70,95,120,.22);
+ --sb-dock-ink:#172536;
+ --sb-dock-shadow:0 10px 30px rgba(25,45,65,.14);
+}
+#sb-top-dock,
+#sb-action-dock,
+#constructionPanel,
+#sb-service-dock{
+ background:var(--sb-dock-surface)!important;
+ background-image:none!important;
+ border:1px solid var(--sb-dock-border)!important;
+ color:var(--sb-dock-ink)!important;
+ box-shadow:var(--sb-dock-shadow)!important;
+ -webkit-backdrop-filter:blur(28px) saturate(175%)!important;
+ backdrop-filter:blur(28px) saturate(175%)!important;
+}
+#sb-top-dock .brand,
+#sb-top-dock .stat,
+#sb-top-dock .stat strong,
+#constructionPanel,
+#constructionPanel h3{
+ color:var(--sb-dock-ink)!important;
+}
+#sb-action-dock button,
+#sb-top-dock #sb-map-theme-toggle,
+#sb-top-dock #sb-game-menu-toggle,
+#sb-service-dock #sb-service-dock-toggle{
+ color:var(--sb-dock-ink)!important;
+}
+#sb-service-dock #sb-service-dock-toggle{
+ border:0!important;
+ background:rgba(235,245,255,.12)!important;
+ box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+}
+#sb-service-dock #sb-service-dock-toggle:before,
+#sb-service-dock #sb-service-dock-toggle:after{
+ content:none!important;
+ display:none!important;
+ border:0!important;
+ box-shadow:none!important;
+}
+#sb-service-dock #sb-service-dock-toggle svg{
+ display:block!important;
+ width:25px!important;height:25px!important;
+ min-width:25px!important;min-height:25px!important;
+ max-width:25px!important;max-height:25px!important;
+ pointer-events:none!important;
+}
+:root[data-sb-theme="light"] #sb-action-dock button,
+:root[data-sb-theme="light"] #sb-service-lines button,
+:root[data-sb-theme="light"] #sb-line-name-editor,
+:root[data-sb-theme="light"] #sb-line-name-editor #sb-new-line-name{
+ color:#172536!important;
+}
+:root[data-sb-theme="light"] #sb-service-lines button,
+:root[data-sb-theme="light"] #sb-line-name-editor{
+ background:rgba(255,255,255,.42)!important;
+}
+:root[data-sb-theme="light"] #sb-line-name-editor #sb-new-line-name::placeholder{
+ color:rgba(23,37,54,.48)!important;
 }
 </style>
 </html>
