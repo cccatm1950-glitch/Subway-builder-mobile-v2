@@ -7595,4 +7595,39 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  #sb-top-dock>.sb-top-panel-stats #sb-city-stat strong{max-width:70px!important}
 }
 </style>
+
+<style id="sb-condensed-status-capsule-category-spacing">
+/* Shrink the status capsule to its content while keeping consistent category gaps. */
+#sb-top-dock>.sb-top-panel-stats{
+ flex:0 1 auto!important;
+ width:max-content!important;
+ min-width:0!important;
+ max-width:calc(100vw - 150px)!important;
+ padding:6px 16px!important;
+}
+#sb-top-dock>.sb-top-panel-stats .stats{
+ width:auto!important;
+ flex:0 1 auto!important;
+ justify-content:flex-start!important;
+ gap:clamp(14px,1.25vw,18px)!important;
+}
+#sb-top-dock>.sb-top-panel-stats .stat{
+ flex:0 0 auto!important;
+ width:max-content!important;
+}
+#sb-top-dock>.sb-top-panel-stats #sb-city-stat strong{max-width:120px!important}
+@media(max-width:560px){
+ #sb-top-dock>.sb-top-panel-stats{
+  flex:0 1 auto!important;
+  width:max-content!important;
+  max-width:calc(100vw - 124px)!important;
+  padding:5px 10px!important;
+ }
+ #sb-top-dock>.sb-top-panel-stats .stats{
+  gap:clamp(8px,2vw,12px)!important;
+ }
+ #sb-top-dock>.sb-top-panel-stats .stat{width:max-content!important}
+ #sb-top-dock>.sb-top-panel-stats #sb-city-stat strong{max-width:70px!important}
+}
+</style>
 </html>
