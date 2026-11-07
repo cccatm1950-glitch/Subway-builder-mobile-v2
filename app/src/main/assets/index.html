@@ -2438,36 +2438,11 @@ if(mode==='delete'){
 });
 
  stations.forEach((s,i)=>{
-  let connected=getPrimaryStationConnection(i);
-  let other=connected?stations[connected.a===i?connected.b:connected.a]:null;
-  // Use the first/last curve waypoint as the platform's endpoint tangent.
-  let tangentPoint=null;
-  if(connected&&(connected.waypoints||[]).length){
-   const wp=connected.waypoints;
-   const tangent=connected.a===i?wp[0]:wp[wp.length-1];
-   if(Number.isFinite(tangent.lat)&&Number.isFinite(tangent.lng))tangentPoint=tangent;
-  }
-  // Before a new station is connected, align it with the nearest existing
-  // station so the platform does not default to north/south. Once connected,
-  // the actual track bearing takes precedence on every render.
-  if(!other&&stations.length>1){
-   let nearest=null,nearestDistance=Infinity;
-   stations.forEach((candidate,j)=>{
-    if(j===i)return;
-    const east=(candidate.lng-s.lng)*Math.cos(s.lat*Math.PI/180);
-    const north=candidate.lat-s.lat;
-    const distance=east*east+north*north;
-    if(distance<nearestDistance){nearestDistance=distance;nearest=candidate;}
-   });
-   other=nearest;
-  }
-  let orientationPoint=tangentPoint||other;
-  let dx=orientationPoint?(orientationPoint.lng-s.lng)*Math.cos(s.lat*Math.PI/180):0;
-  let dy=orientationPoint?orientationPoint.lat-s.lat:1;
-  if(!orientationPoint&&Number.isFinite(s.platformBearing)){
-   const bearing=s.platformBearing*Math.PI/180;
-   dx=Math.sin(bearing);dy=Math.cos(bearing);
-  }
+  /* Platform alignment is fixed at placement time. Connections and camera
+     gestures never rewrite the saved bearing or rotate the platform. */
+  const fixedBearing=Number.isFinite(s.platformBearing)?s.platformBearing:90;
+  const bearingRadians=fixedBearing*Math.PI/180;
+  let dx=Math.sin(bearingRadians),dy=Math.cos(bearingRadians);
   let len=Math.sqrt(dx*dx+dy*dy)||1;
 
   let halfWidth=platformWidth==='narrow'?5:
@@ -2495,6 +2470,9 @@ if(mode==='delete'){
       interactive:true,bubblingMouseEvents:false
     }).addTo(window.networkLayer);
     window.stationPlatformHitAreas.push({index:i,corners:polygonCorners});
+    const backPoint=[s.lat-(dy/len)*platformHalfLength/111320,s.lng-(dx/len)*platformHalfLength/(111320*cos)];
+    const frontPoint=[s.lat+(dy/len)*platformHalfLength/111320,s.lng+(dx/len)*platformHalfLength/(111320*cos)];
+    [backPoint,frontPoint].forEach(endpoint=>L.circleMarker(endpoint,{pane:'sbPlatformPane',radius:4.5,color:'#f5fbff',weight:1.5,fillColor:'#f5fbff',fillOpacity:1,interactive:false,className:'sb-station-platform-endpoint'}).addTo(window.networkLayer));
     let holdTriggered=false,holdTimer=null;
     platform.on('mousedown touchstart',function(){
       clearTimeout(holdTimer);holdTriggered=false;if(mode==='delete')return;
@@ -2833,43 +2811,45 @@ window.addEventListener('resize',function(){if(stationMenuIndex!==null)positionS
 // then tap again to commit the station and its platform footprint.
 let stationPlacementPreview=null;
 let stationPlatformPreview=null;
+let stationEndpointPreview=null;
 let pendingStationPlacement=null;
+let pendingStationPlacementBearing=90;
 
 function clearStationPlacementPreview(){
  if(stationPlacementPreview){map.removeLayer(stationPlacementPreview);stationPlacementPreview=null;}
  if(stationPlatformPreview){map.removeLayer(stationPlatformPreview);stationPlatformPreview=null;}
+ if(stationEndpointPreview){map.removeLayer(stationEndpointPreview);stationEndpointPreview=null;}
 }
 
-function stationPlatformGeometry(center,edge){
- const a=map.project(center,18),b=map.project(edge,18);
- let dx=b.x-a.x,dy=b.y-a.y;
- let directionLength=Math.hypot(dx,dy);
- let halfLengthMeters=map.distance(center,edge);
- if(directionLength<1||halfLengthMeters<1){dx=0;dy=-1;directionLength=1;halfLengthMeters=45;}
- halfLengthMeters=Math.max(15,Math.min(150,halfLengthMeters));
- const onePixel=map.unproject({x:a.x+1,y:a.y},18);
- const metersPerPixel=Math.max(.001,map.distance(center,onePixel));
- const halfLengthPixels=halfLengthMeters/metersPerPixel;
- const length=directionLength||1,ux=dx/length,uy=dy/length;
- const halfWidth=5;
+function stationPlatformGeometry(anchor,edge,bearing=90){
+ const a=map.project(anchor,18),b=map.project(edge,18);
+ const angle=(Number.isFinite(bearing)?bearing:90)*Math.PI/180,ux=Math.sin(angle),uy=-Math.cos(angle);
+ const onePixel=map.unproject({x:a.x+1,y:a.y},18),metersPerPixel=Math.max(.001,map.distance(anchor,onePixel));
+ const requested=((b.x-a.x)*ux+(b.y-a.y)*uy)*metersPerPixel;
+ const lengthMeters=Math.max(30,Math.min(300,Math.abs(requested))),direction=requested<0?-1:1;
+ const endpoint={x:a.x+ux*lengthMeters/metersPerPixel*direction,y:a.y+uy*lengthMeters/metersPerPixel*direction};
+ const centerPoint={x:(a.x+endpoint.x)/2,y:(a.y+endpoint.y)/2},halfWidth=5,halfLengthPixels=lengthMeters/(2*metersPerPixel);
  const corners=[
-  {x:a.x-ux*halfLengthPixels-uy*halfWidth,y:a.y-uy*halfLengthPixels+ux*halfWidth},
-  {x:a.x+ux*halfLengthPixels-uy*halfWidth,y:a.y+uy*halfLengthPixels+ux*halfWidth},
-  {x:a.x+ux*halfLengthPixels+uy*halfWidth,y:a.y+uy*halfLengthPixels-ux*halfWidth},
-  {x:a.x-ux*halfLengthPixels+uy*halfWidth,y:a.y-uy*halfLengthPixels-ux*halfWidth}
+  {x:centerPoint.x-ux*halfLengthPixels-uy*halfWidth,y:centerPoint.y-uy*halfLengthPixels+ux*halfWidth},
+  {x:centerPoint.x+ux*halfLengthPixels-uy*halfWidth,y:centerPoint.y+uy*halfLengthPixels+ux*halfWidth},
+  {x:centerPoint.x+ux*halfLengthPixels+uy*halfWidth,y:centerPoint.y+uy*halfLengthPixels-ux*halfWidth},
+  {x:centerPoint.x-ux*halfLengthPixels+uy*halfWidth,y:centerPoint.y-uy*halfLengthPixels-ux*halfWidth}
  ].map(point=>{const ll=map.unproject(point,18);return [ll.lat,ll.lng];});
- const bearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
- return {corners,lengthMeters:halfLengthMeters*2,bearing};
+ return {corners,lengthMeters,bearing:(bearing+360)%360,center:map.unproject(centerPoint,18),back:map.unproject(a,18),front:map.unproject(endpoint,18)};
 }
 
 function updateStationPlacementPreview(){
  if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){clearStationPlacementPreview();return;}
- if(!pendingStationPlacement){if(stationPlatformPreview){map.removeLayer(stationPlatformPreview);stationPlatformPreview=null;}return;}
- const edge=map.containerPointToLatLng(map.getSize().divideBy(2));
- const geometry=stationPlatformGeometry(pendingStationPlacement,edge);
- if(!stationPlatformPreview){
-  stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false,className:'sb-station-platform-preview'}).addTo(map);
- }else stationPlatformPreview.setLatLngs(geometry.corners);
+ const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
+ const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair,pendingStationPlacementBearing):{corners:[[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng],[crosshair.lat,crosshair.lng]],back:crosshair,front:crosshair};
+ if(!stationPlatformPreview)stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false,className:'sb-station-platform-preview'}).addTo(map);
+ else stationPlatformPreview.setLatLngs(geometry.corners);
+ if(!stationEndpointPreview){
+  stationEndpointPreview=L.layerGroup([
+   L.circleMarker(geometry.back,{radius:5,color:'#65ffe4',weight:2,fillColor:'#07111e',fillOpacity:1,interactive:false}),
+   L.circleMarker(geometry.front,{radius:5,color:'#65ffe4',weight:2,fillColor:'#65ffe4',fillOpacity:1,interactive:false})
+  ]).addTo(map);
+ }else{const nodes=stationEndpointPreview.getLayers();if(nodes[0])nodes[0].setLatLng(geometry.back);if(nodes[1])nodes[1].setLatLng(geometry.front);}
 }
 
 map.on('mousemove touchmove',updateStationPlacementPreview);
@@ -2890,12 +2870,13 @@ function handleMapPlacement(latlng){
   if(money<500){message('Not enough money for a station.');return;}
   if(!pendingStationPlacement){
    pendingStationPlacement=L.latLng(latlng.lat,latlng.lng);
+   pendingStationPlacementBearing=90;
    updateStationPlacementPreview();
-   message('Station center set. Move the map to stretch and rotate the platform, then tap again to place it.');
+   message('Rear platform node fixed. Move the map to extend the opposite node, then tap again to place the station.');
    return;
   }
-  const geometry=stationPlatformGeometry(pendingStationPlacement,latlng);
-  const center=pendingStationPlacement;
+  const geometry=stationPlatformGeometry(pendingStationPlacement,latlng,pendingStationPlacementBearing);
+  const center=geometry.center;
   pendingStationPlacement=null;
   clearStationPlacementPreview();
   money-=500;
@@ -2904,11 +2885,12 @@ function handleMapPlacement(latlng){
    name:'Station '+(stations.length+1),
    platformType:platformType,
    platformLengthMeters:geometry.lengthMeters,
-   platformBearing:geometry.bearing
+   platformBearing:pendingStationPlacementBearing
   });
   saveHistory();
   renderNetwork();
   message('Station and platform placed successfully.');
+  pendingStationPlacementBearing=90;
  }
 else if(mode==='delete'){
   message('Tap a station, track, or waypoint to delete it.');
