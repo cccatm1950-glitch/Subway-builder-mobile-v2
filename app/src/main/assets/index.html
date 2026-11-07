@@ -4302,10 +4302,12 @@ function toggleDefaultDarkOnStart(){
   if(!button||button.dataset.deleteCustomColorBound)return;
   button.dataset.deleteCustomColorBound='true';
   button.addEventListener('click',event=>{
-   event.preventDefault();event.stopPropagation();
+   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
    const slot=selectedCustomSlot;
    if(!Number.isInteger(slot)||slot<0||!customColors[slot])return;
-   customColors[slot]=null;
+   /* Remove the selected entry and compact the remaining custom colors upward. */
+   customColors.splice(slot,1);
+   while(customColors.length<10)customColors.push(null);
    selectedCustomSlot=-1;
    saveCustomColors();
    const palette=document.getElementById('sb-line-color-options');
@@ -4313,8 +4315,13 @@ function toggleDefaultDarkOnStart(){
    buildPalette();
    if(wasOpen){
     const rebuilt=document.getElementById('sb-line-color-options');
-    if(rebuilt){rebuilt.hidden=false;rebuilt.style.display='flex';rebuilt.classList.add('is-open');rebuilt.setAttribute('aria-hidden','false');}
     const trigger=document.getElementById('sb-line-color-trigger');
+    if(rebuilt){
+     rebuilt.hidden=false;
+     rebuilt.style.display='flex';
+     rebuilt.classList.add('is-open');
+     rebuilt.setAttribute('aria-hidden','false');
+    }
     if(trigger)trigger.setAttribute('aria-expanded','true');
    }
    draw();
@@ -4597,7 +4604,7 @@ function toggleDefaultDarkOnStart(){
   tracks.forEach(track=>track.lineIds=(track.lineIds||[]).filter(id=>id!==line.id));
   activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();
  }
- document.addEventListener('click',event=>{if(event.target?.id==='sb-line-remove-active')removeActiveLine();});
+ /* The remove button is reserved for deleting the selected custom palette color. */
  function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';input.blur();if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard();document.getElementById('sb-line-name-editor')?.classList.remove('is-editing');saveHistory();draw();message(line.name+' created.');}
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
  document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
