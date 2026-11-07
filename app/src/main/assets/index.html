@@ -2099,14 +2099,15 @@ let trackStyle='single';
 let platformWidth='default';
 let platformSize='standard';
 let platformType='island';
-const PLATFORM_SIZE_PRESETS={compact:{length:60,width:6,label:'Compact'},standard:{length:90,width:8,label:'Standard'},long:{length:150,width:10,label:'Long'}};
+const PLATFORM_SIZE_PRESETS={compact:{width:6,label:'Compact'},standard:{width:8,label:'Standard'},long:{width:10,label:'Long'}};
+const DEFAULT_PLATFORM_LENGTH_METERS=90;
 function getPlatformDimensions(size){return PLATFORM_SIZE_PRESETS[size]||PLATFORM_SIZE_PRESETS.standard;}
 function setPlatformSize(size){
  if(!PLATFORM_SIZE_PRESETS[size])return;
  platformSize=size;
  document.querySelectorAll('[data-platform-size]').forEach(button=>{const active=button.dataset.platformSize===size;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active));});
  if(mode==='station')updateStationPlacementPreview();
- const d=getPlatformDimensions(size);message('Platform size: '+d.label+' ('+d.length+'m × '+d.width+'m).');
+ const d=getPlatformDimensions(size);message('Platform width: '+d.label+' ('+d.width+'m). Platform length is set by dragging the endpoint.');
 }
 
 function setPlatformType(type){
@@ -2178,7 +2179,7 @@ function snapshot(){
    lat:s.lat,lng:s.lng,name:s.name,elevation:s.elevation||'at',
    platformType:s.platformType||'island',
    platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
-   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:getPlatformDimensions(s.platformSize||platformSize).length,
+   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:DEFAULT_PLATFORM_LENGTH_METERS,
    platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
    waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:null
   })),
@@ -2213,7 +2214,7 @@ function restoreSnapshot(data){
   lat:Number(s.lat),lng:Number(s.lng),name:s.name||'Station '+(i+1),
   elevation:s.elevation||'at',platformType:s.platformType||'island',
   platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
-  platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):getPlatformDimensions(s.platformSize||platformSize).length,
+  platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS,
   platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
   waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:undefined
  })).filter(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lng));
@@ -2351,7 +2352,7 @@ function getStationTrackSideOffset(stationIndex,fromPoint,toPoint){
  const alignment=platformNormalEast*routeNormalEast+platformNormalNorth*routeNormalNorth;
  const side=alignment<0?-1:1;
  const dimensions=getPlatformDimensions(station.platformSize||platformSize);
- const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):dimensions.length)/2;
+ const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
  const width=dimensions.width/2;
  const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
  return side*(support+6);
@@ -2512,7 +2513,7 @@ if(mode==='delete'){
   let cos=Math.cos(s.lat*Math.PI/180);
 
     let platformHalfWidth=dimensions.width/2;
-  let platformHalfLength=(Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):dimensions.length)/2;
+  let platformHalfLength=(Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
 
   function drawPlatform(acrossOffset){
     let centerEast=px*acrossOffset,centerNorth=py*acrossOffset,corners=[];
@@ -2736,6 +2737,9 @@ function moveTouchPointer(x,y,visible=true){
  pointer.style.left=x+'px';pointer.style.top=y+'px';pointer.classList.toggle('visible',!!visible);
  const play=document.getElementById('sb-play-button');
  if(play){const r=play.getBoundingClientRect();play.classList.toggle('sb-pointer-hover',x>=r.left&&x<=r.right&&y>=r.top&&y<=r.bottom&&visible);}
+ const target=document.elementFromPoint(x,y)?.closest('button,[role="button"],summary,[role="switch"]');
+ document.querySelectorAll('.sb-pointer-hover').forEach(el=>{if(el!==target&&el!==play)el.classList.remove('sb-pointer-hover');});
+ if(target&&visible)target.classList.add('sb-pointer-hover');
 }
 (function installTouchPointer(){
  const pointer=document.getElementById('sb-touch-pointer');if(!pointer)return;
@@ -2885,31 +2889,26 @@ function clearStationPlacementPreview(){
 
 function stationPlatformGeometry(anchor,edge){
  const a=map.project(anchor,18),dimensions=getPlatformDimensions(platformSize);
- const onePixel=map.unproject({x:a.x+1,y:a.y},18);
- const metersPerPixel=Math.max(.001,map.distance(anchor,onePixel));
- let dx=1,dy=0;
- if(edge){
-  const b=map.project(edge,18);dx=b.x-a.x;dy=b.y-a.y;
-  const magnitude=Math.hypot(dx,dy);
-  if(magnitude>.5){dx/=magnitude;dy/=magnitude;}else{dx=1;dy=0;}
- }
- const halfLength=(dimensions.length/2)/metersPerPixel;
- const halfWidth=(dimensions.width/2)/metersPerPixel;
- const back={x:a.x-dx*halfLength,y:a.y-dy*halfLength};
- const front={x:a.x+dx*halfLength,y:a.y+dy*halfLength};
+ const onePixel=map.unproject({x:a.x+1,y:a.y},18),metersPerPixel=Math.max(.001,map.distance(anchor,onePixel));
+ let dx=0,dy=0,lengthMeters=0;
+ if(edge){const b=map.project(edge,18);dx=b.x-a.x;dy=b.y-a.y;const pixels=Math.hypot(dx,dy);lengthMeters=pixels*metersPerPixel;if(pixels>.5){dx/=pixels;dy/=pixels;}else{dx=0;dy=0;lengthMeters=0;}}
+ lengthMeters=Math.min(300,Math.max(0,lengthMeters));
+ const halfLengthPixels=(lengthMeters/2)/metersPerPixel,halfWidthPixels=(dimensions.width/2)/metersPerPixel;
+ const back={x:a.x,y:a.y},front={x:a.x+dx*lengthMeters/metersPerPixel,y:a.y+dy*lengthMeters/metersPerPixel};
+ const centerPoint={x:(back.x+front.x)/2,y:(back.y+front.y)/2};
  const corners=[
-  {x:a.x-dx*halfLength-dy*halfWidth,y:a.y-dy*halfLength+dx*halfWidth},
-  {x:a.x+dx*halfLength-dy*halfWidth,y:a.y+dy*halfLength+dx*halfWidth},
-  {x:a.x+dx*halfLength+dy*halfWidth,y:a.y+dy*halfLength-dx*halfWidth},
-  {x:a.x-dx*halfLength+dy*halfWidth,y:a.y-dy*halfLength-dx*halfWidth}
+  {x:centerPoint.x-dx*halfLengthPixels-dy*halfWidthPixels,y:centerPoint.y-dy*halfLengthPixels+dx*halfWidthPixels},
+  {x:centerPoint.x+dx*halfLengthPixels-dy*halfWidthPixels,y:centerPoint.y+dy*halfLengthPixels+dx*halfWidthPixels},
+  {x:centerPoint.x+dx*halfLengthPixels+dy*halfWidthPixels,y:centerPoint.y+dy*halfLengthPixels-dx*halfWidthPixels},
+  {x:centerPoint.x-dx*halfLengthPixels+dy*halfWidthPixels,y:centerPoint.y-dy*halfLengthPixels-dx*halfWidthPixels}
  ].map(point=>{const ll=map.unproject(point,18);return [ll.lat,ll.lng];});
- const bearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
- return {corners,lengthMeters:dimensions.length,bearing,center:anchor,back:map.unproject(back,18),front:map.unproject(front,18),widthMeters:dimensions.width};
+ const bearing=lengthMeters>0?(Math.atan2(dx,-dy)*180/Math.PI+360)%360:90;
+ return {corners,lengthMeters,bearing,center:map.unproject(centerPoint,18),back:map.unproject(back,18),front:map.unproject(front,18),widthMeters:dimensions.width};
 }
 function updateStationPlacementPreview(){
  if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){clearStationPlacementPreview();return;}
  const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
- const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair):stationPlatformGeometry(crosshair,null);
+ const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair):stationPlatformGeometry(crosshair,crosshair);
  if(!stationPlatformPreview)stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false,className:'sb-station-platform-preview'}).addTo(map);
  else stationPlatformPreview.setLatLngs(geometry.corners);
  if(!stationEndpointPreview){
@@ -2944,7 +2943,7 @@ function handleMapPlacement(latlng){
   if(!pendingStationPlacement){
    pendingStationPlacement=L.latLng(latlng.lat,latlng.lng);
    updateStationPlacementPreview();
-   message('Platform center fixed under the crosshair. Pan to set its direction, then tap again to place the station.');
+   message('Both platform endpoints start together under the crosshair. Pan to extend the far endpoint, then tap to place.');
    return;
   }
   const geometry=stationPlatformGeometry(pendingStationPlacement,latlng);
@@ -6320,5 +6319,30 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
 #sb-action-dock #trashModeBtn[aria-pressed="true"]{background:rgba(255,65,82,.22)!important;color:#ff6877!important;box-shadow:inset 0 0 0 1px rgba(255,92,108,.62),0 0 15px rgba(255,45,65,.28)!important}
 #sb-action-dock #sb-build-dock-btn[aria-pressed="false"],#sb-action-dock #trashModeBtn[aria-pressed="false"]{background:rgba(235,245,255,.055)!important;color:#f4f8fc!important;box-shadow:inset 0 0 0 1px rgba(225,240,255,.08)!important}
 #map .sb-station-platform-preview{pointer-events:none!important;transform-origin:center!important}
+</style>
+<style id="sb-compact-desktop-dock-scale-and-pointer-hover">
+#sb-top-dock{min-height:58px!important;padding:7px 11px!important;left:12px!important;right:12px!important;gap:10px!important;border-radius:22px!important}
+#sb-top-dock .brand{font-size:clamp(10px,1.1vw,14px)!important;letter-spacing:.8px!important}
+#sb-top-dock .stats{gap:clamp(6px,1.2vw,13px)!important}
+#sb-top-dock .stat{font-size:7px!important}
+#sb-top-dock .stat strong{font-size:clamp(9px,.95vw,12px)!important}
+#sb-top-dock #sb-pointer-toggle,#sb-top-dock #sb-map-theme-toggle{width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important;flex-basis:36px!important}
+#sb-action-dock{gap:6px!important;padding:6px!important;border-radius:20px!important}
+#sb-action-dock button{width:40px!important;height:40px!important;min-height:40px!important;flex-basis:40px!important;font-size:16px!important}
+#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{flex-basis:40px!important;width:40px!important;height:40px!important;min-width:40px!important;max-width:40px!important;min-height:40px!important;max-height:40px!important}
+#sb-service-dock{min-height:44px!important;border-radius:22px!important}
+#sb-service-dock #sb-service-dock-toggle,#sb-service-lines button{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important;min-height:36px!important}
+#sb-construction-menu[open]>#constructionPanel{width:112px!important;min-width:112px!important;max-width:112px!important;padding:8px!important;border-radius:18px!important}
+#constructionPanel .tool-grid{grid-template-columns:repeat(2,36px)!important;grid-auto-columns:36px!important;grid-auto-rows:36px!important;gap:5px!important;padding:6px!important}
+#constructionPanel .tool-grid button,#constructionPanel button{min-height:36px!important}
+#sb-line-color-options,#sb-construction-context-menu{padding:9px!important;border-radius:22px!important}
+#sb-construction-context-menu button{width:38px!important;height:38px!important;min-height:38px!important}
+#sb-line-name-editor{height:36px!important}
+#sb-line-name-editor #sb-line-name-search,#sb-line-name-editor #sb-new-line-name{height:36px!important}
+#sb-touch-pointer{width:22px!important;height:22px!important;border-width:2px!important}
+.sb-pointer-hover{background:rgba(54,211,190,.2)!important;color:#75ffe8!important;border-color:rgba(101,255,228,.72)!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.28),0 0 12px rgba(38,220,196,.2)!important;transition:background .12s ease,color .12s ease,box-shadow .12s ease!important}
+#sb-top-dock button:hover:not(:disabled),#sb-action-dock button:hover:not(:disabled),#sb-service-dock button:hover:not(:disabled),#constructionPanel button:hover:not(:disabled),#sb-construction-context-menu button:hover:not(:disabled),#sb-line-color-options button:hover:not(:disabled){background:rgba(54,211,190,.17)!important;color:#75ffe8!important;border-color:rgba(101,255,228,.62)!important;box-shadow:inset 0 0 0 1px rgba(101,255,228,.2),0 0 10px rgba(38,220,196,.16)!important}
+@media(max-width:700px){#sb-top-dock{min-height:54px!important;padding:6px 8px!important;left:7px!important;right:7px!important;gap:5px!important}#sb-top-dock #sb-pointer-toggle,#sb-top-dock #sb-map-theme-toggle{width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;flex-basis:32px!important}#sb-action-dock button{width:38px!important;height:38px!important;min-height:38px!important;flex-basis:38px!important}#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{width:38px!important;height:38px!important;min-width:38px!important;max-width:38px!important;min-height:38px!important;max-height:38px!important;flex-basis:38px!important}#sb-construction-menu[open]>#constructionPanel{width:106px!important;min-width:106px!important;max-width:106px!important}#constructionPanel .tool-grid{grid-template-columns:repeat(2,34px)!important;grid-auto-columns:34px!important;grid-auto-rows:34px!important}}
+@media(prefers-reduced-motion:reduce){.sb-pointer-hover{transition:none!important}}
 </style>
 </html>
