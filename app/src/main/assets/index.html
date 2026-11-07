@@ -4325,9 +4325,8 @@ function toggleDefaultDarkOnStart(){
      picker.addEventListener('input',()=>{
       const value=picker.value.toLowerCase();customColors[slot]=value;saveCustomColors();
       choose(value);button.dataset.color=value;button.style.setProperty('--sb-option-color',value);
-      button.classList.remove('empty');button.textContent='';button.title='Custom '+(slot+1)+' '+value;
+      button.classList.remove('empty');button.title='Custom '+(slot+1)+' '+value;
       button.setAttribute('aria-label','Use custom color '+(slot+1));button.setAttribute('aria-selected','true');
-      button.replaceChildren();button.append(picker);
      });
      button.append(picker);
      try{if(typeof picker.showPicker==='function')picker.showPicker();else picker.click();}catch(_){picker.click();}
