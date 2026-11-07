@@ -2148,7 +2148,7 @@ function toggleMapTheme(){
 }
 // Theme button stays visually neutral; only its map tile action changes.
 setMapTheme(currentTheme);
- document.addEventListener('DOMContentLoaded',()=>{const button=document.getElementById('sb-map-theme-toggle');if(button){button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleMapTheme();});setMapTheme(currentTheme);}});
+ document.addEventListener('DOMContentLoaded',()=>{const button=document.getElementById('sb-map-theme-toggle');if(button){button.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();toggleMapTheme();});}});
 
 /* Default map zoom and attribution controls are intentionally hidden. */
 
