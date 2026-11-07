@@ -2314,7 +2314,29 @@ function renderNetwork(){
   /* Stations are drawn and selected through their platform polygons. */
   window.stationPlatformHitAreas=[];
 
- tracks.forEach((t,trackIndex)=>{
+ /* Offset station approaches to the platform's outside edge. Side-platform
+   layouts keep the route in the corridor between their two platforms. */
+function getStationTrackSideOffset(stationIndex,fromPoint,toPoint){
+ if(platformType==='side')return 0;
+ const station=stations[stationIndex];
+ if(!station||!fromPoint||!toPoint)return 0;
+ const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
+ const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
+ const magnitude=Math.hypot(east,north);
+ if(magnitude<1e-12)return 0;
+ const routeEast=east/magnitude,routeNorth=north/magnitude;
+ const routeNormalEast=-routeNorth,routeNormalNorth=routeEast;
+ const bearing=(Number.isFinite(station.platformBearing)?station.platformBearing:90)*Math.PI/180;
+ const axisEast=Math.sin(bearing),axisNorth=Math.cos(bearing);
+ const platformNormalEast=-axisNorth,platformNormalNorth=axisEast;
+ const alignment=platformNormalEast*routeNormalEast+platformNormalNorth*routeNormalNorth;
+ const side=alignment<0?-1:1;
+ const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):90)/2;
+ const width=platformWidth==='narrow'?3:platformWidth==='wide'?7.5:5;
+ const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
+ return side*(support+6);
+}
+tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
   let b=stations[t.b];
   if(!a||!b)return;
@@ -2401,7 +2423,12 @@ if(mode==='delete'){
    });
   }
   const assignedLines=lines.filter(line=>(t.lineIds||[]).includes(line.id));
-  const routeColor=assignedLines[0]?.color||['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][trackIndex%5];
+  const trackIsActive=assignedLines.length>0;
+  const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
+  const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
+  const routeOpacity=trackIsActive?1:.62;
+  const startOffset=getStationTrackSideOffset(t.a,points[0],points[1]);
+  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1]);
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
       let prev=points[Math.max(0,i-1)];
@@ -2409,21 +2436,21 @@ if(mode==='delete'){
       let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
       let dy=next[0]-prev[0];
       let length=Math.sqrt(dx*dx+dy*dy)||1;
-
+      const progress=points.length>1?i/(points.length-1):0;
+      const lateralOffset=startOffset+(endOffset-startOffset)*progress+offset;
       return [
-        p[0]+(dx/length)*offset/111320,
-        p[1]-(dy/length)*offset/(111320*Math.cos(p[0]*Math.PI/180))
+        p[0]+(dx/length)*lateralOffset/111320,
+        p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
       ];
     });
-
   let elevation=(t.elevation==='below'||(t.waypoints||[]).some(w=>w.elevation==='below'))?'below':(t.elevation==='above'?'above':'at');
-  const selectedCurve=false;
-  L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:.22,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive?.3:.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   if(elevation==='below'){
-   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
-   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:.22}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:1,fillColor:routeColor}).addTo(window.networkLayer);});
+   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:routeOpacity,lineCap:'round',lineJoin:'round',dashArray:'7 8'}).addTo(window.networkLayer);
+   [shifted[0],shifted[shifted.length-1]].forEach(portal=>{L.circleMarker(portal,{radius:8,color:routeColor,weight:2,fillColor:routeColor,fillOpacity:trackIsActive?.22:.08}).addTo(window.networkLayer);L.circleMarker(portal,{radius:3,color:routeColor,weight:1,fillOpacity:routeOpacity,fillColor:routeColor}).addTo(window.networkLayer);});
   }else{
-   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:1,lineCap:'round',lineJoin:'round',dashArray:elevation==='at'?null:'10 8'}).addTo(window.networkLayer);
+   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:7,opacity:routeOpacity,lineCap:'round',lineJoin:'round',dashArray:trackIsActive?(elevation==='at'?null:'10 8'):'8 7'}).addTo(window.networkLayer);
   }
 }  
 
