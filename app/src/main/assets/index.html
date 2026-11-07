@@ -2396,12 +2396,13 @@ function renderNetwork(){
   /* Stations are drawn and selected through their platform polygons. */
   window.stationPlatformHitAreas=[];
 
- /* Offset station approaches to the platform's outside edge. Side-platform
-   layouts keep the route in the corridor between their two platforms. */
-function getStationTrackSideOffset(stationIndex,fromPoint,toPoint){
+ /* Keep parallel tracks centered on island platforms so one track runs
+   along each platform face. Single-track approaches sit just beyond the
+   platform edge; side platforms retain a centered corridor between them. */
+function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
  const station=stations[stationIndex];
  if(!station||!fromPoint||!toPoint)return 0;
- if((station.platformType||platformType)==='side')return 0;
+ if((station.platformType||platformType)==='side'||style==='parallel')return 0;
  const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
  const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
  const magnitude=Math.hypot(east,north);
@@ -2417,7 +2418,7 @@ function getStationTrackSideOffset(stationIndex,fromPoint,toPoint){
  const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
  const width=dimensions.width/2;
  const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
- return side*(support+6);
+ return side*(support+1.2);
 }
 tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
@@ -2510,8 +2511,8 @@ if(mode==='delete'){
   const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
-  const startOffset=getStationTrackSideOffset(t.a,points[0],points[1]);
-  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1]);
+  const startOffset=getStationTrackSideOffset(t.a,points[0],points[1],t.style);
+  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   function drawLine(offset){
     let shifted=points.map((p,i)=>{
       let prev=points[Math.max(0,i-1)];
