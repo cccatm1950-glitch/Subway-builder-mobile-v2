@@ -8,6 +8,7 @@ import android.webkit.JavascriptInterface;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import android.os.Bundle;
+import android.os.Build;
 import android.view.MotionEvent;
 import android.util.Log;
 import android.webkit.WebChromeClient;
