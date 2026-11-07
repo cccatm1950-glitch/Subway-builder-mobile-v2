@@ -2120,6 +2120,8 @@ function setMapTheme(theme){
  }
 
  currentTheme=theme;
+ const themeButton=document.getElementById('sb-map-theme-toggle');
+ if(themeButton){themeButton.setAttribute('aria-pressed',String(theme==='dark'));themeButton.classList.toggle('active',theme==='dark');}
  document.documentElement.setAttribute('data-sb-theme',theme);
  localStorage.setItem('mapTheme',theme);
 }
@@ -6962,6 +6964,46 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 @media(prefers-reduced-motion:reduce){
  #sb-line-color-options,body.sb-service-search-keyboard #sb-service-create-slot{transition:none!important}
+}
+</style>
+
+
+<style id="sb-top-dock-menu-and-map-theme-active-glow">
+/* Persistent active-state glow: menu open = white; dark map = white; light map = blue. */
+#sb-top-dock #sb-game-menu-toggle,
+#sb-top-dock #sb-map-theme-toggle{
+ transition:background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease!important;
+ -webkit-tap-highlight-color:transparent!important;
+}
+#sb-top-dock #sb-game-menu-toggle[aria-expanded="true"],
+#sb-top-dock #sb-game-menu-toggle.active{
+ color:#fff!important;
+ background:rgba(255,255,255,.16)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 8px rgba(255,255,255,.32),0 0 18px rgba(255,255,255,.24)!important;
+}
+#sb-top-dock #sb-game-menu-toggle[aria-expanded="false"]{
+ color:rgba(245,249,255,.88)!important;
+ background:rgba(255,255,255,.08)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.10)!important;
+}
+#sb-top-dock #sb-map-theme-toggle[aria-pressed="true"]{
+ color:#fff!important;
+ background:rgba(255,255,255,.16)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 8px rgba(255,255,255,.32),0 0 18px rgba(255,255,255,.24)!important;
+}
+#sb-top-dock #sb-map-theme-toggle[aria-pressed="false"]{
+ color:#78baff!important;
+ background:rgba(67,151,255,.15)!important;
+ box-shadow:inset 0 0 0 1px rgba(105,181,255,.72),0 0 8px rgba(67,151,255,.34),0 0 18px rgba(67,151,255,.22)!important;
+}
+#sb-top-dock #sb-game-menu-toggle:focus,
+#sb-top-dock #sb-game-menu-toggle:focus-visible,
+#sb-top-dock #sb-map-theme-toggle:focus,
+#sb-top-dock #sb-map-theme-toggle:focus-visible{
+ outline:0!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-top-dock #sb-game-menu-toggle,#sb-top-dock #sb-map-theme-toggle{transition:none!important}
 }
 </style>
 
