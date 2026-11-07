@@ -2573,6 +2573,43 @@ if(mode==='delete'){
    });
    L.polyline(overlay,{pane:'sbTrackPane',color:line.color,weight:4,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   });
+
+  // Desktop-derived curve preview. The 0.8 m/s² lateral-acceleration rule
+  // produces a theoretical curve cap; a train-specific maximum speed is not
+  // available in the mobile model yet, so this is deliberately labelled as a cap.
+  if(mode==='curve'&&selectedTrackIndex===trackIndex&&points.length>=3){
+   const rawRadii=new Array(points.length).fill(null);
+   for(let i=1;i<points.length-1;i++){
+    const p0=points[i-1],p1=points[i],p2=points[i+1];
+    const latitude=p1[0]*Math.PI/180;
+    const incoming={x:(p1[1]-p0[1])*Math.cos(latitude),y:p1[0]-p0[0]};
+    const outgoing={x:(p2[1]-p1[1])*Math.cos(latitude),y:p2[0]-p1[0]};
+    const inLength=Math.hypot(incoming.x,incoming.y),outLength=Math.hypot(outgoing.x,outgoing.y);
+    if(inLength<1e-10||outLength<1e-10)continue;
+    const cosine=Math.max(-1,Math.min(1,(incoming.x*outgoing.x+incoming.y*outgoing.y)/(inLength*outLength)));
+    const turnAngle=Math.acos(cosine);
+    if(turnAngle<Math.PI/180)continue;
+    const chord=map.distance(p0,p2);
+    const radius=chord/(2*Math.sin(turnAngle/2));
+    if(Number.isFinite(radius))rawRadii[i]=Math.max(29,radius);
+   }
+   const smoothRadii=rawRadii.map((radius,index)=>{
+    if(radius===null)return null;
+    const neighbors=rawRadii.slice(Math.max(1,index-2),Math.min(rawRadii.length-1,index+3)).filter(value=>value!==null);
+    return neighbors.length?Math.min(...neighbors):radius;
+   });
+   let lastMeasureDistance=-Infinity;
+   for(let i=1;i<smoothRadii.length-1;i++){
+    const radius=smoothRadii[i];
+    if(radius===null||radius>=(smoothRadii[i-1]??Infinity)||radius>(smoothRadii[i+1]??Infinity))continue;
+    const distanceAlong=cumulativeTrackMeters[i]||0;
+    if(distanceAlong-lastMeasureDistance<35)continue;
+    lastMeasureDistance=distanceAlong;
+    const curveSpeed=Math.sqrt(0.8*radius)*3.6;
+    const label='<div style="padding:4px 7px;border:1px solid rgba(255,255,255,.34);border-radius:10px;background:rgba(7,18,31,.88);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:#65ffe4">R '+Math.round(radius)+' m</span><br><span>'+Math.round(curveSpeed)+' km/h cap</span></div>';
+    L.marker(points[i],{pane:'sbTrackPane',interactive:false,keyboard:false,icon:L.divIcon({className:'',html:label,iconSize:[86,38],iconAnchor:[43,19]})}).addTo(window.networkLayer);
+   }
+  }
 });
 
  stations.forEach((s,i)=>{
