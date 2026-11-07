@@ -2965,6 +2965,25 @@ function handleStationClick(index){
    return;
   }
 
+  // Match the desktop engine's physical track-length limits before charging
+  // for a new connection. map.distance uses metres and follows the live map CRS.
+  const proposedTrackLengthMeters=map.distance(
+   [stations[first].lat,stations[first].lng],
+   [stations[second].lat,stations[second].lng]
+  );
+  if(proposedTrackLengthMeters<10){
+   selected=null;
+   renderNetwork();
+   message('Track must be at least 10 m long.');
+   return;
+  }
+  if(proposedTrackLengthMeters>5000){
+   selected=null;
+   renderNetwork();
+   message('Track cannot exceed 5,000 m. Add an intermediate station first.');
+   return;
+  }
+
   if(money<150){
    selected=null;
    renderNetwork();
