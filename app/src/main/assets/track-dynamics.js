@@ -52,13 +52,16 @@
    const radius=radii[i];
    if(!Number.isFinite(radius))continue;
    const pointIndex=i+1;
+   const pointSlope=Array.isArray(options.slopePercent)
+    ?(Number.isFinite(options.slopePercent[pointIndex])?options.slopePercent[pointIndex]:0)
+    :(Number.isFinite(options.slopePercent)?options.slopePercent:0);
    const speedKmh=getMaxSpeedForRadiusAndSlope({
     maxSpeedKmh:options.maxSpeedKmh??88.992,
     radiusMeters:radius,
     minTurnRadiusMeters:options.minTurnRadiusMeters??29,
     maxLateralAcceleration:options.maxLateralAcceleration??1,
     curveSpeedMultiplier:options.curveSpeedMultiplier??1,
-    slopePercent:options.slopePercent??0,
+    slopePercent:pointSlope,
     slopeThresholds:options.slopeThresholds,
     stationTrack:!!options.stationTrack
    });
