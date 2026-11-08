@@ -3454,6 +3454,8 @@ function toggleSimulation(){
   if(!running||sbInGameMenuOpen||!tracks.length)return;
   let currentTrackIndex=Math.floor(Math.random()*tracks.length);
   let currentTrack=tracks[currentTrackIndex];
+  const startingLineIds=Array.isArray(currentTrack.lineIds)?currentTrack.lineIds:[];
+  const trainLineId=startingLineIds.length?startingLineIds[Math.floor(Math.random()*startingLineIds.length)]:null;
   const from=stations[currentTrack.a],to=stations[currentTrack.b];if(!from||!to)return;
   let currentFromNode=currentTrack.a,currentToNode=currentTrack.b;
   let route=getTrackCenterlinePoints(currentTrack);
@@ -3508,7 +3510,7 @@ function toggleSimulation(){
      const liveTrackIndex=tracks.indexOf(currentTrack);
      currentTrackIndex=liveTrackIndex;
      const nextTracks=window.SBTrackTopology.getConnectedTrackCandidates(
-      tracks,currentTrackIndex,nodeIndex,currentTrack.lineIds||[]
+      tracks,currentTrackIndex,nodeIndex,trainLineId?[trainLineId]:[]
      );
      if(nextTracks.length){
       const next=nextTracks[Math.floor(Math.random()*nextTracks.length)];
