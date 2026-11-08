@@ -5976,6 +5976,74 @@ function waypointAtCrosshair(){
  #sb-top-dock>#sb-dashboard-dialog{height:56px!important;min-height:56px!important;max-height:56px!important;padding:5px 8px!important;font-size:10px!important}
 }
 </style>
+
+<style id="sb-preview-cancel-delete-dock-state-pr78">
+#sb-action-dock #trashModeBtn.sb-preview-cancel{
+ color:#fff!important;
+ background:rgba(255,255,255,.14)!important;
+ border-color:rgba(255,255,255,.92)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 8px rgba(255,255,255,.72),0 0 19px rgba(255,255,255,.48)!important;
+ animation:sb-preview-cancel-pulse 1.35s ease-in-out infinite!important;
+}
+@keyframes sb-preview-cancel-pulse{
+ 0%,100%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.58),0 0 7px rgba(255,255,255,.55),0 0 14px rgba(255,255,255,.28)}
+ 50%{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.95),0 0 11px rgba(255,255,255,.9),0 0 25px rgba(255,255,255,.62)}
+}
+#sb-action-dock #trashModeBtn.sb-preview-cancel:active{transform:scale(.93)!important}
+@media(prefers-reduced-motion:reduce){#sb-action-dock #trashModeBtn.sb-preview-cancel{animation:none!important}}
+</style>
+<script id="sb-preview-cancel-dock-runtime">
+(function(){
+ if(window.__sbPreviewCancelDock)return;
+ window.__sbPreviewCancelDock=true;
+ const button=()=>document.getElementById('trashModeBtn');
+ function previewActive(){
+  if(window.mode==='station')return true;
+  if((window.mode==='curve'||window.mode==='waypoint')&&Number.isInteger(window.selectedTrackIndex)&&window.selectedTrackIndex!==null)return true;
+  return false;
+ }
+ function sync(){
+  const el=button();if(!el)return;
+  const active=previewActive();
+  el.classList.toggle('sb-preview-cancel',active);
+  el.dataset.previewCancel=String(active);
+  el.setAttribute('aria-label',active?'Cancel placement preview':window.mode==='delete'?'Exit delete mode':'Delete mode');
+  el.title=active?'Cancel active preview':window.mode==='delete'?'Exit delete mode':'Delete';
+  if(active)el.setAttribute('aria-pressed','true');
+  else el.setAttribute('aria-pressed',String(window.mode==='delete'));
+ }
+ function cancel(){
+  if(!previewActive())return false;
+  window.pendingStationPlacement=null;
+  window.selectedTrackIndex=null;
+  window.selected=null;
+  if(typeof window.clearStationPlacementPreview==='function')window.clearStationPlacementPreview();
+  if(typeof window.clearCurvePlacementPreview==='function')window.clearCurvePlacementPreview();
+  if(typeof window.setMode==='function')window.setMode('none');
+  else window.mode='none';
+  if(typeof window.renderNetwork==='function')window.renderNetwork();
+  if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
+  if(typeof window.message==='function')window.message('Placement preview cancelled.');
+  sync();
+  return true;
+ }
+ document.addEventListener('click',event=>{
+  const el=event.target.closest&&event.target.closest('#trashModeBtn');
+  if(!el||!cancel())return;
+  event.preventDefault();event.stopImmediatePropagation();
+ },true);
+ const originalSetMode=window.setMode;
+ if(typeof originalSetMode==='function')window.setMode=function(){const result=originalSetMode.apply(this,arguments);requestAnimationFrame(sync);return result;};
+ document.addEventListener('DOMContentLoaded',sync);
+ document.addEventListener('click',event=>{
+  if(event.target.closest('#constructionPanel button[data-panel-action]'))requestAnimationFrame(sync);
+ },true);
+ const map=window.map;
+ if(map&&typeof map.on==='function')map.on('move zoom moveend zoomend',sync);
+ window.addEventListener('resize',sync);
+ sync();
+})();
+</script>
 </body>
 <style id="sb-nov06-final-dock-layout">
 /* The 128px construction dock must be a true 2-column x 4-row grid.
