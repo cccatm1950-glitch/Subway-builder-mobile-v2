@@ -4403,46 +4403,28 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   syncBuildState();
  }
  function positionConstructionContextMenu(menu,toggle){
+  const edge=10,gap=10;
+  const actionDock=document.getElementById('sb-action-dock');
+  const rightDock=actionDock?.querySelector('.sb-dock-panel-right')||actionDock;
+  const dockRect=rightDock?.getBoundingClientRect();
+  const stats=document.querySelector('#sb-top-dock>.sb-top-panel-stats');
+  const statsRect=stats?.getBoundingClientRect();
   const rect=toggle.getBoundingClientRect();
-  const gap=12,edge=12;
-  const width=Math.min(286,Math.max(220,window.innerWidth-edge*2));
-  menu.style.width=width+'px';
-  const left=Math.min(Math.max(edge,rect.left+rect.width/2-width/2),window.innerWidth-width-edge);
-  if(window.matchMedia('(max-width: 700px)').matches){
-   const dock=document.getElementById('sb-action-dock');
-   const dockRect=dock?dock.getBoundingClientRect():null;
-   const stats=document.querySelector('#sb-top-dock>.sb-top-panel-stats');
-   const statsRect=stats?stats.getBoundingClientRect():null;
-   const topLimit=statsRect&&statsRect.bottom>0?statsRect.bottom+10:edge;
-   const bottomLimit=dockRect&&dockRect.top>topLimit?dockRect.top-10:window.innerHeight-edge;
-   const available=Math.max(180,bottomLimit-topLimit);
-   const panelWidth=Math.min(310,Math.max(250,window.innerWidth-24));
-   const rightEdge=dockRect&&dockRect.right>0?Math.min(window.innerWidth-edge,dockRect.right):window.innerWidth-edge;
-   menu.style.width=panelWidth+'px';
-   menu.style.maxWidth=panelWidth+'px';
-   menu.style.left=Math.max(edge,rightEdge-panelWidth)+'px';
-   menu.style.right='auto';
-   menu.style.top=topLimit+'px';
-   menu.style.bottom='auto';
-   menu.style.height=available+'px';
-   menu.style.maxHeight=available+'px';
-   menu.style.boxSizing='border-box';
-   menu.style.display='flex';
-   menu.style.flexDirection='column';
-   menu.style.overflowX='hidden';
-   menu.style.overflowY='hidden';
-   menu.style.webkitOverflowScrolling='touch';
-   menu.style.touchAction='pan-y';
-   menu.style.overscrollBehaviorY='contain';
-   return;
-  }
-  const availableAbove=Math.max(0,rect.top-edge-gap);
-  const desiredHeight=Math.min(menu.scrollHeight,window.innerHeight-edge*2);
-  const top=Math.max(edge,Math.min(rect.top-gap-desiredHeight,window.innerHeight-edge-desiredHeight));
-  menu.style.left=left+'px';
-  menu.style.top=top+'px';
-  menu.style.height='auto';
-  menu.style.maxHeight=Math.max(120,Math.min(window.innerHeight-edge*2,availableAbove||window.innerHeight-edge*2))+'px';
+  const panelWidth=Math.max(1,Math.min(window.innerWidth-edge*2,dockRect?.width||rect.width));
+  const centerX=dockRect?dockRect.left+dockRect.width/2:rect.left+rect.width/2;
+  const left=Math.max(edge,Math.min(centerX-panelWidth/2,window.innerWidth-panelWidth-edge));
+  const topLimit=statsRect&&statsRect.bottom>0?statsRect.bottom+gap:edge;
+  const bottomLimit=dockRect&&dockRect.top>topLimit?dockRect.top-gap:window.innerHeight-edge;
+  const available=Math.max(120,bottomLimit-topLimit);
+  menu.style.boxSizing='border-box';
+  menu.style.width=panelWidth+'px';menu.style.maxWidth=panelWidth+'px';
+  menu.style.left=left+'px';menu.style.right='auto';
+  menu.style.top=topLimit+'px';menu.style.bottom='auto';
+  menu.style.height=available+'px';menu.style.maxHeight=available+'px';menu.style.minHeight='0';
+  menu.style.display='flex';menu.style.flexDirection='column';
+  menu.style.overflowX='hidden';menu.style.overflowY='hidden';
+  menu.style.webkitOverflowScrolling='touch';menu.style.touchAction='pan-y';
+  menu.style.overscrollBehaviorY='contain';
  }
  function toggleConstructionContextMenu(toggle){
   const existing=document.getElementById('sb-construction-context-menu');
@@ -4711,9 +4693,14 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines">Search</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected color" title="Select a custom color to enable deletion" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m16 16 4.6 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected color" title="Select a custom color to enable deletion" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
+  const createSlot=document.getElementById("sb-service-create-slot");
+  const colorPicker=createSlot?.querySelector(".sb-line-color-picker");
+  const nameEditor=createSlot?.querySelector("#sb-line-name-editor");
+  /* Place the color toggle at the inner-left edge, immediately after the service dock toggle. */
+  if(createSlot&&colorPicker&&nameEditor)createSlot.insertBefore(colorPicker,nameEditor);
   buildPalette();draw();bindDeleteCustomColor();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
  }
  function bindDeleteCustomColor(){
@@ -4917,7 +4904,7 @@ function toggleDefaultDarkOnStart(){
     createSlot.style.bottom='calc('+inset+'px + 12px + env(safe-area-inset-bottom,0px))';
    }
   };
-  const restoreSlot=()=>{
+  const restoreSlot=(collapseEditor=true)=>{
    keyboardActive=false;
    document.body.classList.remove('sb-service-search-keyboard');
    if(searchBackdrop){searchBackdrop.remove();searchBackdrop=null;}
@@ -4931,8 +4918,10 @@ function toggleDefaultDarkOnStart(){
    window.removeEventListener('resize',updateKeyboardInset);
    document.documentElement.style.removeProperty('--sb-keyboard-inset');
    baseViewportHeight=0;
-   editor.classList.remove('is-editing');
-   editor.removeAttribute('data-keyboard-active');
+   if(collapseEditor){
+    editor.classList.remove('is-editing');
+    editor.removeAttribute('data-keyboard-active');
+   }
   };
   const activate=()=>{
    if(keyboardActive){input.focus({preventScroll:true});return;}
@@ -4964,7 +4953,7 @@ function toggleDefaultDarkOnStart(){
    else updateKeyboardInset();
   });
   /* Close the floating search surface when text entry loses focus. */
-  input.addEventListener('blur',()=>{if(keyboardActive)restoreSlot();});
+  input.addEventListener('blur',()=>{if(keyboardActive)restoreSlot(input.value.trim().length===0);});
   if(add)add.addEventListener('pointerdown',event=>event.preventDefault());
   input.addEventListener('keydown',event=>{
    if(event.key==='Enter'){
@@ -8756,4 +8745,25 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  #sb-construction-context-menu .sb-construction-context-grid button{padding:5px!important}
  #sb-game-menu-card{width:min(620px,calc(100vw - 24px))!important}
 }
+</style>
+
+
+<style id="sb-pr73-search-picker-and-dock-alignment-final">
+#sb-line-name-editor{box-sizing:border-box!important;display:flex!important;align-items:center!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;overflow:hidden!important;border-radius:999px!important;transition:flex-basis .36s cubic-bezier(.2,.8,.2,1),width .36s cubic-bezier(.2,.8,.2,1),max-width .36s cubic-bezier(.2,.8,.2,1),background .22s ease,box-shadow .22s ease!important}
+#sb-line-name-editor #sb-line-name-search{flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;font-size:0!important}
+#sb-line-name-editor #sb-line-name-search svg{display:block!important;width:21px!important;height:21px!important;flex:0 0 21px!important;overflow:visible!important;pointer-events:none!important;transition:transform .28s cubic-bezier(.2,.8,.2,1)!important}
+#sb-line-name-editor #sb-new-line-name{flex:1 1 auto!important;width:0!important;min-width:0!important;height:40px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#f4f8fc!important;opacity:0!important;pointer-events:none!important;transform:translateX(-8px)!important;transition:opacity .2s ease .04s,transform .32s cubic-bezier(.2,.8,.2,1),padding .32s ease!important}
+#sb-line-name-editor.is-editing{flex:0 1 190px!important;width:190px!important;max-width:190px!important;min-width:112px!important;background:rgba(235,245,255,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 3px 12px rgba(0,0,0,.12)!important}
+#sb-line-name-editor.is-editing #sb-new-line-name{width:auto!important;min-width:0!important;padding:0 12px 0 2px!important;opacity:1!important;pointer-events:auto!important;transform:translateX(0)!important}
+#sb-line-name-editor.is-editing #sb-line-name-search svg{transform:scale(.94)!important}
+#sb-line-name-editor #sb-new-line-name::placeholder{color:rgba(235,245,255,.52)!important}
+#sb-service-create-slot .sb-line-color-picker{order:-1!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important}
+#sb-service-create-slot #sb-line-name-editor{order:0!important}
+#sb-service-create-slot #sb-line-remove-active{order:2!important}
+#sb-line-color-trigger{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}
+@media(max-width:700px){#sb-line-name-editor.is-editing{flex:0 1 154px!important;width:154px!important;max-width:154px!important;min-width:112px!important}}
+@media(max-width:390px){#sb-line-name-editor.is-editing{flex:0 1 126px!important;width:126px!important;max-width:126px!important;min-width:104px!important}}
+@media(prefers-reduced-motion:reduce){#sb-line-name-editor,#sb-line-name-editor *{transition:none!important}}
+#sb-construction-context-menu{box-sizing:border-box!important;width:auto!important;max-width:none!important;border:0!important;outline:0!important;border-radius:24px!important;padding:9px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+#sb-construction-context-menu .sb-construction-context-grid{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;grid-template-rows:repeat(9,minmax(48px,auto))!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}
 </style>
