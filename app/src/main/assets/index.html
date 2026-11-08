@@ -4721,7 +4721,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m16 16 4.6 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected color" title="Select a custom color to enable deletion" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   const createSlot=document.getElementById("sb-service-create-slot");
@@ -9309,5 +9309,121 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 }
 :focus-visible{
  box-shadow:none!important;
+}
+</style>
+
+
+<style id="sb-pr75-service-dock-single-panel-layout">
+/* The service dock is one continuous expandable glass panel.  Keep the
+   existing-lines scroller as the live content host, but remove its former
+   inset slot treatment; Run gets its own matching inset slot at the far end. */
+#sb-action-dock .sb-dock-panel-service{
+ box-sizing:border-box!important;
+ flex:0 1 54px!important;
+ min-width:54px!important;
+ width:auto!important;
+ max-width:none!important;
+ overflow:hidden!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded{
+ flex:1 1 0!important;
+ width:auto!important;
+ min-width:0!important;
+ max-width:none!important;
+ justify-content:flex-start!important;
+ padding:4px 6px!important;
+}
+#sb-action-dock .sb-dock-panel-service #sb-service-lines{
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex:1 1 auto!important;
+ flex-flow:row nowrap!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ gap:8px!important;
+ width:0!important;
+ min-width:0!important;
+ height:100%!important;
+ min-height:0!important;
+ padding:0!important;
+ margin:0!important;
+}
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines{
+ display:none!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content{
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex:1 1 auto!important;
+ width:0!important;
+ min-width:0!important;
+ max-width:none!important;
+ height:100%!important;
+ min-height:0!important;
+ max-height:none!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ gap:8px!important;
+ margin:0!important;
+ padding:0 2px!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ border:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+ background-image:none!important;
+ box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+ touch-action:pan-x!important;
+ -webkit-overflow-scrolling:touch!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex:0 0 46px!important;
+ align-items:center!important;
+ justify-content:center!important;
+ width:46px!important;
+ min-width:46px!important;
+ max-width:46px!important;
+ height:46px!important;
+ min-height:46px!important;
+ max-height:46px!important;
+ margin:0!important;
+ padding:0!important;
+ border:1px solid rgba(205,230,248,.16)!important;
+ border-radius:999px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.105),rgba(170,207,236,.045))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.075),0 4px 12px rgba(0,0,0,.10)!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+ box-sizing:border-box!important;
+ display:inline-flex!important;
+ flex:0 0 42px!important;
+ width:42px!important;
+ min-width:42px!important;
+ max-width:42px!important;
+ height:42px!important;
+ min-height:42px!important;
+ max-height:42px!important;
+ margin:0!important;
+ padding:0!important;
+}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded{padding:4px 5px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{gap:6px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+  flex-basis:42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+  flex-basis:38px!important;width:38px!important;min-width:38px!important;max-width:38px!important;
+  height:38px!important;min-height:38px!important;max-height:38px!important;
+ }
+}
+@media(max-width:380px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded{padding:3px 4px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{gap:4px!important}
 }
 </style>
