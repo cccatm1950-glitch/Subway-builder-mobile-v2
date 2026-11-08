@@ -2676,6 +2676,10 @@ if(mode==='delete'){
    const MOBILE_CURVE_MAX_LATERAL_ACCELERATION=1;
    const MOBILE_CURVE_MAX_SPEED_MPS=24.72;
    const MOBILE_CURVE_MAX_SLOPE_PERCENTAGE=5.5;
+   const MOBILE_CURVE_TRAIN_WIDTH_METERS=3.05;
+   const MOBILE_CURVE_TRACK_CLEARANCE_METERS=1;
+   const averageTrainAndClearanceWidth=(MOBILE_CURVE_TRAIN_WIDTH_METERS+MOBILE_CURVE_TRACK_CLEARANCE_METERS)/2;
+   const curveWidthFactor=Math.max(.5,1-(MOBILE_CURVE_TRACK_CLEARANCE_METERS*averageTrainAndClearanceWidth)/200);
    const rawRadii=new Array(points.length).fill(null);
    for(let i=1;i<points.length-1;i++){
     const p0=points[i-1],p1=points[i],p2=points[i+1];
@@ -2698,7 +2702,9 @@ if(mode==='delete'){
     return neighbors.length?Math.max(MOBILE_CURVE_MIN_RADIUS_METERS,Math.min(...neighbors)):MOBILE_CURVE_MIN_RADIUS_METERS;
    });
    const trackLengthMeters=cumulativeTrackMeters[cumulativeTrackMeters.length-1]||0;
-   const trackGradePercentage=trackLengthMeters>0?Math.abs((Number.isFinite(t.endElevation)?t.endElevation:0)-(Number.isFinite(t.startElevation)?t.startElevation:0))/trackLengthMeters*100:0;
+   // The desktop speed model uses signed start-to-end grade; the mobile
+   // track currently stores one direction, so retain that same convention.
+   const trackGradePercentage=trackLengthMeters>0?((Number.isFinite(t.endElevation)?t.endElevation:0)-(Number.isFinite(t.startElevation)?t.startElevation:0))/trackLengthMeters*100:0;
    let gradeSpeedLimit=Infinity;
    if(trackGradePercentage>=MOBILE_CURVE_MAX_SLOPE_PERCENTAGE*.95)gradeSpeedLimit=MOBILE_CURVE_MAX_SPEED_MPS*.6;
    else if(trackGradePercentage>=MOBILE_CURVE_MAX_SLOPE_PERCENTAGE*.8)gradeSpeedLimit=MOBILE_CURVE_MAX_SPEED_MPS*.75;
@@ -2710,7 +2716,8 @@ if(mode==='delete'){
     const distanceAlong=cumulativeTrackMeters[i]||0;
     if(distanceAlong-lastMeasureDistance<35)continue;
     lastMeasureDistance=distanceAlong;
-    const curveSpeedMps=Math.min(Math.sqrt(MOBILE_CURVE_MAX_LATERAL_ACCELERATION*Math.max(radius,MOBILE_CURVE_MIN_RADIUS_METERS)),gradeSpeedLimit,MOBILE_CURVE_MAX_SPEED_MPS);
+    const stationSpeedFactor=t.type==='station'?.5:1;
+    const curveSpeedMps=Math.min(Math.sqrt(MOBILE_CURVE_MAX_LATERAL_ACCELERATION*Math.max(radius,MOBILE_CURVE_MIN_RADIUS_METERS))*curveWidthFactor*stationSpeedFactor,gradeSpeedLimit,MOBILE_CURVE_MAX_SPEED_MPS);
     const curveSpeed=curveSpeedMps*3.6;
     const label='<div style="padding:4px 7px;border:1px solid rgba(255,255,255,.34);border-radius:10px;background:rgba(7,18,31,.88);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:#65ffe4">R '+Math.round(radius)+' m</span><br><span>'+Math.round(curveSpeed)+' km/h cap</span></div>';
     L.marker(points[i],{pane:'sbTrackPane',interactive:false,keyboard:false,icon:L.divIcon({className:'',html:label,iconSize:[86,38],iconAnchor:[43,19]})}).addTo(window.networkLayer);
