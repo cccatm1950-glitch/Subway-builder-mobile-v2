@@ -8422,7 +8422,16 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   button.dataset.sbSvgReady='true';
   button.setAttribute('aria-label',text);
   button.title=text;
-  button.innerHTML=svg(name)+'<span>'+text+'</span>';
+  button.innerHTML=svg(name);
+ }
+ function decoratePlatformSize(button){
+  if(!button||button.dataset.sbSvgReady==='true')return;
+  const metres=({compact:'6',standard:'8',long:'10'})[button.dataset.platformSize]||button.textContent.trim().replace(/[^0-9]/g,'');
+  const accessibleLabel=metres+' metre platform width';
+  button.dataset.sbSvgReady='true';
+  button.setAttribute('aria-label',accessibleLabel);
+  button.title=accessibleLabel;
+  button.innerHTML='<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><text x="24" y="33" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="'+(metres.length>1?'22':'28')+'" font-weight="700" fill="currentColor">'+metres+'</text></svg>';
  }
  const additions=[
   ['track-single','single','Single track'],
@@ -8462,7 +8471,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    button.setAttribute('aria-pressed','false');
    grid.appendChild(button);
   });
-  menu.querySelectorAll('button[data-platform-size]').forEach(button=>decorate(button,'ruler',button.textContent.trim()));
+  menu.querySelectorAll('button[data-platform-size]').forEach(decoratePlatformSize);
   sync(menu);
  }
  function sync(menu){
@@ -9191,3 +9200,19 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
  window.sbPr73RefreshDockPanels=refresh;
 })();
 </script>
+
+<style id="sb-pr73-icon-only-construction-controls">
+#sb-construction-context-menu .sb-construction-context-grid button,
+#sb-construction-context-menu .sb-platform-size-grid button{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:0!important;padding:0!important;font-size:0!important;line-height:0!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button span{display:none!important}
+#sb-construction-context-menu .sb-construction-context-grid button svg{
+ display:block!important;width:24px!important;height:24px!important;flex:0 0 24px!important;margin:0!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid button svg{
+ display:block!important;width:100%!important;height:100%!important;max-width:38px!important;max-height:38px!important;
+ flex:1 1 auto!important;margin:0!important;overflow:visible!important;
+}
+</style>
