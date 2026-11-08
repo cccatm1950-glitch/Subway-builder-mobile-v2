@@ -7,7 +7,6 @@ on:
       - 'app/src/main/assets/track-topology.js'
       - 'app/src/main/assets/track-dynamics.js'
       - 'scripts/test-track-dynamics.cjs'
-      - 'scripts/test-track-dynamics.cjs'
       - 'scripts/test-track-topology.cjs'
       - 'scripts/check-ui-source.mjs'
       - '.github/workflows/ui-source-check.yml'
@@ -16,7 +15,9 @@ on:
     paths:
       - 'app/src/main/assets/index.html'
       - 'app/src/main/assets/track-topology.js'
+      - 'app/src/main/assets/track-dynamics.js'
       - 'scripts/test-track-topology.cjs'
+      - 'scripts/test-track-dynamics.cjs'
       - 'scripts/check-ui-source.mjs'
       - '.github/workflows/ui-source-check.yml'
 
