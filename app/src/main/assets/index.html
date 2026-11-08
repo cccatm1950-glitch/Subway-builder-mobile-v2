@@ -9290,3 +9290,13 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 }
 #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important;white-space:nowrap!important}
 </style>
+
+<style id="sb-remove-service-line-create-slot">
+/* Remove the service-line creation controls while retaining existing lines and Run. */
+#sb-service-create-slot{display:none!important}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 46px!important;
+}
+#sb-service-lines-content{min-width:0!important;width:100%!important}
+</style>
