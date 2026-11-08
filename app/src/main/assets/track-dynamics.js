@@ -19,7 +19,9 @@
   if(!Array.isArray(points)||points.length<3)return [];
   const raw=[];for(let i=0;i<points.length-2;i++)raw.push(calculateTurnRadius(points[i],points[i+1],points[i+2],options));
   const radius=Math.max(1,Math.floor(options.smoothingRadius??2));
-  return raw.map((v,i)=>{if(v==null)return null;const window=raw.slice(Math.max(0,i-radius),Math.min(raw.length,i+radius+1)).filter(Number.isFinite);return window.length?Math.max(options.minTurnRadius??0,Math.min(...window)):null;});
+  // Smooth neighboring measurements without replacing a real tight radius with the train minimum.
+  // Minimum-radius compliance is reported separately by analyzeTrack().
+  return raw.map((v,i)=>{if(v==null)return null;const window=raw.slice(Math.max(0,i-radius),Math.min(raw.length,i+radius+1)).filter(Number.isFinite);return window.length?Math.min(...window):null;});
  }
  function getMaxSpeedForSlope(maxSpeedKmh,slopePercent,thresholds={}){
   if(!Number.isFinite(maxSpeedKmh)||maxSpeedKmh<=0)return 0;
@@ -34,7 +36,7 @@
  function getMaxSpeedForRadiusAndSlope(input={}){
   const top=Number(input.maxSpeedKmh);if(!Number.isFinite(top)||top<=0)return 0;
   let cap=top;const r=Number(input.radiusMeters),minR=Number(input.minTurnRadiusMeters)||0,lat=Number(input.maxLateralAcceleration)||.8;
-  if(Number.isFinite(r)&&r>0&&lat>0)cap=Math.min(cap,Math.sqrt(Math.max(1,Math.max(r,minR>0?minR:r))*lat)*KMH);
+  if(Number.isFinite(r)&&r>0&&lat>0)cap=Math.min(cap,Math.sqrt(Math.max(1,r)*lat)*KMH);
   cap*=Number.isFinite(input.curveSpeedMultiplier)?Math.max(.5,input.curveSpeedMultiplier):1;
   cap=getMaxSpeedForSlope(cap,input.slopePercent,input.slopeThresholds);if(input.stationTrack)cap*=.5;
   return Math.max(0,cap);
@@ -43,7 +45,6 @@
   if(!Array.isArray(points)||points.length<3)return [];
   const radii=calculateSmoothedTrackRadii(points,{
    smoothingRadius:options.smoothingRadius??2,
-   minTurnRadius:options.minTurnRadiusMeters??29,
    cubic:false
   });
   const distances=[0];
@@ -70,6 +71,8 @@
     pointIndex,
     distanceMeters:distances[pointIndex],
     radiusMeters:radius,
+    minimumRadiusMeters:options.minTurnRadiusMeters??29,
+    violatesMinimumRadius:Number.isFinite(options.minTurnRadiusMeters??29)&&radius<(options.minTurnRadiusMeters??29),
     speedKmh,
     speedBand:getSpeedBand(speedKmh)
    });
