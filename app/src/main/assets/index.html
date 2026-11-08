@@ -9141,8 +9141,8 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
  }
  function refresh(){positionColorPalette();positionConstruction();}
  document.addEventListener('click',event=>{if(event.target?.closest('#sb-line-color-trigger'))requestAnimationFrame(positionColorPalette);},true);
- const observer=new MutationObserver(records=>{if(records.some(record=>record.target?.id==='sb-line-color-options'||record.target?.id==='sb-construction-context-menu'))requestAnimationFrame(refresh);});
- const observe=()=>{['sb-line-color-options','sb-top-dock','sb-construction-context-menu'].map(byId).filter(Boolean).forEach(el=>observer.observe(el,{attributes:true,attributeFilter:['class','hidden','style']}));if(document.body)observer.observe(document.body,{childList:true,subtree:true});};
+ const observer=new MutationObserver(records=>{if(records.some(record=>record.target?.id==='sb-line-color-options'||record.type==='childList'))requestAnimationFrame(refresh);});
+ const observe=()=>{const palette=byId('sb-line-color-options');if(palette)observer.observe(palette,{attributes:true,attributeFilter:['class','hidden']});if(document.body)observer.observe(document.body,{childList:true,subtree:true});};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
  window.addEventListener('resize',refresh,{passive:true});window.addEventListener('orientationchange',()=>requestAnimationFrame(refresh),{passive:true});
  if(window.visualViewport){window.visualViewport.addEventListener('resize',refresh,{passive:true});window.visualViewport.addEventListener('scroll',refresh,{passive:true});}
