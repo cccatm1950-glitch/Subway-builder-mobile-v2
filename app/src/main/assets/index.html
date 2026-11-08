@@ -3236,6 +3236,8 @@ function handleStationClick(index){
   }
 
   money-=150;
+  const inheritedJunction=[stations[first],stations[second]].find(node=>node&&node.nodeType==='junction');
+  const newTrackElevation=tunnelMode?'below':(inheritedJunction?.elevation||'at');
   stations[first].elevationMeters=proposedStartElevation;
   stations[second].elevationMeters=proposedEndElevation;
   tracks.push({
@@ -3243,7 +3245,7 @@ function handleStationClick(index){
   b:second,
   style:trackStyle,
   curve:curveMode,
-  elevation:tunnelMode?"below":"at",
+  elevation:newTrackElevation,
   startElevation:proposedStartElevation,
   endElevation:proposedEndElevation,
   waypoints:[],
