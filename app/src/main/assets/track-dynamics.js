@@ -21,9 +21,13 @@
   const radius=Math.max(1,Math.floor(options.smoothingRadius??2));
   return raw.map((v,i)=>{if(v==null)return null;const window=raw.slice(Math.max(0,i-radius),Math.min(raw.length,i+radius+1)).filter(Number.isFinite);return window.length?Math.max(options.minTurnRadius??0,Math.min(...window)):null;});
  }
- function getMaxSpeedForSlope(maxSpeedKmh,slopePercent){
+ function getMaxSpeedForSlope(maxSpeedKmh,slopePercent,thresholds={}){
   if(!Number.isFinite(maxSpeedKmh)||maxSpeedKmh<=0)return 0;
-  const s=Math.abs(Number.isFinite(slopePercent)?slopePercent:0),factor=s>=9.5?.60:s>=8?.75:s>=6?.90:1;
+  const s=Math.abs(Number.isFinite(slopePercent)?slopePercent:0);
+  const low=Number.isFinite(thresholds.low)?thresholds.low:6;
+  const medium=Number.isFinite(thresholds.medium)?thresholds.medium:8;
+  const high=Number.isFinite(thresholds.high)?thresholds.high:9.5;
+  const factor=s>=high?.60:s>=medium?.75:s>=low?.90:1;
   return maxSpeedKmh*factor;
  }
  function getMaxSpeedForRadiusAndSlope(input={}){
@@ -31,7 +35,7 @@
   let cap=top;const r=Number(input.radiusMeters),minR=Number(input.minTurnRadiusMeters)||0,lat=Number(input.maxLateralAcceleration)||.8;
   if(Number.isFinite(r)&&r>0&&lat>0)cap=Math.min(cap,Math.sqrt(Math.max(1,Math.min(r,minR>0?minR:r))*lat)*KMH);
   cap*=Number.isFinite(input.curveSpeedMultiplier)?Math.max(.5,input.curveSpeedMultiplier):1;
-  cap=getMaxSpeedForSlope(cap,input.slopePercent);if(input.stationTrack)cap*=.5;
+  cap=getMaxSpeedForSlope(cap,input.slopePercent,input.slopeThresholds);if(input.stationTrack)cap*=.5;
   return Math.max(0,cap);
  }
  function analyzeTrack(points,options={}){
@@ -55,6 +59,7 @@
     maxLateralAcceleration:options.maxLateralAcceleration??1,
     curveSpeedMultiplier:options.curveSpeedMultiplier??1,
     slopePercent:options.slopePercent??0,
+    slopeThresholds:options.slopeThresholds,
     stationTrack:!!options.stationTrack
    });
    measures.push({
