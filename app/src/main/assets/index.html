@@ -2642,7 +2642,7 @@ if(mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
     if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();message('Track selected. Tap the map to add a curve point.');}
-    else if(mode==='delete'){tracks.splice(trackIndex,1);selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
+    else if(mode==='delete'){tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
   }
@@ -3106,6 +3106,22 @@ function selectTrackForWaypoints(trackIndex){
   renderNetwork();
   message('Track selected. Tap the map to add a waypoint.');
  }
+function pruneOrphanJunctions(){
+ let removed=false;
+ for(let index=stations.length-1;index>=0;index--){
+  if(stations[index].nodeType!=='junction'||tracks.some(track=>track.a===index||track.b===index))continue;
+  stations.splice(index,1);
+  tracks.forEach(track=>{
+   if(track.a>index)track.a--;
+   if(track.b>index)track.b--;
+  });
+  if(selected===index)selected=null;
+  else if(Number.isInteger(selected)&&selected>index)selected--;
+  removed=true;
+ }
+ return removed;
+}
+
 function handleStationClick(index){
   if(mode==='delete'){
   let name=stations[index].name;
@@ -3118,6 +3134,7 @@ function handleStationClick(index){
   });
 
   stations.splice(index,1);
+  pruneOrphanJunctions();
   selected=null;
   selectedTrackIndex=null;
 
@@ -5503,7 +5520,7 @@ function waypointAtCrosshair(){
    }
    const track=trackAtCrosshair();
    if(track){
-    tracks.splice(track.index,1);selectedTrackIndex=null;
+    tracks.splice(track.index,1);pruneOrphanJunctions();selectedTrackIndex=null;
     saveHistory();renderNetwork();message('Track section deleted at crosshair.');return;
    }
    message('Move the map until a station, track, or waypoint is under the crosshair.');
