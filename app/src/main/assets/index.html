@@ -2472,26 +2472,12 @@ function getTrackLayerStyle(type,active){
 function getStationTangentCenterline(startStation,endStation){
  const start=map.project(L.latLng(startStation.lat,startStation.lng),18);
  const end=map.project(L.latLng(endStation.lat,endStation.lng),18);
- const dx=end.x-start.x,dy=end.y-start.y,chord=Math.hypot(dx,dy);
- if(chord<1e-6)return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
- const routeBearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
- const alignBearing=value=>{
-  if(!Number.isFinite(value))return null;
-  let bearing=((value%360)+360)%360;
-  const difference=Math.abs(((bearing-routeBearing+540)%360)-180);
-  if(difference>90)bearing=(bearing+180)%360;
-  return bearing;
- };
- const startBearing=alignBearing(startStation.platformBearing);
- const endBearing=alignBearing(endStation.platformBearing);
- if(startBearing===null&&endBearing===null)return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
- const half=chord/2;
- const controlPoint=(origin,bearing,direction)=>{
-  const radians=bearing*Math.PI/180;
-  return {x:origin.x+Math.sin(radians)*half*direction,y:origin.y-Math.cos(radians)*half*direction};
- };
- const firstControl=startBearing===null?null:controlPoint(start,startBearing,1);
- const secondControl=endBearing===null?null:controlPoint(end,endBearing,-1);
+ const alignment=window.SBTrackTopology?.calculateStationTangentControls?.(
+  start,end,startStation.platformBearing,endStation.platformBearing
+ );
+ if(!alignment||alignment.chord<1e-6||(!alignment.firstControl&&!alignment.secondControl))
+  return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
+ const firstControl=alignment.firstControl,secondControl=alignment.secondControl;
  const meters=map.distance(L.latLng(startStation.lat,startStation.lng),L.latLng(endStation.lat,endStation.lng));
  const steps=Math.max(8,Math.min(64,Math.ceil(meters/20)));
  const mix=(p,q,t)=>({x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t});
