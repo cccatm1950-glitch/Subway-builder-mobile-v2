@@ -2259,6 +2259,10 @@ function snapshot(){
    elevation:t.elevation||'at',
    startElevation:Number.isFinite(t.startElevation)?t.startElevation:null,
    endElevation:Number.isFinite(t.endElevation)?t.endElevation:null,
+   offsetTransitionZones:t.offsetTransitionZones&&typeof t.offsetTransitionZones==='object'?{
+    ...(Number.isFinite(t.offsetTransitionZones.start)?{start:t.offsetTransitionZones.start}:{}),
+    ...(Number.isFinite(t.offsetTransitionZones.end)?{end:t.offsetTransitionZones.end}:{})
+   }:null,
    lineIds:Array.isArray(t.lineIds)?t.lineIds.slice():[],
    waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'})),
    centerline:Array.isArray(t.centerline)?t.centerline.map(p=>({lat:p.lat,lng:p.lng})):null
@@ -2300,6 +2304,10 @@ function restoreSnapshot(data){
   a:t.a,b:t.b,trackGroupId:typeof t.trackGroupId==='string'?t.trackGroupId:null,style:t.style||'single',curve:!!t.curve,elevation:t.elevation||'at',
   startElevation:Number.isFinite(t.startElevation)?t.startElevation:null,
   endElevation:Number.isFinite(t.endElevation)?t.endElevation:null,
+  offsetTransitionZones:t.offsetTransitionZones&&typeof t.offsetTransitionZones==='object'?{
+   ...(Number.isFinite(t.offsetTransitionZones.start)?{start:t.offsetTransitionZones.start}:{}),
+   ...(Number.isFinite(t.offsetTransitionZones.end)?{end:t.offsetTransitionZones.end}:{})
+  }:null,
   lineIds:Array.isArray(t.lineIds)?t.lineIds.filter(id=>typeof id==='string'):[],
   waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'})),
   centerline:Array.isArray(t.centerline)?t.centerline.map(p=>({lat:Number(p.lat),lng:Number(p.lng)})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)):null
@@ -5502,7 +5510,8 @@ function splitTrackAtCrosshair(trackHit,latlng){
  const segmentStart=projected[projection.segmentIndex],segmentEnd=projected[projection.segmentIndex+1];
  const tangentBearing=(Math.atan2(segmentEnd.x-segmentStart.x,segmentStart.y-segmentEnd.y)*180/Math.PI+360)%360;
  const normalizedTrack={...track,trackGroupId:track.trackGroupId||('tg-'+Date.now()+'-'+junctionIndex),startElevation,endElevation};
- const splitRecord={...split,fraction:groundFraction(projection),first:firstGeometry,second:secondGeometry};
+ const splitAlongMeters=(routeDistances[projection.segmentIndex]||0)+map.distance(route[projection.segmentIndex],route[projection.segmentIndex+1])*projection.t;
+ const splitRecord={...split,fraction:groundFraction(projection),alongMeters:splitAlongMeters,totalLengthMeters:totalRouteDistance,first:firstGeometry,second:secondGeometry};
  const previousSelection=selected;
  const shouldConnect=previousSelection!==null&&previousSelection!==track.a&&previousSelection!==track.b;
  const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
