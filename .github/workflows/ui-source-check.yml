@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'app/src/main/assets/index.html'
+      - 'app/src/main/assets/track-topology.js'
+      - 'scripts/test-track-topology.cjs'
       - 'scripts/check-ui-source.mjs'
       - '.github/workflows/ui-source-check.yml'
   push:
@@ -23,3 +25,5 @@ jobs:
           node-version: 22
       - name: Parse inline JavaScript and verify UI wiring
         run: node scripts/check-ui-source.mjs
+      - name: Test track topology primitives
+        run: node scripts/test-track-topology.cjs
