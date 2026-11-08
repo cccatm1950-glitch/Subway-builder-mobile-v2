@@ -60,6 +60,7 @@ for (const required of [
 for (const required of [
   'function splitTrackAtCrosshair',
   'function getTrackElevationAtFraction',
+  'interpolateElevationAtDistance'
   'function pruneOrphanJunctions',
   'function pauseSimulationBeforeTopologyChange',
   'function findTrackGroupPath',
