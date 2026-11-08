@@ -1,0 +1,50 @@
+const assert = require('node:assert/strict');
+const topology = require('../app/src/main/assets/track-topology.js');
+
+const route = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }];
+const projection = topology.projectPointToPolyline({ x: 8, y: 2 }, route);
+assert.ok(projection);
+assert.equal(projection.segmentIndex, 0);
+assert.equal(projection.t, 0.8);
+assert.equal(projection.x, 8);
+assert.equal(projection.y, 0);
+assert.ok(Math.abs(projection.distance - 2) < 1e-9);
+assert.ok(Math.abs(projection.fraction - 8 / 20) < 1e-9);
+
+const split = topology.splitPolylineAtProjection(route, projection);
+assert.deepEqual(split.first, [{ x: 0, y: 0 }, { x: 8, y: 0 }]);
+assert.deepEqual(split.second, [{ x: 8, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }]);
+assert.equal(split.first[split.first.length - 1].x, split.second[0].x);
+assert.equal(split.first[split.first.length - 1].y, split.second[0].y);
+
+const track = {
+  a: 2, b: 7, style: 'parallel', curve: true, elevation: 'below',
+  startElevation: -20, endElevation: -10,
+  lineIds: ['line-1', 'line-2'],
+  waypoints: [{ lat: 1, lng: 2 }, { lat: 3, lng: 4 }]
+};
+const withLatLng = {
+  ...split,
+  first: split.first.map(p => ({ lat: p.y, lng: p.x })),
+  second: split.second.map(p => ({ lat: p.y, lng: p.x }))
+};
+const sections = topology.cloneTrackSections(track, withLatLng, 9, [0.2, 0.8]);
+assert.ok(sections);
+assert.equal(sections.first.a, 2);
+assert.equal(sections.first.b, 9);
+assert.equal(sections.second.a, 9);
+assert.equal(sections.second.b, 7);
+assert.equal(sections.first.style, 'parallel');
+assert.equal(sections.second.elevation, 'below');
+assert.deepEqual(sections.first.lineIds, ['line-1', 'line-2']);
+assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
+assert.equal(sections.splitElevation, -16);
+assert.deepEqual(sections.first.waypoints, [{ lat: 1, lng: 2 }]);
+assert.deepEqual(sections.second.waypoints, [{ lat: 3, lng: 4 }]);
+sections.first.lineIds.push('mutated');
+assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
+
+assert.equal(topology.projectPointToPolyline({ x: 1, y: 1 }, [{ x: 0, y: 0 }]), null);
+assert.equal(topology.splitPolylineAtProjection(route, null), null);
+assert.equal(topology.cloneTrackSections(track, { ...withLatLng, fraction: 0 }, 9, [0.2, 0.8]), null);
+console.log('Track topology tests passed.');
