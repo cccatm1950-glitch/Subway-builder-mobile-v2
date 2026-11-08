@@ -18,7 +18,7 @@ assert.equal(split.first[split.first.length - 1].x, split.second[0].x);
 assert.equal(split.first[split.first.length - 1].y, split.second[0].y);
 
 const track = {
-  a: 2, b: 7, style: 'parallel', curve: true, elevation: 'below',
+  a: 2, b: 7, trackGroupId: 'tg-original', style: 'parallel', curve: true, elevation: 'below',
   startElevation: -20, endElevation: -10,
   lineIds: ['line-1', 'line-2'],
   waypoints: [{ lat: 1, lng: 2 }, { lat: 3, lng: 4 }]
@@ -35,6 +35,8 @@ assert.equal(sections.first.b, 9);
 assert.equal(sections.second.a, 9);
 assert.equal(sections.second.b, 7);
 assert.equal(sections.first.style, 'parallel');
+assert.equal(sections.first.trackGroupId, 'tg-original');
+assert.equal(sections.second.trackGroupId, 'tg-original');
 assert.equal(sections.second.elevation, 'below');
 assert.deepEqual(sections.first.lineIds, ['line-1', 'line-2']);
 assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
