@@ -5419,10 +5419,11 @@ function splitTrackAtCrosshair(trackHit,latlng){
  });
  const startElevation=Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
  const endElevation=Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation);
- const normalizedTrack={...track,startElevation,endElevation};
- const splitRecord={...split,first:firstGeometry,second:secondGeometry};
  const junctionIndex=stations.length;
+ const normalizedTrack={...track,trackGroupId:track.trackGroupId||('tg-'+Date.now()+'-'+junctionIndex),startElevation,endElevation};
+ const splitRecord={...split,first:firstGeometry,second:secondGeometry};
  const previousSelection=selected;
+ const shouldConnect=previousSelection!==null&&previousSelection!==track.a&&previousSelection!==track.b;
  const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
  if(!sections)return null;
  const junctionElevation=Number.isFinite(sections.splitElevation)?sections.splitElevation:
@@ -5435,10 +5436,12 @@ function splitTrackAtCrosshair(trackHit,latlng){
  selectedTrackIndex=null;
  saveHistory();
  renderNetwork();
- if(previousSelection!==null){
+ if(shouldConnect){
   handleStationClick(junctionIndex);
- }else{
+ }else if(previousSelection===null){
   message('Track split successfully. Junction selected; tap another station or junction to continue the connection.');
+ }else{
+  message('Track split successfully. The selected endpoint is already connected to this track.');
  }
  return junctionIndex;
 }
