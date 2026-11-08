@@ -8236,4 +8236,203 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  #sb-service-dock #sb-line-remove-active{transition:none!important}
 }
 </style>
+
+<!-- PR73 construction tool inventory + SVG icon parity -->
+<style id="sb-pr73-construction-svg-inventory">
+#sb-construction-context-menu{max-width:min(286px,calc(100vw - 20px))!important}
+#sb-construction-context-menu .sb-construction-context-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(8,minmax(42px,auto))!important;
+ gap:7px!important;align-items:stretch!important
+}
+#sb-construction-context-menu .sb-construction-context-grid button{
+ min-width:0!important;min-height:44px!important;padding:6px 5px!important;
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:flex-start!important;gap:7px!important;text-align:left!important;
+ border:1px solid rgba(195,225,248,.12)!important;border-radius:14px!important;
+ background:rgba(225,241,255,.075)!important;color:#eef7ff!important;
+ font-size:11px!important;font-weight:650!important;line-height:1.15!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button svg,
+#sb-construction-context-menu .sb-platform-size-grid button svg{
+ width:19px!important;height:19px!important;min-width:19px!important;
+ flex:0 0 19px!important;display:block!important;fill:none!important;
+ stroke:currentColor!important;stroke-width:1.8!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+ pointer-events:none!important;opacity:.94!important
+}
+#sb-construction-context-menu .sb-construction-context-grid button span{
+ display:block!important;min-width:0!important;overflow:hidden!important;
+ text-overflow:ellipsis!important;white-space:nowrap!important
+}
+#sb-construction-context-menu .sb-construction-context-grid button.active,
+#sb-construction-context-menu .sb-construction-context-grid button[aria-pressed="true"]{
+ color:#bafbf0!important;background:rgba(54,211,190,.17)!important;
+ border-color:rgba(74,235,211,.48)!important;
+ box-shadow:inset 0 0 0 1px rgba(74,235,211,.08),0 0 13px rgba(38,220,196,.12)!important
+}
+#sb-construction-context-menu .sb-platform-size-grid{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important
+}
+#sb-construction-context-menu .sb-platform-size-grid button{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:5px!important;min-height:40px!important;padding:6px!important
+}
+#sb-construction-context-menu .sb-platform-size-grid button.active,
+#sb-construction-context-menu .sb-platform-size-grid button[aria-pressed="true"]{
+ color:#bafbf0!important;background:rgba(54,211,190,.17)!important;
+ border-color:rgba(74,235,211,.48)!important
+}
+@media(max-width:380px){
+ #sb-construction-context-menu{padding:10px!important}
+ #sb-construction-context-menu .sb-construction-context-grid{gap:6px!important}
+ #sb-construction-context-menu .sb-construction-context-grid button{font-size:10px!important;gap:5px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-construction-context-menu .sb-construction-context-grid button{transition:none!important}
+}
+</style>
+<script id="sb-pr73-construction-svg-inventory">
+(function(){
+ if(window.__sbPr73ConstructionInventory)return;
+ window.__sbPr73ConstructionInventory=true;
+ const iconPaths={
+  station:'<circle cx="12" cy="12" r="8.5"/><path d="M8 16V8h8v8M8 12h8M10 16v2m4-2v2"/>',
+  track:'<path d="M7 3 5 21M17 3l2 18M6 7h12M5.5 12h13M5 17h14"/>',
+  curve:'<path d="M4 18c4 0 4-12 9-12h7"/><path d="m16 3 4 3-4 3"/>',
+  waypoint:'<path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.2"/>',
+  inspect:'<circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5M10.8 7.5v6.6m-3.3-3.3h6.6"/>',
+  single:'<path d="M12 3v18M8 7h8M8 12h8M8 17h8"/>',
+  parallel:'<path d="M7 3v18M17 3v18M4 7h16M4 12h16M4 17h16"/>',
+  tunnel:'<path d="M4 20V11a8 8 0 0 1 16 0v9M8 20v-8a4 4 0 0 1 8 0v8"/>',
+  curveMode:'<path d="M4 18h4a8 8 0 0 0 8-8V6"/><path d="m12 10 4-4 4 4"/>',
+  island:'<path d="M3 7h18M3 17h18M6 7v10m12-10v10"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
+  side:'<path d="M3 6h18M3 18h18M8 6v12m8-12v12"/><path d="M3 12h5m8 0h5"/>',
+  narrow:'<path d="M4 12h16M7 8l-3 4 3 4m10-8 3 4-3 4"/>',
+  standard:'<path d="M3 12h18M6 8l-3 4 3 4m12-8 3 4-3 4M12 5v14"/>',
+  wide:'<path d="M2 12h20M6 8l-4 4 4 4m12-8 4 4-4 4M12 3v18"/>',
+  ruler:'<path d="M4 17 17 4l3 3L7 20H4zM9 12l2 2m1-5 2 2m1-5 2 2"/>'
+ };
+ function svg(name){
+  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+(iconPaths[name]||iconPaths.track)+'"/></svg>';
+ }
+ function decorate(button,name,label){
+  if(!button||button.dataset.sbSvgReady==='true')return;
+  const text=label||button.textContent.trim();
+  button.dataset.sbSvgReady='true';
+  button.setAttribute('aria-label',text);
+  button.title=text;
+  button.innerHTML=svg(name)+'<span>'+text+'</span>';
+ }
+ const additions=[
+  ['track-single','single','Single track'],
+  ['track-parallel','parallel','Parallel tracks'],
+  ['curve-mode','curveMode','Curve mode'],
+  ['tunnel-mode','tunnel','Tunnel mode'],
+  ['platform-island','island','Island platform'],
+  ['platform-side','side','Side platforms'],
+  ['width-narrow','narrow','Narrow width'],
+  ['width-default','standard','Standard width'],
+  ['width-wide','wide','Wide width'],
+  ['theme-dark','tunnel','Dark map'],
+  ['theme-light','station','Light map']
+ ];
+ function enhance(menu){
+  if(!menu||menu.dataset.sbSvgInventory==='ready')return;
+  const grid=menu.querySelector('.sb-construction-context-grid');
+  if(!grid)return;
+  menu.dataset.sbSvgInventory='ready';
+  const modeIcons={station:'station',track:'track',curve:'curve',waypoint:'waypoint',inspect:'inspect'};
+  grid.querySelectorAll('button[data-mode]').forEach(button=>{
+   const name=modeIcons[button.dataset.mode]||'track';
+   decorate(button,name);
+   button.setAttribute('aria-pressed',String(
+    (button.dataset.mode==='station'&&window.mode==='station')||
+    (button.dataset.mode==='track'&&window.mode==='track')||
+    (button.dataset.mode==='curve'&&window.mode==='curve')||
+    (button.dataset.mode==='waypoint'&&window.mode==='waypoint')||
+    (button.dataset.mode==='inspect'&&window.mode==='inspect')
+   ));
+  });
+  additions.forEach(([action,icon,label])=>{
+   const button=document.createElement('button');
+   button.type='button';button.dataset.sbAction=action;
+   decorate(button,icon,label);
+   button.setAttribute('aria-pressed','false');
+   grid.appendChild(button);
+  });
+  menu.querySelectorAll('button[data-platform-size]').forEach(button=>decorate(button,'ruler',button.textContent.trim()));
+  sync(menu);
+ }
+ function sync(menu){
+  if(!menu)return;
+  const states={
+   'track-single':window.trackStyle==='single',
+   'track-parallel':window.trackStyle==='parallel',
+   'curve-mode':!!window.curveMode,
+   'tunnel-mode':!!window.tunnelMode,
+   'platform-island':window.platformType==='island',
+   'platform-side':window.platformType==='side',
+   'width-narrow':window.platformWidth==='narrow',
+   'width-default':window.platformWidth==='default',
+   'width-wide':window.platformWidth==='wide',
+   'theme-dark':document.documentElement.getAttribute('data-sb-theme')==='dark',
+   'theme-light':document.documentElement.getAttribute('data-sb-theme')==='light'
+  };
+  menu.querySelectorAll('button[data-sb-action]').forEach(button=>{
+   const active=!!states[button.dataset.sbAction];
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
+  menu.querySelectorAll('button[data-mode]').forEach(button=>{
+   const active=button.dataset.mode===window.mode;
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
+  menu.querySelectorAll('button[data-platform-size]').forEach(button=>{
+   const active=button.dataset.platformSize===window.platformSize;
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
+ }
+ function closeMenu(menu){
+  if(menu)menu.remove();
+  if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
+ }
+ function run(action){
+  const actions={
+   'track-single':()=>setTrackStyle('single'),
+   'track-parallel':()=>setTrackStyle('parallel'),
+   'curve-mode':()=>toggleCurveMode(),
+   'tunnel-mode':()=>toggleTunnelMode(),
+   'platform-island':()=>setPlatformType('island'),
+   'platform-side':()=>setPlatformType('side'),
+   'width-narrow':()=>setPlatformWidth('narrow'),
+   'width-default':()=>setPlatformWidth('default'),
+   'width-wide':()=>setPlatformWidth('wide'),
+   'theme-dark':()=>setMapTheme('dark'),
+   'theme-light':()=>setMapTheme('light')
+  };
+  if(typeof actions[action]!=='function')return false;
+  actions[action]();
+  return true;
+ }
+ document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest?event.target.closest('#sb-construction-context-menu button[data-sb-action]'):null;
+  if(!button)return;
+  event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+  const menu=button.closest('#sb-construction-context-menu');
+  try{if(run(button.dataset.sbAction))closeMenu(menu);}
+  catch(error){console.error('Construction control failed:',button.dataset.sbAction,error);}
+ },true);
+ const observer=new MutationObserver(()=>{
+  const menu=document.getElementById('sb-construction-context-menu');
+  if(menu)enhance(menu);
+ });
+ observer.observe(document.documentElement,{childList:true,subtree:true});
+ const current=document.getElementById('sb-construction-context-menu');
+ if(current)enhance(current);
+})();
+</script>
+
 </html>
