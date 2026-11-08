@@ -2376,7 +2376,7 @@ function redo(){
 window.getSubway3DTracks=function(){
  return tracks.map((t,i)=>{
   const a=stations[t.a],b=stations[t.b];if(!a||!b)return null;
-  const coords=[[a.lng,a.lat],...(t.waypoints||[]).map(w=>[w.lng,w.lat]),[b.lng,b.lat]];
+  const coords=getTrackCenterlinePoints(t).map(point=>[point[1],point[0]]);
   return {type:'Feature',properties:{
    color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],
    from:a.name||('Station '+(t.a+1)),to:b.name||('Station '+(t.b+1)),
@@ -3382,7 +3382,7 @@ function toggleSimulation(){
   if(!running||sbInGameMenuOpen||!tracks.length)return;
   const trackIndex=Math.floor(Math.random()*tracks.length),track=tracks[trackIndex];
   const from=stations[track.a],to=stations[track.b];if(!from||!to)return;
-  let route=[[from.lat,from.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[to.lat,to.lng]];
+  let route=getTrackCenterlinePoints(track);
   if(Math.random()<.5)route=route.slice().reverse();
   const lengths=[];let total=0;
   for(let i=1;i<route.length;i++){const d=map.distance(route[i-1],route[i]);lengths.push(d);total+=d;}
@@ -5322,30 +5322,8 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   const center=centerPoint();let best=null,bestDistance=26;
   tracks.forEach((track,index)=>{
    const aStation=stations[track.a],bStation=stations[track.b];if(!aStation||!bStation)return;
-   let latLngs=[[aStation.lat,aStation.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[bStation.lat,bStation.lng]];
-   if(track.curve&&(track.waypoints||[]).length){
-    const route=latLngs.map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
-    const alpha=.5,stepsPerSegment=20;
-    const distance2=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
-    const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
-    const curved=[];
-    for(let segment=0;segment<route.length-1;segment++){
-     const p0=route[Math.max(0,segment-1)],p1=route[segment],p2=route[segment+1],p3=route[Math.min(route.length-1,segment+2)];
-     const t0=0,t1=t0+Math.max(1e-4,Math.pow(distance2(p0,p1),alpha));
-     const t2=t1+Math.max(1e-4,Math.pow(distance2(p1,p2),alpha));
-     const t3=t2+Math.max(1e-4,Math.pow(distance2(p2,p3),alpha));
-     const blend=(a,b,ta,tb,t)=>mix(a,b,(t-ta)/(tb-ta));
-     for(let step=0;step<=stepsPerSegment;step++){
-      if(segment>0&&step===0)continue;
-      const u=step/stepsPerSegment,t=t1+u*(t2-t1);
-      const A1=blend(p0,p1,t0,t1,t),A2=blend(p1,p2,t1,t2,t),A3=blend(p2,p3,t2,t3,t);
-      const B1=blend(A1,A2,t0,t2,t),B2=blend(A2,A3,t1,t3,t);
-      const C=blend(B1,B2,t1,t2,t),ll=map.unproject(C,18);
-      curved.push([ll.lat,ll.lng]);
-     }
-    }
-    latLngs=curved;
-   }
+   const latLngs=getTrackCenterlinePoints(track);
+   if(latLngs.length<2)return;
    const points=latLngs.map(ll=>map.latLngToContainerPoint(ll));
    let distance=Infinity;
    for(let i=1;i<points.length;i++)distance=Math.min(distance,segmentDistance(center,points[i-1],points[i]));
