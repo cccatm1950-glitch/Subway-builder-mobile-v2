@@ -82,13 +82,13 @@
     const endElevation = Number.isFinite(track.endElevation) ? track.endElevation : null;
     const splitElevation = startElevation !== null && endElevation !== null
       ? startElevation + (endElevation - startElevation) * split.fraction : null;
-    const common = { ...track, lineIds: Array.isArray(track.lineIds) ? track.lineIds.slice() : [],
-      waypoints: [] };
-    const first = { ...common, a: track.a, b: junctionIndex,
+    const common = { ...track, waypoints: [] };
+    const copyLineIds = () => Array.isArray(track.lineIds) ? track.lineIds.slice() : [];
+    const first = { ...common, lineIds: copyLineIds(), a: track.a, b: junctionIndex,
       centerline: split.first.map(p => ({ ...p })),
       waypoints: firstWaypoints,
       startElevation, endElevation: splitElevation };
-    const second = { ...common, a: junctionIndex, b: track.b,
+    const second = { ...common, lineIds: copyLineIds(), a: junctionIndex, b: track.b,
       centerline: split.second.map(p => ({ ...p })),
       waypoints: secondWaypoints,
       startElevation: splitElevation, endElevation };
