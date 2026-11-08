@@ -1932,7 +1932,7 @@ button.sb-flat-close,[data-flat-close="true"]{
 </style>
 
 <style id="sb-platform-size-presets">
-#sb-construction-context-menu .sb-platform-size-heading{margin:12px 2px 7px;color:rgba(220,237,248,.72);font-size:10px;font-weight:800;letter-spacing:1.1px}
+#sb-construction-context-menu .sb-platform-size-heading{flex:0 0 auto!important;margin:12px 2px 7px;color:rgba(220,237,248,.72);font-size:10px;font-weight:800;letter-spacing:1.1px}
 #sb-construction-context-menu .sb-platform-size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 #sb-construction-context-menu .sb-platform-size-grid button{min-width:0;min-height:38px;border-radius:999px;border:1px solid rgba(220,240,255,.16);background:rgba(235,245,255,.07);color:#e8f2fa;font-size:12px;font-weight:700}
 #sb-construction-context-menu .sb-platform-size-grid button.active{background:rgba(54,211,190,.22);border-color:rgba(101,255,228,.68);color:#75ffe8;box-shadow:0 0 12px rgba(38,220,196,.22)}
@@ -2071,6 +2071,8 @@ button.sb-flat-close,[data-flat-close="true"]{
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="track-topology.js"></script>
+<script src="track-dynamics.js"></script>
 <script>
 const map=L.map('map',{zoomControl:false,attributionControl:false}).setView([37.7749,-122.4194],13);
 map.createPane('sbTrackPane');map.getPane('sbTrackPane').style.zIndex=410;
@@ -2245,7 +2247,7 @@ function snapshot(){
   curveMode:curveMode,
   tunnelMode:tunnelMode,
   stations:stations.map(s=>({
-   lat:s.lat,lng:s.lng,name:s.name,elevation:s.elevation||'at',
+   lat:s.lat,lng:s.lng,name:s.name,nodeType:s.nodeType==='junction'?'junction':'station',elevation:s.elevation||'at',
    elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
    platformType:s.platformType||'island',
    platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
@@ -2254,12 +2256,17 @@ function snapshot(){
    waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:null
   })),
   tracks:tracks.map(t=>({
-   a:t.a,b:t.b,style:t.style||'single',curve:!!t.curve,
+   a:t.a,b:t.b,trackGroupId:typeof t.trackGroupId==='string'?t.trackGroupId:null,style:t.style||'single',curve:!!t.curve,
    elevation:t.elevation||'at',
    startElevation:Number.isFinite(t.startElevation)?t.startElevation:null,
    endElevation:Number.isFinite(t.endElevation)?t.endElevation:null,
+   offsetTransitionZones:t.offsetTransitionZones&&typeof t.offsetTransitionZones==='object'?{
+    ...(Number.isFinite(t.offsetTransitionZones.start)?{start:t.offsetTransitionZones.start}:{}),
+    ...(Number.isFinite(t.offsetTransitionZones.end)?{end:t.offsetTransitionZones.end}:{})
+   }:null,
    lineIds:Array.isArray(t.lineIds)?t.lineIds.slice():[],
-   waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
+   waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'})),
+   centerline:Array.isArray(t.centerline)?t.centerline.map(p=>({lat:p.lat,lng:p.lng})):null
   })),
   lines:lines.map(line=>({id:line.id,name:line.name,color:line.color}))
  };
@@ -2284,7 +2291,8 @@ function restoreSnapshot(data){
  if(['single','parallel'].includes(data.trackStyle))trackStyle=data.trackStyle;
  curveMode=!!data.curveMode;tunnelMode=!!data.tunnelMode;
  stations=data.stations.map((s,i)=>({
-  lat:Number(s.lat),lng:Number(s.lng),name:s.name||'Station '+(i+1),
+  lat:Number(s.lat),lng:Number(s.lng),name:s.name||(s.nodeType==='junction'?'Junction '+(i+1):'Station '+(i+1)),
+  nodeType:s.nodeType==='junction'?'junction':'station',
   elevation:s.elevation||'at',
   elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
   platformType:s.platformType||'island',
@@ -2294,11 +2302,16 @@ function restoreSnapshot(data){
   waitingPassengers:Number.isFinite(s.waitingPassengers)?s.waitingPassengers:undefined
  })).filter(s=>Number.isFinite(s.lat)&&Number.isFinite(s.lng));
  tracks=data.tracks.map(t=>({
-  a:t.a,b:t.b,style:t.style||'single',curve:!!t.curve,elevation:t.elevation||'at',
+  a:t.a,b:t.b,trackGroupId:typeof t.trackGroupId==='string'?t.trackGroupId:null,style:t.style||'single',curve:!!t.curve,elevation:t.elevation||'at',
   startElevation:Number.isFinite(t.startElevation)?t.startElevation:null,
   endElevation:Number.isFinite(t.endElevation)?t.endElevation:null,
+  offsetTransitionZones:t.offsetTransitionZones&&typeof t.offsetTransitionZones==='object'?{
+   ...(Number.isFinite(t.offsetTransitionZones.start)?{start:t.offsetTransitionZones.start}:{}),
+   ...(Number.isFinite(t.offsetTransitionZones.end)?{end:t.offsetTransitionZones.end}:{})
+  }:null,
   lineIds:Array.isArray(t.lineIds)?t.lineIds.filter(id=>typeof id==='string'):[],
-  waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
+  waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'})),
+  centerline:Array.isArray(t.centerline)?t.centerline.map(p=>({lat:Number(p.lat),lng:Number(p.lng)})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)):null
  })).filter(t=>Number.isInteger(t.a)&&Number.isInteger(t.b)&&stations[t.a]&&stations[t.b]);
  lines=Array.isArray(data.lines)?data.lines.filter(x=>x&&typeof x.id==='string').map(x=>({id:x.id,name:String(x.name||'Line'),color:/^#[0-9a-f]{6}$/i.test(x.color)?x.color:'#42d69a'})):[];
  nextLineId=lines.reduce((m,x)=>Math.max(m,Number(x.id.replace(/\\D/g,''))||0),0)+1;
@@ -2348,6 +2361,7 @@ function undo(){
   message('Nothing to undo.');
   return;
  }
+ pauseSimulationBeforeTopologyChange();
  historyIndex--;
  restoreSnapshot(sbEditHistory[historyIndex]);
  message('Last construction action undone.');
@@ -2358,6 +2372,7 @@ function redo(){
   message('Nothing to redo.');
   return;
  }
+ pauseSimulationBeforeTopologyChange();
  historyIndex++;
  restoreSnapshot(sbEditHistory[historyIndex]);
  message('Construction action restored.');
@@ -2372,7 +2387,7 @@ function redo(){
 window.getSubway3DTracks=function(){
  return tracks.map((t,i)=>{
   const a=stations[t.a],b=stations[t.b];if(!a||!b)return null;
-  const coords=[[a.lng,a.lat],...(t.waypoints||[]).map(w=>[w.lng,w.lat]),[b.lng,b.lat]];
+  const coords=getTrackCenterlinePoints(t).map(point=>[point[1],point[0]]);
   return {type:'Feature',properties:{
    color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],
    from:a.name||('Station '+(t.a+1)),to:b.name||('Station '+(t.b+1)),
@@ -2383,7 +2398,7 @@ window.getSubway3DTracks=function(){
  }).filter(Boolean);
 };
 window.getSubway3DStations=function(){
- return stations.map((s,i)=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
+ return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
   geometry:{type:'Point',coordinates:[s.lng,s.lat]}}));
 };
 
@@ -2407,6 +2422,10 @@ function syncStationEndpointVisibility(){
 function legacyTrackElevation(level){return level==='below'?-25:level==='above'?5:0;}
 // Mobile currently uses the desktop default heavy-metro profile until per-line train types are exposed.
 const MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE=5.5;
+function findTrackGroupPath(startIndex,endIndex){
+ return window.SBTrackTopology.findTrackGroupPath(tracks,startIndex,endIndex);
+}
+
 function resolveStationElevation(stationIndex){
  const station=stations[stationIndex];
  if(!station)return {isValid:false,error:'Station endpoint is missing.'};
@@ -2444,41 +2463,7 @@ function getTrackLayerStyle(type,active){
  };
  return styles[type]||styles.atGrade;
 }
-function renderNetwork(){
- platformCrowdMarkers.forEach(marker=>map.removeLayer(marker));
- platformCrowdMarkers=[];
- if(window.refreshSubway3D)window.refreshSubway3D();
- if(window.networkLayer){
-  map.removeLayer(window.networkLayer);
- }
- window.networkLayer=L.layerGroup().addTo(map);
-  /* Stations are drawn and selected through their platform polygons. */
-  window.stationPlatformHitAreas=[];
 
- /* Keep parallel tracks centered on island platforms so one track runs
-   along each platform face. Single-track approaches sit just beyond the
-   platform edge; side platforms retain a centered corridor between them. */
-function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
- const station=stations[stationIndex];
- if(!station||!fromPoint||!toPoint)return 0;
- if((station.platformType||platformType)==='side'||style==='parallel')return 0;
- const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
- const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
- const magnitude=Math.hypot(east,north);
- if(magnitude<1e-12)return 0;
- const routeEast=east/magnitude,routeNorth=north/magnitude;
- const routeNormalEast=-routeNorth,routeNormalNorth=routeEast;
- const bearing=(Number.isFinite(station.platformBearing)?station.platformBearing:90)*Math.PI/180;
- const axisEast=Math.sin(bearing),axisNorth=Math.cos(bearing);
- const platformNormalEast=-axisNorth,platformNormalNorth=axisEast;
- const alignment=platformNormalEast*routeNormalEast+platformNormalNorth*routeNormalNorth;
- const side=alignment<0?-1:1;
- const dimensions=getPlatformDimensions(station.platformSize||platformSize);
- const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
- const width=dimensions.width/2;
- const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
- return side*(support+MOBILE_PLATFORM_CLEARANCE_METERS);
-}
 // Desktop-style station alignment: use each platform's longitudinal bearing as
 // an endpoint tangent, choosing its forward/reverse orientation toward the
 // destination. This keeps a new connection entering and leaving each platform
@@ -2530,6 +2515,83 @@ function getStationTangentCenterline(startStation,endStation){
  }
  return result;
 }
+
+function getTrainRoutePoints(track){
+ if(Array.isArray(track.trainCenterline)&&track.trainCenterline.length>=2)
+  return track.trainCenterline.map(point=>[point[0],point[1]]);
+ return getTrackCenterlinePoints(track);
+}
+
+function getTrackCenterlinePoints(track){
+ const a=stations[track.a],b=stations[track.b];
+ if(!a||!b)return [];
+ if(Array.isArray(track.centerline)&&track.centerline.length>=2){
+  return track.centerline.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)).map(p=>[p.lat,p.lng]);
+ }
+ if(track.curve&&(track.waypoints||[]).length){
+  const route=[[a.lat,a.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[b.lat,b.lng]]
+   .map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
+  const alpha=.5,stepsPerSegment=20;
+  const distance=(p,q)=>Math.hypot(q.x-p.x,q.y-p.y);
+  const mix=(p,q,t)=>({x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t});
+  const points=[];
+  for(let segment=0;segment<route.length-1;segment++){
+   const p0=route[Math.max(0,segment-1)],p1=route[segment];
+   const p2=route[segment+1],p3=route[Math.min(route.length-1,segment+2)];
+   const t0=0,t1=t0+Math.max(1e-4,Math.pow(distance(p0,p1),alpha));
+   const t2=t1+Math.max(1e-4,Math.pow(distance(p1,p2),alpha));
+   const t3=t2+Math.max(1e-4,Math.pow(distance(p2,p3),alpha));
+   const blend=(x,y,tx,ty,t)=>mix(x,y,(t-tx)/(ty-tx));
+   for(let step=0;step<=stepsPerSegment;step++){
+    if(segment>0&&step===0)continue;
+    const u=step/stepsPerSegment,t=t1+u*(t2-t1);
+    const A1=blend(p0,p1,t0,t1,t),A2=blend(p1,p2,t1,t2,t),A3=blend(p2,p3,t2,t3,t);
+    const B1=blend(A1,A2,t0,t2,t),B2=blend(A2,A3,t1,t3,t);
+    const C=blend(B1,B2,t1,t2,t),ll=map.unproject(C,18);
+    points.push([ll.lat,ll.lng]);
+   }
+  }
+  return points;
+ }
+ return getStationTangentCenterline(a,b);
+}
+
+function renderNetwork(){
+ platformCrowdMarkers.forEach(marker=>map.removeLayer(marker));
+ platformCrowdMarkers=[];
+ if(window.refreshSubway3D)window.refreshSubway3D();
+ if(window.networkLayer){
+  map.removeLayer(window.networkLayer);
+ }
+ window.networkLayer=L.layerGroup().addTo(map);
+  /* Stations are drawn and selected through their platform polygons. */
+  window.stationPlatformHitAreas=[];
+
+ /* Keep parallel tracks centered on island platforms so one track runs
+   along each platform face. Single-track approaches sit just beyond the
+   platform edge; side platforms retain a centered corridor between them. */
+function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
+ const station=stations[stationIndex];
+ if(!station||station.nodeType==='junction'||!fromPoint||!toPoint)return 0;
+ if((station.platformType||platformType)==='side'||style==='parallel')return 0;
+ const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
+ const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
+ const magnitude=Math.hypot(east,north);
+ if(magnitude<1e-12)return 0;
+ const routeEast=east/magnitude,routeNorth=north/magnitude;
+ const routeNormalEast=-routeNorth,routeNormalNorth=routeEast;
+ const bearing=(Number.isFinite(station.platformBearing)?station.platformBearing:90)*Math.PI/180;
+ const axisEast=Math.sin(bearing),axisNorth=Math.cos(bearing);
+ const platformNormalEast=-axisNorth,platformNormalNorth=axisEast;
+ const alignment=platformNormalEast*routeNormalEast+platformNormalNorth*routeNormalNorth;
+ const side=alignment<0?-1:1;
+ const dimensions=getPlatformDimensions(station.platformSize||platformSize);
+ const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
+ const width=dimensions.width/2;
+ const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
+ return side*(support+MOBILE_PLATFORM_CLEARANCE_METERS);
+}
+
 tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
   let b=stations[t.b];
@@ -2552,6 +2614,7 @@ if(mode==='delete'){
   }).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
     t.waypoints.splice(waypointIndex,1);
+    delete t.centerline;
     saveHistory();
     renderNetwork();
     message('Waypoint deleted.');
@@ -2570,47 +2633,14 @@ if(mode==='delete'){
  });
 }
 
-  if(t.curve&&(t.waypoints||[]).length){
- // Centripetal Catmull-Rom in projected map space. Parameterizing by chord
- // length reduces loops/overshoot when waypoints are unevenly spaced, while
- // the projected coordinates keep curve shape consistent across latitudes.
- const route=[[start.lat,start.lng],...(t.waypoints||[]).map(w=>[w.lat,w.lng]),[end.lat,end.lng]]
-  .map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
- const alpha=.5,stepsPerSegment=20;
- const distance=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
- const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
- for(let segment=0;segment<route.length-1;segment++){
-  const p0=route[Math.max(0,segment-1)],p1=route[segment];
-  const p2=route[segment+1],p3=route[Math.min(route.length-1,segment+2)];
-  const t0=0,t1=t0+Math.max(1e-4,Math.pow(distance(p0,p1),alpha));
-  const t2=t1+Math.max(1e-4,Math.pow(distance(p1,p2),alpha));
-  const t3=t2+Math.max(1e-4,Math.pow(distance(p2,p3),alpha));
-  const blend=(a,b,ta,tb,t)=>mix(a,b,(t-ta)/(tb-ta));
-  for(let step=0;step<=stepsPerSegment;step++){
-   if(segment>0&&step===0)continue;
-   const u=step/stepsPerSegment,t=t1+u*(t2-t1);
-   const A1=blend(p0,p1,t0,t1,t);
-   const A2=blend(p1,p2,t1,t2,t);
-   const A3=blend(p2,p3,t2,t3,t);
-   const B1=blend(A1,A2,t0,t2,t);
-   const B2=blend(A2,A3,t1,t3,t);
-   const C=blend(B1,B2,t1,t2,t);
-   const ll=map.unproject(C,18);
-   points.push([ll.lat,ll.lng]);
-  }
- }
-}else{
- // With no manually placed curve waypoints, follow the station platform
- // bearings using the same quadratic/cubic tangent construction as desktop.
- points=getStationTangentCenterline(a,b);
-}
+  points=getTrackCenterlinePoints(t);
 
-  // Transparent edit hitbox follows the sampled route, not the station chord.
+   // Transparent edit hitbox follows the sampled route, not the station chord.
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
     if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();message('Track selected. Tap the map to add a curve point.');}
-    else if(mode==='delete'){tracks.splice(trackIndex,1);selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
+    else if(mode==='delete'){pauseSimulationBeforeTopologyChange();tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
   }
@@ -2661,20 +2691,22 @@ if(mode==='delete'){
    const fromEnd=endOffset*smoothstep01((distance-(totalTrackMeters-transitionMeters))/transitionMeters);
    return fromStart+fromEnd;
   });
+  const shiftTrackPoints=offset=>points.map((p,i)=>{
+   let prev=points[Math.max(0,i-1)];
+   let next=points[Math.min(points.length-1,i+1)];
+   let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
+   let dy=next[0]-prev[0];
+   let length=Math.sqrt(dx*dx+dy*dy)||1;
+   const lateralOffset=stationOffsets[i]+offset;
+   return [
+    p[0]+(dx/length)*lateralOffset/111320,
+    p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
+   ];
+  });
+  t.trainCenterline=shiftTrackPoints(0);
   function drawLine(offset){
-    let shifted=points.map((p,i)=>{
-      let prev=points[Math.max(0,i-1)];
-      let next=points[Math.min(points.length-1,i+1)];
-      let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
-      let dy=next[0]-prev[0];
-      let length=Math.sqrt(dx*dx+dy*dy)||1;
-      const lateralOffset=stationOffsets[i]+offset;
-      return [
-        p[0]+(dx/length)*lateralOffset/111320,
-        p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
-      ];
-    });
-  if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+   const shifted=shiftTrackPoints(offset);
+    if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive ? 0.3 : 0.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   const segmentTypes=[];
   for(let i=1;i<shifted.length;i++){
@@ -2775,6 +2807,12 @@ if(mode==='delete'){
 });
 
  stations.forEach((s,i)=>{
+  if(s.nodeType==='junction'){
+   L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:7,color:'#e8fbff',weight:2,fillColor:'#54e3d2',fillOpacity:1,interactive:true,bubblingMouseEvents:false})
+    .addTo(window.networkLayer).bindTooltip('Track junction',{direction:'top'})
+    .on('click',function(e){L.DomEvent.stopPropagation(e);handleStationClick(i);});
+   return;
+  }
   /* Platform alignment is fixed at placement time. Connections and camera
      gestures never rewrite the saved bearing or rotate the platform. */
   const fixedBearing=Number.isFinite(s.platformBearing)?s.platformBearing:90;
@@ -2830,7 +2868,7 @@ if(mode==='delete'){
 function updateUI(){
  const moneyEl=document.getElementById('money');if(moneyEl)moneyEl.textContent='$'+money.toLocaleString();
  const passengersEl=document.getElementById('passengers');if(passengersEl)passengersEl.textContent=passengers.toLocaleString();
- const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
+ const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.filter(s=>s.nodeType!=='junction').length;
  const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
  const canUndo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex>0;
  const canRedo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex<sbEditHistory.length-1;
@@ -3068,6 +3106,26 @@ function selectTrackForWaypoints(trackIndex){
   renderNetwork();
   message('Track selected. Tap the map to add a waypoint.');
  }
+function pruneOrphanJunctions(){
+ let removed=false;
+ for(let index=stations.length-1;index>=0;index--){
+  if(stations[index].nodeType!=='junction'||tracks.some(track=>track.a===index||track.b===index))continue;
+  stations.splice(index,1);
+  tracks.forEach(track=>{
+   if(track.a>index)track.a--;
+   if(track.b>index)track.b--;
+  });
+  if(selected===index)selected=null;
+  else if(Number.isInteger(selected)&&selected>index)selected--;
+  removed=true;
+ }
+ return removed;
+}
+
+function pauseSimulationBeforeTopologyChange(){
+ if(running&&typeof toggleSimulation==='function')toggleSimulation();
+}
+
 function handleStationClick(index){
   if(mode==='delete'){
   let name=stations[index].name;
@@ -3080,6 +3138,7 @@ function handleStationClick(index){
   });
 
   stations.splice(index,1);
+  pruneOrphanJunctions();
   selected=null;
   selectedTrackIndex=null;
 
@@ -3127,6 +3186,31 @@ function handleStationClick(index){
    return;
   }
 
+  const groupedPath=findTrackGroupPath(first,second);
+  if(groupedPath){
+   const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
+   if(activeLine){
+    const unassigned=groupedPath.filter(trackIndex=>!(tracks[trackIndex].lineIds||[]).includes(activeLine.id));
+    if(unassigned.length){
+     unassigned.forEach(trackIndex=>{
+      const track=tracks[trackIndex];
+      track.lineIds=[...new Set([...(track.lineIds||[]),activeLine.id])];
+     });
+     saveHistory();
+     renderNetwork();
+     message(activeLine.name+' now shares '+groupedPath.length+' connected track sections.');
+    }else{
+     renderNetwork();
+     message(activeLine.name+' is already assigned to this connected track route.');
+    }
+   }else{
+    renderNetwork();
+    message('These stations are already connected through existing track sections.');
+   }
+   selected=null;
+   return;
+  }
+
   // Match the desktop engine's physical track-length limits before charging
   // for a new connection. map.distance uses metres and follows the live map CRS.
   const proposedTrackLengthMeters=map.distance(
@@ -3169,6 +3253,9 @@ function handleStationClick(index){
   }
 
   money-=150;
+  const inheritedTrack=tracks.find(track=>track.a===first||track.b===first||track.a===second||track.b===second);
+  const inheritedLayer=inheritedTrack?.elevation||stations[first].elevation||stations[second].elevation||'at';
+  const newTrackElevation=tunnelMode?'below':inheritedLayer;
   stations[first].elevationMeters=proposedStartElevation;
   stations[second].elevationMeters=proposedEndElevation;
   tracks.push({
@@ -3176,7 +3263,7 @@ function handleStationClick(index){
   b:second,
   style:trackStyle,
   curve:curveMode,
-  elevation:tunnelMode?"below":"at",
+  elevation:newTrackElevation,
   startElevation:proposedStartElevation,
   endElevation:proposedEndElevation,
   waypoints:[],
@@ -3295,7 +3382,8 @@ function handleMapPlacement(latlng){
   money-=500;
   stations.push({
    lat:center.lat,lng:center.lng,
-   name:'Station '+(stations.length+1),
+   name:'Station '+(stations.filter(s=>s.nodeType!=='junction').length+1),
+   nodeType:'station',
    platformType:platformType,
    platformSize:platformSize,
    platformLengthMeters:geometry.lengthMeters,
@@ -3316,6 +3404,7 @@ else if(mode==='delete'){
   const curveTrack=tracks[selectedTrackIndex];if(!curveTrack)return;
   curveTrack.waypoints=Array.isArray(curveTrack.waypoints)?curveTrack.waypoints:[];
   curveTrack.curve=true;
+  delete curveTrack.centerline;
   curveTrack.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
   saveHistory();renderNetwork();message('Curve point added.');
  }
@@ -3329,6 +3418,7 @@ else if(mode==='delete'){
   if(!track)return;
 
   if(!track.waypoints)track.waypoints=[];
+  delete track.centerline;
 
   track.waypoints.push({
    lat:latlng.lat,
@@ -3357,25 +3447,32 @@ function toggleSimulation(){
   if(window.syncServiceRunControl)window.syncServiceRunControl();
   message('Simulation paused.');return;
  }
- if(stations.length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
+ if(stations.filter(s=>s.nodeType!=='junction').length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
  running=true;if(window.syncServiceRunControl)window.syncServiceRunControl();
- stations.forEach(station=>{if(!Number.isFinite(station.waitingPassengers))station.waitingPassengers=8+Math.floor(Math.random()*17);});
+ stations.filter(station=>station.nodeType!=='junction').forEach(station=>{if(!Number.isFinite(station.waitingPassengers))station.waitingPassengers=8+Math.floor(Math.random()*17);});
  renderNetwork();
  message('Trains are running — platform crowds are waiting and trains have limited capacity.');
  const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'];
  function createTrain(){
   if(!running||sbInGameMenuOpen||!tracks.length)return;
-  const trackIndex=Math.floor(Math.random()*tracks.length),track=tracks[trackIndex];
-  const from=stations[track.a],to=stations[track.b];if(!from||!to)return;
-  let route=[[from.lat,from.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[to.lat,to.lng]];
-  if(Math.random()<.5)route=route.slice().reverse();
-  const lengths=[];let total=0;
-  for(let i=1;i<route.length;i++){const d=map.distance(route[i-1],route[i]);lengths.push(d);total+=d;}
-  if(total<1)return;
-  const color=colors[trackIndex%colors.length];
+  let currentTrackIndex=Math.floor(Math.random()*tracks.length);
+  let currentTrack=tracks[currentTrackIndex];
+  const startingLineIds=Array.isArray(currentTrack.lineIds)?currentTrack.lineIds:[];
+  const trainLineId=startingLineIds.length?startingLineIds[Math.floor(Math.random()*startingLineIds.length)]:null;
+  const from=stations[currentTrack.a],to=stations[currentTrack.b];if(!from||!to)return;
+  let currentFromNode=currentTrack.a,currentToNode=currentTrack.b;
+  let route=getTrainRoutePoints(currentTrack);
+  if(Math.random()<.5){
+   route=route.slice().reverse();
+   [currentFromNode,currentToNode]=[currentToNode,currentFromNode];
+  }
+  const measureRoute=points=>points.slice(1).map((point,index)=>Math.max(1,map.distance(points[index],point)));
+  let lengths=measureRoute(route);
+  if(!lengths.length)return;
+  const color=colors[currentTrackIndex%colors.length];
   const train=L.marker(route[0],{icon:L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
   trainMarkers.push(train);
-  let segment=0,segmentProgress=0,direction=1,stoppedUntil=0;
+  let segment=0,segmentProgress=0,stoppedUntil=0;
   const capacity=60;
   let onboard=10+Math.floor(Math.random()*16);
   train.bindTooltip('On board: '+onboard+'/'+capacity,{direction:'top'});
@@ -3383,37 +3480,63 @@ function toggleSimulation(){
    if(!running||sbInGameMenuOpen)return;
    const now=Date.now();
    if(stoppedUntil>now)return;
-   if(stoppedUntil&&now>=stoppedUntil){stoppedUntil=0;train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));}
+   if(stoppedUntil&&now>=stoppedUntil){
+    stoppedUntil=0;
+    train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));
+   }
    const step=2.2;
    segmentProgress+=step/Math.max(1,lengths[segment]);
    if(segmentProgress>=1){
     segmentProgress=0;
-    const next=segment+direction;
-    if(next<0||next>=route.length-1){
-     const stationIndex=direction>0?track.b:track.a;
-     const station=stations[stationIndex];
-     if(station){
+    const nextSegment=segment+1;
+    if(nextSegment>=route.length-1){
+     const nodeIndex=currentToNode;
+     const node=stations[nodeIndex];
+     if(node)train.setLatLng([node.lat,node.lng]);
+     let stopDuration=node&&node.nodeType!=='junction'?1800:350;
+     if(node&&node.nodeType!=='junction'){
       const alighted=Math.min(onboard,Math.floor(Math.random()*7));
       onboard-=alighted;
-      const waiting=Number.isFinite(station.waitingPassengers)?station.waitingPassengers:0;
+      const waiting=Number.isFinite(node.waitingPassengers)?node.waitingPassengers:0;
       const boarded=Math.min(waiting,capacity-onboard,3+Math.floor(Math.random()*9));
-      station.waitingPassengers=waiting-boarded;
+      node.waitingPassengers=waiting-boarded;
       onboard+=boarded;
       passengers+=boarded;
-      station.waitingPassengers+=1+Math.floor(Math.random()*4);
+      node.waitingPassengers+=1+Math.floor(Math.random()*4);
       updateUI();
-      train.setLatLng([station.lat,station.lng]);
+      train.setLatLng([node.lat,node.lng]);
       train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-stop"><span>▣</span><b>+'+boarded+' boarding<span class="load">'+alighted+' off · '+onboard+'/'+capacity+' aboard</span></b></div>',iconSize:[132,52],iconAnchor:[66,26]}));
-      train.bindTooltip(station.name+' · '+boarded+' boarded · '+alighted+' left',{direction:'top',offset:[0,-18]}).openTooltip();
+      train.bindTooltip(node.name+' · '+boarded+' boarded · '+alighted+' left',{direction:'top',offset:[0,-18]}).openTooltip();
       renderNetwork();
-      message(station.name+': '+alighted+' off, '+boarded+' boarded · train '+onboard+'/'+capacity+' full.');
+      message(node.name+': '+alighted+' off, '+boarded+' boarded · train '+onboard+'/'+capacity+' full.');
      }
-     direction*=-1;
-     segment=direction>0?0:route.length-2;
-     stoppedUntil=now+1800;
+     const liveTrackIndex=tracks.indexOf(currentTrack);
+     currentTrackIndex=liveTrackIndex;
+     const nextTracks=window.SBTrackTopology.getConnectedTrackCandidates(
+      tracks,currentTrackIndex,nodeIndex,trainLineId?[trainLineId]:[]
+     );
+     if(nextTracks.length){
+      const next=nextTracks[Math.floor(Math.random()*nextTracks.length)];
+      currentTrackIndex=next.trackIndex;
+      currentTrack=next.track;
+      currentFromNode=nodeIndex;
+      currentToNode=next.toNodeIndex;
+      route=getTrainRoutePoints(currentTrack);
+      if(currentTrack.a!==nodeIndex)route=route.slice().reverse();
+      lengths=measureRoute(route);
+      if(!lengths.length)return;
+      segment=0;segmentProgress=0;
+      stoppedUntil=now+stopDuration;
+     }else{
+      route=route.slice().reverse();
+      [currentFromNode,currentToNode]=[currentToNode,currentFromNode];
+      lengths=measureRoute(route);
+      segment=0;segmentProgress=0;
+      stoppedUntil=now+1800;
+     }
      return;
     }
-    segment=next;
+    segment=nextSegment;
    }
    const p=route[segment],q=route[segment+1],fraction=segmentProgress;
    train.setLatLng([p[0]+(q[0]-p[0])*fraction,p[1]+(q[1]-p[1])*fraction]);
@@ -3732,7 +3855,8 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
     'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
     'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
     'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
-    'toggle-3d':()=>window.toggle3DCityView()
+    'toggle-3d':()=>window.toggle3DCityView(),
+   'line-color':()=>document.getElementById('sb-line-color-trigger')?.click()
    };
    if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
    else if(action==='platform-type')setPlatformType(button.dataset.platformType);
@@ -4279,18 +4403,28 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   syncBuildState();
  }
  function positionConstructionContextMenu(menu,toggle){
+  const edge=10,gap=10;
+  const actionDock=document.getElementById('sb-action-dock');
+  const rightDock=actionDock?.querySelector('.sb-dock-panel-right')||actionDock;
+  const dockRect=rightDock?.getBoundingClientRect();
+  const stats=document.querySelector('#sb-top-dock>.sb-top-panel-stats');
+  const statsRect=stats?.getBoundingClientRect();
   const rect=toggle.getBoundingClientRect();
-  const gap=10,edge=12;
-  const width=Math.min(264,Math.max(220,window.innerWidth-edge*2));
-  menu.style.width=width+'px';
-  menu.style.maxHeight=Math.max(120,window.innerHeight-edge*2)+'px';
-  const left=Math.min(Math.max(edge,rect.left+rect.width/2-width/2),window.innerWidth-width-edge);
-  const availableAbove=Math.max(0,rect.top-edge-gap);
-  const desiredHeight=Math.min(menu.scrollHeight,window.innerHeight-edge*2);
-  const top=Math.max(edge,Math.min(rect.top-gap-desiredHeight,window.innerHeight-edge-desiredHeight));
-  menu.style.left=left+'px';
-  menu.style.top=top+'px';
-  menu.style.maxHeight=Math.max(120,Math.min(window.innerHeight-edge*2,availableAbove||window.innerHeight-edge*2))+'px';
+  const panelWidth=Math.max(1,Math.min(window.innerWidth-edge*2,dockRect?.width||rect.width));
+  const centerX=dockRect?dockRect.left+dockRect.width/2:rect.left+rect.width/2;
+  const left=Math.max(edge,Math.min(centerX-panelWidth/2,window.innerWidth-panelWidth-edge));
+  const topLimit=statsRect&&statsRect.bottom>0?statsRect.bottom+gap:edge;
+  const bottomLimit=dockRect&&dockRect.top>topLimit?dockRect.top-gap:window.innerHeight-edge;
+  const available=Math.max(120,bottomLimit-topLimit);
+  menu.style.boxSizing='border-box';
+  menu.style.width=panelWidth+'px';menu.style.maxWidth=panelWidth+'px';
+  menu.style.left=left+'px';menu.style.right='auto';
+  menu.style.top=topLimit+'px';menu.style.bottom='auto';
+  menu.style.height=available+'px';menu.style.maxHeight=available+'px';menu.style.minHeight='0';
+  menu.style.display='flex';menu.style.flexDirection='column';
+  menu.style.overflowX='hidden';menu.style.overflowY='hidden';
+  menu.style.webkitOverflowScrolling='touch';menu.style.touchAction='pan-y';
+  menu.style.overscrollBehaviorY='contain';
  }
  function toggleConstructionContextMenu(toggle){
   const existing=document.getElementById('sb-construction-context-menu');
@@ -4309,9 +4443,9 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    '</div>'+
    '<div class="sb-platform-size-heading">PLATFORM SIZE</div>'+
    '<div class="sb-platform-size-grid">'+
-   '<button type="button" data-platform-size="compact" aria-pressed="'+String(platformSize==='compact')+'" class="'+(platformSize==='compact'?'active':'')+'">60m</button>'+
-   '<button type="button" data-platform-size="standard" aria-pressed="'+String(platformSize==='standard')+'" class="'+(platformSize==='standard'?'active':'')+'">90m</button>'+
-   '<button type="button" data-platform-size="long" aria-pressed="'+String(platformSize==='long')+'" class="'+(platformSize==='long'?'active':'')+'">150m</button>'+
+   '<button type="button" data-platform-size="compact" aria-pressed="'+String(platformSize==='compact')+'" class="'+(platformSize==='compact'?'active':'')+'">6m</button>'+
+   '<button type="button" data-platform-size="standard" aria-pressed="'+String(platformSize==='standard')+'" class="'+(platformSize==='standard'?'active':'')+'">8m</button>'+
+   '<button type="button" data-platform-size="long" aria-pressed="'+String(platformSize==='long')+'" class="'+(platformSize==='long'?'active':'')+'">10m</button>'+
    '</div>';
   menu.addEventListener('click',function(event){
    const sizeAction=event.target.closest('button[data-platform-size]');
@@ -4559,9 +4693,14 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines">Search</button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected color" title="Select a custom color to enable deletion" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m16 16 4.6 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected color" title="Select a custom color to enable deletion" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
+  const createSlot=document.getElementById("sb-service-create-slot");
+  const colorPicker=createSlot?.querySelector(".sb-line-color-picker");
+  const nameEditor=createSlot?.querySelector("#sb-line-name-editor");
+  /* Keep the color picker in the slot immediately after the expanding search/add control. */
+  if(createSlot&&colorPicker&&nameEditor)nameEditor.after(colorPicker);
   buildPalette();draw();bindDeleteCustomColor();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
  }
  function bindDeleteCustomColor(){
@@ -4757,18 +4896,20 @@ function toggleDefaultDarkOnStart(){
    const vv=window.visualViewport;
    const visibleHeight=vv?vv.height:window.innerHeight;
    const offsetTop=vv?vv.offsetTop:0;
-   /* Capture the pre-keyboard viewport once; Android adjustResize can shrink innerHeight too. */
-   const inset=baseViewportHeight?Math.max(0,Math.round(baseViewportHeight-visibleHeight-offsetTop)):0;
+   /* Use the pre-keyboard layout height as well as the live viewport. Android may resize either one. */
+   const layoutHeight=Math.max(baseViewportHeight,document.documentElement.clientHeight||0,window.innerHeight||0);
+   const inset=Math.max(0,Math.round(layoutHeight-(visibleHeight+offsetTop)));
    document.documentElement.style.setProperty('--sb-keyboard-inset',inset+'px');
    document.body.classList.toggle('sb-service-search-keyboard',keyboardActive);
    if(createSlot&&keyboardActive){
     createSlot.style.bottom='calc('+inset+'px + 12px + env(safe-area-inset-bottom,0px))';
    }
   };
-  const restoreSlot=()=>{
+  const restoreSlot=(collapseEditor=true)=>{
    keyboardActive=false;
    document.body.classList.remove('sb-service-search-keyboard');
-   if(searchBackdrop){searchBackdrop.remove();searchBackdrop=null;}
+   searchBackdrop?.remove();searchBackdrop=null;
+   document.getElementById('sb-service-search-backdrop')?.remove();
    if(createSlot)createSlot.style.removeProperty('bottom');
    if(slotPlaceholder&&slotPlaceholder.parentNode){
     slotPlaceholder.parentNode.insertBefore(createSlot,slotPlaceholder);
@@ -4779,12 +4920,15 @@ function toggleDefaultDarkOnStart(){
    window.removeEventListener('resize',updateKeyboardInset);
    document.documentElement.style.removeProperty('--sb-keyboard-inset');
    baseViewportHeight=0;
-   editor.classList.remove('is-editing');
-   editor.removeAttribute('data-keyboard-active');
+   if(collapseEditor){
+    editor.classList.remove('is-editing');
+    editor.removeAttribute('data-keyboard-active');
+    input.setAttribute('aria-hidden','true');
+   }
   };
   const activate=()=>{
    if(keyboardActive){input.focus({preventScroll:true});return;}
-   baseViewportHeight=window.innerHeight;
+   baseViewportHeight=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0);
    editor.classList.add('is-editing');
    input.setAttribute('aria-hidden','false');
    keyboardActive=true;
@@ -4812,7 +4956,7 @@ function toggleDefaultDarkOnStart(){
    else updateKeyboardInset();
   });
   /* Close the floating search surface when text entry loses focus. */
-  input.addEventListener('blur',()=>{if(keyboardActive)restoreSlot();});
+  input.addEventListener('blur',()=>{if(keyboardActive)restoreSlot(input.value.trim().length===0);});
   if(add)add.addEventListener('pointerdown',event=>event.preventDefault());
   input.addEventListener('keydown',event=>{
    if(event.key==='Enter'){
@@ -4872,7 +5016,22 @@ function toggleDefaultDarkOnStart(){
   activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();
  }
  /* The remove button is reserved for deleting the selected custom palette color. */
- function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';input.blur();if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard();document.getElementById('sb-line-name-editor')?.classList.remove('is-editing');saveHistory();draw();message(line.name+' created.');}
+ function addLine(){
+  const input=document.getElementById('sb-new-line-name');
+  if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}
+  const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};
+  lines.push(line);activeLineId=line.id;input.value='';
+  /* Always remove the keyboard overlay synchronously before focus changes on Android. */
+  if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard(true);
+  input.blur();
+  document.body.classList.remove('sb-service-search-keyboard');
+  document.getElementById('sb-service-search-backdrop')?.remove();
+  document.documentElement.style.removeProperty('--sb-keyboard-inset');
+  const editor=document.getElementById('sb-line-name-editor');
+  editor?.classList.remove('is-editing');editor?.removeAttribute('data-keyboard-active');
+  input.setAttribute('aria-hidden','true');
+  saveHistory();draw();message(line.name+' created.');
+ }
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
  document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
  document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
@@ -5307,30 +5466,8 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   const center=centerPoint();let best=null,bestDistance=26;
   tracks.forEach((track,index)=>{
    const aStation=stations[track.a],bStation=stations[track.b];if(!aStation||!bStation)return;
-   let latLngs=[[aStation.lat,aStation.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[bStation.lat,bStation.lng]];
-   if(track.curve&&(track.waypoints||[]).length){
-    const route=latLngs.map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
-    const alpha=.5,stepsPerSegment=20;
-    const distance2=(a,b)=>Math.hypot(b.x-a.x,b.y-a.y);
-    const mix=(a,b,t)=>({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});
-    const curved=[];
-    for(let segment=0;segment<route.length-1;segment++){
-     const p0=route[Math.max(0,segment-1)],p1=route[segment],p2=route[segment+1],p3=route[Math.min(route.length-1,segment+2)];
-     const t0=0,t1=t0+Math.max(1e-4,Math.pow(distance2(p0,p1),alpha));
-     const t2=t1+Math.max(1e-4,Math.pow(distance2(p1,p2),alpha));
-     const t3=t2+Math.max(1e-4,Math.pow(distance2(p2,p3),alpha));
-     const blend=(a,b,ta,tb,t)=>mix(a,b,(t-ta)/(tb-ta));
-     for(let step=0;step<=stepsPerSegment;step++){
-      if(segment>0&&step===0)continue;
-      const u=step/stepsPerSegment,t=t1+u*(t2-t1);
-      const A1=blend(p0,p1,t0,t1,t),A2=blend(p1,p2,t1,t2,t),A3=blend(p2,p3,t2,t3,t);
-      const B1=blend(A1,A2,t0,t2,t),B2=blend(A2,A3,t1,t3,t);
-      const C=blend(B1,B2,t1,t2,t),ll=map.unproject(C,18);
-      curved.push([ll.lat,ll.lng]);
-     }
-    }
-    latLngs=curved;
-   }
+   const latLngs=getTrackCenterlinePoints(track);
+   if(latLngs.length<2)return;
    const points=latLngs.map(ll=>map.latLngToContainerPoint(ll));
    let distance=Infinity;
    for(let i=1;i<points.length;i++)distance=Math.min(distance,segmentDistance(center,points[i-1],points[i]));
@@ -5338,7 +5475,107 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   });
   return best;
  }
- function waypointAtCrosshair(){
+ 
+function junctionAtCrosshair(){
+ const center=centerPoint();let best=null,bestDistance=26;
+ stations.forEach((node,index)=>{
+  if(node.nodeType!=='junction')return;
+  const distance=map.latLngToContainerPoint([node.lat,node.lng]).distanceTo(center);
+  if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
+ });
+ return best;
+}
+function getTrackElevationAtFraction(track,route,fraction){
+ if(!Array.isArray(route)||route.length<2)return Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const cumulative=[0];
+ for(let i=1;i<route.length;i++)cumulative[i]=cumulative[i-1]+map.distance(route[i-1],route[i]);
+ const total=cumulative[cumulative.length-1]||0;
+ const start=Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const end=Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation);
+ const anchors=[{distance:0,height:start}];
+ (track.waypoints||[]).forEach(waypoint=>{
+  if(waypoint.elevation!=='below'&&waypoint.elevation!=='above')return;
+  let nearestIndex=0,nearestDistance=Infinity;
+  for(let i=0;i<route.length;i++){
+   const distance=map.distance(route[i],[waypoint.lat,waypoint.lng]);
+   if(distance<nearestDistance){nearestDistance=distance;nearestIndex=i;}
+  }
+  anchors.push({distance:cumulative[nearestIndex]||0,height:legacyTrackElevation(waypoint.elevation)});
+ });
+ anchors.push({distance:total,height:end});
+ const target=total*Math.max(0,Math.min(1,fraction));
+ return window.SBTrackTopology.interpolateElevationAtDistance(anchors,target);
+}
+
+function splitTrackAtCrosshair(trackHit,latlng){
+ const track=trackHit&&tracks[trackHit.index];
+ if(!track||!window.SBTrackTopology)return null;
+ const route=getTrackCenterlinePoints(track);
+ if(route.length<2)return null;
+ const projected=route.map(ll=>{const p=map.project(L.latLng(ll[0],ll[1]),18);return {x:p.x,y:p.y};});
+ const cursor=map.project(latlng,18);
+ const projection=window.SBTrackTopology.projectPointToPolyline(cursor,projected);
+ if(!projection)return null;
+ const snapped=map.unproject(L.point(projection.x,projection.y),18);
+ if(map.latLngToContainerPoint(snapped).distanceTo(centerPoint())>CENTER_RADIUS)return null;
+ const split=window.SBTrackTopology.splitPolylineAtProjection(projected,projection);
+ if(!split||projection.fraction<=0||projection.fraction>=1)return null;
+ const toLatLng=points=>points.map(p=>{const ll=map.unproject(L.point(p.x,p.y),18);return {lat:ll.lat,lng:ll.lng};});
+ const firstGeometry=toLatLng(split.first),secondGeometry=toLatLng(split.second);
+ const routeLength=points=>points.reduce((sum,p,i)=>i?sum+map.distance([points[i-1].lat,points[i-1].lng],[p.lat,p.lng]):0,0);
+ if(routeLength(firstGeometry)<10||routeLength(secondGeometry)<10){
+  message('A junction must be at least 10 m from either end of the track.');
+  return null;
+ }
+ const routeDistances=[0];
+ for(let i=1;i<route.length;i++)routeDistances[i]=routeDistances[i-1]+map.distance(route[i-1],route[i]);
+ const totalRouteDistance=routeDistances[routeDistances.length-1]||0;
+ const groundFraction=projection=>{
+  if(!projection||!totalRouteDistance)return null;
+  const segmentStart=routeDistances[projection.segmentIndex]||0;
+  const segmentLength=map.distance(route[projection.segmentIndex],route[projection.segmentIndex+1]);
+  return Math.max(0,Math.min(1,(segmentStart+segmentLength*projection.t)/totalRouteDistance));
+ };
+ const waypointFractions=(track.waypoints||[]).map(w=>{
+  const p=map.project(L.latLng(w.lat,w.lng),18);
+  const nearest=window.SBTrackTopology.projectPointToPolyline(p,projected);
+  return nearest?groundFraction(nearest):null;
+ });
+ const startElevation=Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const endElevation=Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation);
+ const junctionIndex=stations.length;
+ const segmentStart=projected[projection.segmentIndex],segmentEnd=projected[projection.segmentIndex+1];
+ const tangentBearing=(Math.atan2(segmentEnd.x-segmentStart.x,segmentStart.y-segmentEnd.y)*180/Math.PI+360)%360;
+ const normalizedTrack={...track,trackGroupId:track.trackGroupId||('tg-'+Date.now()+'-'+junctionIndex),startElevation,endElevation};
+ const splitAlongMeters=(routeDistances[projection.segmentIndex]||0)+map.distance(route[projection.segmentIndex],route[projection.segmentIndex+1])*projection.t;
+ const splitRecord={...split,fraction:groundFraction(projection),alongMeters:splitAlongMeters,totalLengthMeters:totalRouteDistance,first:firstGeometry,second:secondGeometry};
+ const previousSelection=selected;
+ const shouldConnect=previousSelection!==null&&previousSelection!==track.a&&previousSelection!==track.b;
+ const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
+ if(!sections)return null;
+ const junctionElevation=getTrackElevationAtFraction(track,route,projection.fraction);
+ sections.first.endElevation=junctionElevation;
+ sections.second.startElevation=junctionElevation;
+ sections.splitElevation=junctionElevation;
+ const junctionNumber=stations.filter(node=>node.nodeType==='junction').length+1;
+ pauseSimulationBeforeTopologyChange();
+ stations.push({lat:snapped.lat,lng:snapped.lng,name:'Junction '+junctionNumber,nodeType:'junction',
+  elevation:track.elevation||'at',elevationMeters:junctionElevation,platformBearing:tangentBearing});
+ tracks.splice(trackHit.index,1,sections.first,sections.second);
+ selected=previousSelection===null?junctionIndex:previousSelection;
+ selectedTrackIndex=null;
+ saveHistory();
+ renderNetwork();
+ if(shouldConnect){
+  handleStationClick(junctionIndex);
+ }else if(previousSelection===null){
+  message('Track split successfully. Junction selected; tap another station or junction to continue the connection.');
+ }else{
+  message('Track split successfully. The selected endpoint is already connected to this track.');
+ }
+ return junctionIndex;
+}
+function waypointAtCrosshair(){
   const center=centerPoint();let best=null,bestDistance=24;
   tracks.forEach((track,trackIndex)=>(track.waypoints||[]).forEach((waypoint,waypointIndex)=>{
    const distance=map.latLngToContainerPoint([waypoint.lat,waypoint.lng]).distanceTo(center);
@@ -5351,8 +5588,14 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   const center=map.getCenter();
   const target=stationAtCrosshair();
   if(mode==='track'){
+   const junction=junctionAtCrosshair();
    if(target){handleStationClick(target.index);}
-   else message('Move the map until a station is under the crosshair, then tap to select it.');
+   else if(junction){handleStationClick(junction.index);}
+   else{
+    const trackTarget=trackAtCrosshair();
+    if(!trackTarget||splitTrackAtCrosshair(trackTarget,center)===null)
+     message('Move the map crosshair onto a track to create a junction, or onto a station or junction to select it.');
+   }
    return;
   }
   if(mode==='curve'||mode==='waypoint'){
@@ -5367,6 +5610,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
    const track=tracks[selectedTrackIndex];
    if(!Array.isArray(track.waypoints))track.waypoints=[];
    if(mode==='curve')track.curve=true;
+   delete track.centerline;
    // One committed geometry point equals one independent undo/redo entry.
    track.waypoints.push({lat:center.lat,lng:center.lng,elevation:'at'});
    saveHistory();
@@ -5375,20 +5619,25 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
    return;
   }
   if(mode==='inspect'){
+   const junction=junctionAtCrosshair();
    if(target)handleStationClick(target.index);
-   else message('Move the map until a station is under the crosshair to inspect it.');
+   else if(junction)handleStationClick(junction.index);
+   else message('Move the map until a station or junction is under the crosshair to inspect it.');
    return;
   }
   if(mode==='delete'){
-   if(target){handleStationClick(target.index);return;}
+   const junction=junctionAtCrosshair();
+   if(target||junction){handleStationClick(target?target.index:junction.index);return;}
    const waypoint=waypointAtCrosshair();
    if(waypoint){
     tracks[waypoint.trackIndex].waypoints.splice(waypoint.waypointIndex,1);
+    delete tracks[waypoint.trackIndex].centerline;
     saveHistory();renderNetwork();message('Waypoint deleted at crosshair.');return;
    }
    const track=trackAtCrosshair();
    if(track){
-    tracks.splice(track.index,1);selectedTrackIndex=null;
+    pauseSimulationBeforeTopologyChange();
+    tracks.splice(track.index,1);pruneOrphanJunctions();selectedTrackIndex=null;
     saveHistory();renderNetwork();message('Track section deleted at crosshair.');return;
    }
    message('Move the map until a station, track, or waypoint is under the crosshair.');
@@ -7687,7 +7936,9 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 <style id="sb-game-menu-match-dock-glass-surface">
 /* Match the pause menu card to the top and bottom dock glass material. */
 #sb-game-menu-card{
- box-sizing:border-box!important;
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px)!important;
+ min-height:0!important;box-sizing:border-box!important;
  border:1px solid rgba(205,230,248,.15)!important;
  border-radius:22px!important;
  background:rgba(13,25,42,.64)!important;
@@ -7704,6 +7955,10 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 #sb-game-menu-card .sb-game-menu-view{
  background:transparent!important;
+ box-sizing:border-box!important;flex:1 1 0!important;min-height:0!important;
+ max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;scrollbar-width:thin!important;
 }
 #sb-game-menu-card .sb-game-menu-action{
  background:rgba(13,25,42,.64)!important;
@@ -8024,4 +8279,940 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  #sb-service-dock #sb-line-remove-active{transition:none!important}
 }
 </style>
+
+<!-- PR73 construction tool inventory + SVG icon parity -->
+<style id="sb-pr73-construction-svg-inventory">
+#sb-construction-context-menu{max-width:min(286px,calc(100vw - 20px))!important}
+#sb-construction-context-menu{
+ box-sizing:border-box!important;
+ padding:16px!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid{
+ display:grid!important;flex:0 0 auto!important;min-height:0!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(9,minmax(54px,auto))!important;
+ gap:7px!important;align-items:stretch!important
+}
+#sb-construction-context-menu .sb-construction-context-grid button{
+ box-sizing:border-box!important;min-width:0!important;min-height:0!important;height:100%!important;
+ padding:4px 3px!important;overflow:hidden!important;
+ display:flex!important;flex-direction:column!important;align-items:center!important;
+ justify-content:center!important;gap:3px!important;text-align:center!important;
+ border:1px solid rgba(195,225,248,.12)!important;border-radius:14px!important;
+ background:rgba(225,241,255,.075)!important;color:#eef7ff!important;
+ font-size:10px!important;font-weight:650!important;line-height:1.08!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button svg{
+ width:17px!important;height:17px!important;min-width:17px!important;
+ flex:0 0 17px!important;display:block!important;fill:none!important;
+ stroke:currentColor!important;stroke-width:1.8!important;
+ stroke-linecap:round!important;stroke-linejoin:round!important;
+ pointer-events:none!important;opacity:.94!important
+}
+#sb-construction-context-menu .sb-construction-context-grid button span{
+ display:block!important;box-sizing:border-box!important;width:100%!important;min-width:0!important;
+ max-width:100%!important;overflow:hidden!important;text-overflow:clip!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;
+ text-align:center!important;line-height:1.08!important;
+ display:-webkit-box!important;-webkit-box-orient:vertical!important;-webkit-line-clamp:2!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button.active,
+#sb-construction-context-menu .sb-construction-context-grid button[aria-pressed="true"]{
+ color:#bafbf0!important;background:rgba(54,211,190,.17)!important;
+ border-color:rgba(74,235,211,.48)!important;
+ box-shadow:inset 0 0 0 1px rgba(74,235,211,.08),0 0 13px rgba(38,220,196,.12)!important
+}
+#sb-construction-context-menu .sb-platform-size-grid{
+ display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important
+}
+#sb-construction-context-menu .sb-platform-size-grid button{
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:5px!important;min-height:40px!important;padding:6px!important
+}
+#sb-construction-context-menu .sb-platform-size-grid button.active,
+#sb-construction-context-menu .sb-platform-size-grid button[aria-pressed="true"]{
+ color:#bafbf0!important;background:rgba(54,211,190,.17)!important;
+ border-color:rgba(74,235,211,.48)!important
+}
+@media(max-width:380px){
+ #sb-construction-context-menu{padding:10px!important}
+ #sb-construction-context-menu .sb-construction-context-grid{gap:6px!important}
+ #sb-construction-context-menu .sb-construction-context-grid button{font-size:9px!important;gap:2px!important;padding:3px 2px!important}#sb-construction-context-menu .sb-construction-context-grid button svg{width:15px!important;height:15px!important;min-width:15px!important;flex-basis:15px!important}
+}
+/* Layered glass surfaces and separators for the construction panel and its slot groups. */
+#sb-construction-context-menu{
+ overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;scrollbar-width:thin!important;
+ border:1px solid rgba(205,231,250,.20)!important;
+ background:linear-gradient(155deg,rgba(20,39,59,.94),rgba(8,22,38,.91))!important;
+ box-shadow:0 20px 52px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(255,255,255,.035)!important;
+ -webkit-backdrop-filter:blur(30px) saturate(165%)!important;
+ backdrop-filter:blur(30px) saturate(165%)!important;
+}
+#sb-construction-context-menu>.sb-construction-context-heading{
+ position:relative!important;margin:0 0 12px!important;padding:2px 0 13px!important;
+ border-bottom:1px solid rgba(210,235,252,.16)!important;
+ text-shadow:0 1px 8px rgba(190,225,250,.12)!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid{
+ position:relative!important;padding:9px!important;
+ border:1px solid rgba(207,232,250,.15)!important;border-radius:19px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.075),rgba(170,207,236,.025))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.075),inset 0 -1px 0 rgba(255,255,255,.025),0 5px 16px rgba(0,0,0,.10)!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button{
+ border-color:rgba(210,234,250,.17)!important;
+ background:linear-gradient(145deg,rgba(236,247,255,.105),rgba(188,220,245,.045))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),inset 0 -1px 0 rgba(255,255,255,.025)!important;
+}
+#sb-construction-context-menu .sb-platform-size-heading{
+ position:relative!important;margin:12px 0 8px!important;padding:13px 2px 0!important;
+ border-top:1px solid rgba(210,235,252,.16)!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid{
+ padding:9px!important;border:1px solid rgba(207,232,250,.15)!important;
+ border-radius:17px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.065),rgba(170,207,236,.02))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 5px 16px rgba(0,0,0,.09)!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid button{
+ border-color:rgba(210,234,250,.18)!important;
+ background:linear-gradient(145deg,rgba(236,247,255,.10),rgba(188,220,245,.04))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+@media(max-width:380px){
+ #sb-construction-context-menu .sb-construction-context-grid{padding:7px!important}
+ #sb-construction-context-menu .sb-platform-size-grid{padding:7px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-construction-context-menu .sb-construction-context-grid button{transition:none!important}
+}
+</style>
+<script id="sb-pr73-construction-svg-inventory-runtime">
+(function(){
+ if(window.__sbPr73ConstructionInventory)return;
+ window.__sbPr73ConstructionInventory=true;
+ const iconPaths={
+  station:'<circle cx="12" cy="12" r="8.5"/><path d="M8 16V8h8v8M8 12h8M10 16v2m4-2v2"/>',
+  track:'<path d="M7 3 5 21M17 3l2 18M6 7h12M5.5 12h13M5 17h14"/>',
+  curve:'<path d="M4 18c4 0 4-12 9-12h7"/><path d="m16 3 4 3-4 3"/>',
+  waypoint:'<path d="M12 21s7-6.2 7-12a7 7 0 1 0-14 0c0 5.8 7 12 7 12Z"/><circle cx="12" cy="9" r="2.2"/>',
+  inspect:'<circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5M10.8 7.5v6.6m-3.3-3.3h6.6"/>',
+  single:'<path d="M12 3v18M8 7h8M8 12h8M8 17h8"/>',
+  parallel:'<path d="M7 3v18M17 3v18M4 7h16M4 12h16M4 17h16"/>',
+  tunnel:'<path d="M4 20V11a8 8 0 0 1 16 0v9M8 20v-8a4 4 0 0 1 8 0v8"/>',
+  curveMode:'<path d="M4 18h4a8 8 0 0 0 8-8V6"/><path d="m12 10 4-4 4 4"/>',
+  island:'<path d="M3 7h18M3 17h18M6 7v10m12-10v10"/><rect x="9" y="9" width="6" height="6" rx="1"/>',
+  side:'<path d="M3 6h18M3 18h18M8 6v12m8-12v12"/><path d="M3 12h5m8 0h5"/>',
+  narrow:'<path d="M4 12h16M7 8l-3 4 3 4m10-8 3 4-3 4"/>',
+  standard:'<path d="M3 12h18M6 8l-3 4 3 4m12-8 3 4-3 4M12 5v14"/>',
+  wide:'<path d="M2 12h20M6 8l-4 4 4 4m12-8 4 4-4 4M12 3v18"/>',
+  ruler:'<path d="M4 17 17 4l3 3L7 20H4zM9 12l2 2m1-5 2 2m1-5 2 2"/>',
+  clear:'<path d="M4 12h16M12 4v16"/><path d="m7 7 10 10m0-10L7 17"/>',
+  city:'<path d="M3 21V9l6-4v16M9 21V3l6 4v14M15 21v-9l6-3v12"/><path d="M6 12h.01M6 16h.01M12 9h.01M12 13h.01M18 14h.01M18 18h.01"/>',
+  palette:'<path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.7 1.7 0 0 1 1.3-2.8H18a3 3 0 0 0 3-3c0-5-4-8.9-9-8.9Z"/><circle cx="7.5" cy="10" r="1"/><circle cx="11" cy="6.8" r="1"/><circle cx="16" cy="8" r="1"/>'
+ };
+ function svg(name){
+  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(iconPaths[name]||iconPaths.track)+'</svg>';
+ }
+ function decorate(button,name,label){
+  if(!button||button.dataset.sbSvgReady==='true')return;
+  const text=label||button.textContent.trim();
+  button.dataset.sbSvgReady='true';
+  button.setAttribute('aria-label',text);
+  button.title=text;
+  button.innerHTML=svg(name);
+ }
+ function decoratePlatformSize(button){
+  if(!button||button.dataset.sbSvgReady==='true')return;
+  const metres=({compact:'6',standard:'8',long:'10'})[button.dataset.platformSize]||button.textContent.trim().replace(/[^0-9]/g,'');
+  const accessibleLabel=metres+' metre platform width';
+  button.dataset.sbSvgReady='true';
+  button.setAttribute('aria-label',accessibleLabel);
+  button.title=accessibleLabel;
+  button.innerHTML='<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><text x="24" y="33" text-anchor="middle" font-family="system-ui,-apple-system,sans-serif" font-size="'+(metres.length>1?'22':'28')+'" font-weight="700" fill="currentColor">'+metres+'</text></svg>';
+ }
+ const additions=[
+  ['track-single','single','Single track'],
+  ['track-parallel','parallel','Parallel tracks'],
+  ['curve-mode','curveMode','Curve mode'],
+  ['tunnel-mode','tunnel','Tunnel mode'],
+  ['platform-island','island','Island platform'],
+  ['platform-side','side','Side platforms'],
+  ['width-narrow','narrow','Narrow width'],
+  ['width-default','standard','Standard width'],
+  ['width-wide','wide','Wide width'],
+  ['clear-selection','clear','Clear selection'],
+  ['toggle-3d','city','3D city view'],
+  ['line-color','palette','Line color']
+ ];
+ function enhance(menu){
+  if(!menu||menu.dataset.sbSvgInventory==='ready')return;
+  const grid=menu.querySelector('.sb-construction-context-grid');
+  if(!grid)return;
+  menu.dataset.sbSvgInventory='ready';
+  const modeIcons={station:'station',track:'track',curve:'curve',waypoint:'waypoint',inspect:'inspect'};
+  grid.querySelectorAll('button[data-mode]').forEach(button=>{
+   const name=modeIcons[button.dataset.mode]||'track';
+   decorate(button,name);
+   button.setAttribute('aria-pressed',String(
+    (button.dataset.mode==='station'&&window.mode==='station')||
+    (button.dataset.mode==='track'&&window.mode==='track')||
+    (button.dataset.mode==='curve'&&window.mode==='curve')||
+    (button.dataset.mode==='waypoint'&&window.mode==='waypoint')||
+    (button.dataset.mode==='inspect'&&window.mode==='inspect')
+   ));
+  });
+  additions.forEach(([action,icon,label])=>{
+   const button=document.createElement('button');
+   button.type='button';button.dataset.sbAction=action;
+   decorate(button,icon,label);
+   button.setAttribute('aria-pressed','false');
+   grid.appendChild(button);
+  });
+  menu.querySelectorAll('button[data-platform-size]').forEach(decoratePlatformSize);
+  sync(menu);
+ }
+ function sync(menu){
+  if(!menu)return;
+  const currentTrackStyle=typeof trackStyle!=='undefined'?trackStyle:null;
+  const currentCurveMode=typeof curveMode!=='undefined'?!!curveMode:false;
+  const currentTunnelMode=typeof tunnelMode!=='undefined'?!!tunnelMode:false;
+  const currentPlatformType=typeof platformType!=='undefined'?platformType:null;
+  const currentPlatformWidth=typeof platformWidth!=='undefined'?platformWidth:null;
+  const currentPlatformSize=typeof platformSize!=='undefined'?platformSize:null;
+  const states={
+   'track-single':currentTrackStyle==='single',
+   'track-parallel':currentTrackStyle==='parallel',
+   'curve-mode':currentCurveMode,
+   'tunnel-mode':currentTunnelMode,
+   'platform-island':currentPlatformType==='island',
+   'platform-side':currentPlatformType==='side',
+   'width-narrow':currentPlatformWidth==='narrow',
+   'width-default':currentPlatformWidth==='default',
+   'width-wide':currentPlatformWidth==='wide',
+   'clear-selection':false,
+   'toggle-3d':!!document.getElementById('sb-3d-map')?.classList.contains('active'),
+   'line-color':document.getElementById('sb-line-color-options')?.classList.contains('is-open')===true
+  };
+  menu.querySelectorAll('button[data-sb-action]').forEach(button=>{
+   const active=!!states[button.dataset.sbAction];
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
+  menu.querySelectorAll('button[data-mode]').forEach(button=>{
+   const active=button.dataset.mode===window.mode;
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
+  menu.querySelectorAll('button[data-platform-size]').forEach(button=>{
+   const active=button.dataset.platformSize===currentPlatformSize;
+   button.classList.toggle('active',active);
+   button.setAttribute('aria-pressed',String(active));
+  });
+ }
+ function closeMenu(menu){
+  if(menu)menu.remove();
+  if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
+ }
+ function run(action){
+  const actions={
+   'track-single':()=>setTrackStyle('single'),
+   'track-parallel':()=>setTrackStyle('parallel'),
+   'curve-mode':()=>toggleCurveMode(),
+   'tunnel-mode':()=>toggleTunnelMode(),
+   'platform-island':()=>setPlatformType('island'),
+   'platform-side':()=>setPlatformType('side'),
+   'width-narrow':()=>setPlatformWidth('narrow'),
+   'width-default':()=>setPlatformWidth('default'),
+   'width-wide':()=>setPlatformWidth('wide'),
+   'clear-selection':()=>resetSelection(),
+   'toggle-3d':()=>window.toggle3DCityView()
+  };
+  if(typeof actions[action]!=='function')return false;
+  actions[action]();
+  return true;
+ }
+ document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest?event.target.closest('#sb-construction-context-menu button[data-sb-action]'):null;
+  if(!button)return;
+  event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+  const menu=button.closest('#sb-construction-context-menu');
+  try{if(run(button.dataset.sbAction))closeMenu(menu);}
+  catch(error){console.error('Construction control failed:',button.dataset.sbAction,error);}
+ },true);
+ const observer=new MutationObserver(()=>{
+  const menu=document.getElementById('sb-construction-context-menu');
+  if(menu)enhance(menu);
+ });
+ observer.observe(document.documentElement,{childList:true,subtree:true});
+ const current=document.getElementById('sb-construction-context-menu');
+ if(current)enhance(current);
+})();
+</script>
+
 </html>
+
+<style id="sb-pr73-service-pills-and-overlay-touch-repair">
+/* Three independently sized glass pills: create/search, existing lines, and run. */
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+ display:grid!important;
+ grid-template-columns:minmax(112px,1.05fr) minmax(72px,1fr) 48px!important;
+ align-items:center!important;
+ gap:clamp(6px,1vw,12px)!important;
+ min-width:0!important;width:100%!important;
+}
+#sb-service-create-slot,#sb-service-lines-content,#sb-service-run-slot{
+ box-sizing:border-box!important;min-width:0!important;min-height:48px!important;
+ height:48px!important;max-height:48px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:6px!important;padding:4px 7px!important;
+ border:1px solid rgba(205,230,248,.13)!important;border-radius:999px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.105),rgba(170,207,236,.045))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.075),0 4px 12px rgba(0,0,0,.10)!important;
+}
+#sb-service-create-slot{flex-flow:row nowrap!important;overflow:visible!important}
+#sb-service-lines-content{flex:1 1 auto!important;width:auto!important;overflow-x:auto!important;overflow-y:hidden!important;justify-content:flex-start!important;touch-action:pan-x!important}
+#sb-service-run-slot{width:48px!important;min-width:48px!important;padding:4px!important}
+#sb-service-create-slot #sb-line-name-editor{flex:0 1 40px!important;min-width:40px!important;width:40px!important}
+#sb-service-create-slot .sb-line-color-picker{flex:0 0 40px!important;width:40px!important;min-width:40px!important}
+#sb-service-create-slot #sb-line-remove-active{flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important}
+#sb-service-run-slot #runBtn{flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;min-height:40px!important}
+#sb-service-dock.is-expanded{min-width:0!important}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+  grid-template-columns:minmax(104px,1.05fr) minmax(54px,.9fr) 44px!important;gap:5px!important
+ }
+ #sb-service-create-slot,#sb-service-lines-content,#sb-service-run-slot{padding:3px 5px!important}
+ #sb-service-create-slot #sb-line-name-editor.is-editing{flex:0 1 130px!important;width:130px!important;min-width:92px!important}
+}
+@media(max-width:390px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{grid-template-columns:minmax(88px,1fr) minmax(42px,.72fr) 42px!important;gap:4px!important}
+ #sb-service-create-slot{gap:3px!important;padding:3px!important}
+ #sb-service-create-slot #sb-line-remove-active{flex-basis:32px!important;width:32px!important;min-width:32px!important}
+}
+/* The construction menu should follow the marked compact footprint, not span most of the screen. */
+#sb-construction-context-menu{
+ width:min(252px,calc(100vw - 24px))!important;
+ max-width:min(252px,calc(100vw - 24px))!important;
+ max-height: min(58dvh, 520px)!important;
+ height:auto!important;
+ min-height:0!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;
+ touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;
+ pointer-events:auto!important;
+}
+#sb-construction-context-menu .sb-construction-context-heading,
+#sb-construction-context-menu .sb-construction-context-grid,
+#sb-construction-context-menu .sb-construction-context-grid button,
+#sb-construction-context-menu .sb-platform-size-heading,
+#sb-construction-context-menu .sb-platform-size-grid{pointer-events:auto!important}
+#sb-construction-context-menu .sb-construction-context-grid{
+ grid-template-rows:repeat(9,minmax(48px,auto))!important;
+ gap:6px!important;padding:7px!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button{border-radius:13px!important}
+@media(max-width:700px){
+ #sb-construction-context-menu{max-height:min(56dvh,500px)!important}
+}
+/* Give every active game-menu view a real flex scroll viewport, including Settings. */
+#sb-game-menu-card{
+ min-height:0!important;max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px)!important;
+}
+#sb-game-menu-card .sb-game-menu-view,
+#sb-game-menu-settings-view{
+ box-sizing:border-box!important;min-height:0!important;max-height:none!important;
+ flex:1 1 0!important;height:auto!important;overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;pointer-events:auto!important;
+}
+#sb-game-menu-card .sb-game-menu-header{flex:0 0 auto!important;pointer-events:auto!important}
+</style>
+<script id="sb-pr73-overlay-touch-ownership">
+(function(){
+ if(window.__sbPr73OverlayTouchOwnership)return;
+ window.__sbPr73OverlayTouchOwnership=true;
+ const selectors=['#sb-construction-context-menu','#sb-game-menu-card'];
+ function install(){
+  selectors.forEach(selector=>{
+   const root=document.querySelector(selector);
+   if(!root||root.dataset.sbTouchOwner==='true')return;
+   root.dataset.sbTouchOwner='true';
+   /* Keep gestures inside an open overlay; Leaflet must not receive the same touch sequence. */
+   ['pointerdown','pointerup','pointercancel','touchstart','touchmove','touchend','touchcancel'].forEach(type=>{
+    root.addEventListener(type,event=>event.stopPropagation(),{capture:true,passive:true});
+   });
+  });
+ }
+ const observer=new MutationObserver(install);
+ observer.observe(document.documentElement,{childList:true,subtree:true});
+ install();
+})();
+</script>
+
+
+<style id="sb-pr73-dock-aligned-circular-construction-and-menu-surfaces">
+/* Construction panel spans only the clear vertical lane between the right-side docks. */
+#sb-construction-context-menu{
+ box-sizing:border-box!important;
+ padding:10px!important;
+ border:0!important;outline:0!important;
+ border-radius:25px!important;
+ background:rgba(13,25,42,.72)!important;
+ -webkit-backdrop-filter:blur(26px) saturate(175%)!important;
+ backdrop-filter:blur(26px) saturate(175%)!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.2)!important;
+ display:flex!important;flex-direction:column!important;
+ overflow:hidden!important;
+}
+#sb-construction-context-menu .sb-construction-context-heading{
+ flex:0 0 auto!important;padding:5px 4px 9px!important;
+ border:0!important;box-shadow:none!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid{
+ flex:1 1 auto!important;min-height:0!important;
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(9,minmax(0,1fr))!important;
+ grid-auto-flow:row!important;gap:7px!important;
+ align-content:stretch!important;justify-content:stretch!important;
+ padding:4px!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button,
+#sb-construction-context-menu .sb-platform-size-grid button,
+#sb-construction-context-menu button[data-sb-action]{
+ box-sizing:border-box!important;
+ width:100%!important;min-width:0!important;min-height:0!important;
+ aspect-ratio:1/1!important;height:auto!important;
+ justify-self:center!important;align-self:center!important;
+ display:flex!important;flex-direction:column!important;
+ align-items:center!important;justify-content:center!important;
+ gap:4px!important;padding:7px!important;
+ border:0!important;border-radius:50%!important;
+ color:#edf7ff!important;
+ background:rgba(225,241,255,.105)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.12)!important;
+ font-size:clamp(10px,1.8vw,13px)!important;line-height:1.12!important;
+ white-space:normal!important;overflow-wrap:anywhere!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button:active,
+#sb-construction-context-menu .sb-construction-context-grid button.active,
+#sb-construction-context-menu .sb-construction-context-grid button[aria-pressed="true"],
+#sb-construction-context-menu .sb-platform-size-grid button.active{
+ background:rgba(54,211,190,.22)!important;color:#8affed!important;
+ box-shadow:inset 0 0 0 1px rgba(74,235,211,.35),0 0 14px rgba(38,220,196,.16)!important;
+}
+#sb-construction-context-menu .sb-platform-size-heading{
+ flex:0 0 auto!important;margin-top:8px!important;padding:9px 4px 7px!important;
+ border-top:1px solid rgba(220,238,250,.12)!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid{
+ flex:0 0 auto!important;display:grid!important;
+ grid-template-columns:repeat(3,minmax(0,1fr))!important;
+ gap:8px!important;padding:4px!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid button{
+ width:min(100%,76px)!important;justify-self:center!important;
+}
+#sb-game-menu-card{
+ border:0!important;outline:0!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.2)!important;
+ background:rgba(13,25,42,.72)!important;
+ padding:0!important;
+ max-height:none!important;height:auto!important;min-height:0!important;
+ overflow:visible!important;
+}
+#sb-game-menu-card .sb-game-menu-header,
+#sb-game-menu-card .sb-game-menu-view,
+#sb-game-menu-settings-view{
+ border:0!important;outline:0!important;
+ box-shadow:none!important;
+}
+#sb-game-menu-card .sb-game-menu-view,
+#sb-game-menu-settings-view{
+ flex:0 1 auto!important;height:auto!important;max-height:none!important;
+ overflow:visible!important;touch-action:pan-y!important;
+}
+#sb-game-menu-card .sb-game-menu-header{padding:10px 14px!important;margin:0!important}
+#sb-game-menu-card .sb-game-menu-view{padding:8px 14px 14px!important}
+#sb-game-menu-card .sb-game-menu-action{
+ border:0!important;outline:0!important;
+ box-shadow:none!important;
+}
+#sb-top-dock>.sb-top-panel-stats{
+ border:0!important;outline:0!important;
+ box-shadow:none!important;
+ padding:5px 10px!important;
+ background:rgba(13,25,42,.72)!important;
+ -webkit-backdrop-filter:blur(25px) saturate(175%)!important;
+ backdrop-filter:blur(25px) saturate(175%)!important;
+}
+@media(max-width:700px){
+ #sb-construction-context-menu{padding:9px!important;border-radius:23px!important}
+ #sb-construction-context-menu .sb-construction-context-grid{gap:6px!important}
+ #sb-construction-context-menu .sb-construction-context-grid button{padding:5px!important}
+ #sb-game-menu-card{width:min(620px,calc(100vw - 24px))!important}
+}
+</style>
+
+
+<style id="sb-pr73-search-picker-and-dock-alignment-final">
+#sb-line-name-editor{box-sizing:border-box!important;display:flex!important;align-items:center!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;max-width:40px!important;height:40px!important;overflow:hidden!important;border-radius:999px!important;transition:flex-basis .36s cubic-bezier(.2,.8,.2,1),width .36s cubic-bezier(.2,.8,.2,1),max-width .36s cubic-bezier(.2,.8,.2,1),background .22s ease,box-shadow .22s ease!important}
+#sb-line-name-editor #sb-line-name-search{flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;background:transparent!important;box-shadow:none!important;font-size:0!important}
+#sb-line-name-editor #sb-line-name-search svg{display:block!important;width:21px!important;height:21px!important;flex:0 0 21px!important;overflow:visible!important;pointer-events:none!important;transition:transform .28s cubic-bezier(.2,.8,.2,1)!important}
+#sb-line-name-editor #sb-new-line-name{flex:1 1 auto!important;width:0!important;min-width:0!important;height:40px!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#f4f8fc!important;opacity:0!important;pointer-events:none!important;transform:translateX(-8px)!important;transition:opacity .2s ease .04s,transform .32s cubic-bezier(.2,.8,.2,1),padding .32s ease!important}
+#sb-line-name-editor.is-editing{flex:0 1 190px!important;width:190px!important;max-width:190px!important;min-width:112px!important;background:rgba(235,245,255,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 3px 12px rgba(0,0,0,.12)!important}
+#sb-line-name-editor.is-editing #sb-new-line-name{width:auto!important;min-width:0!important;padding:0 12px 0 2px!important;opacity:1!important;pointer-events:auto!important;transform:translateX(0)!important}
+#sb-line-name-editor.is-editing #sb-line-name-search svg{transform:scale(.94)!important}
+#sb-line-name-editor #sb-new-line-name::placeholder{color:rgba(235,245,255,.52)!important}
+#sb-service-create-slot .sb-line-color-picker{order:-1!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important}
+#sb-service-create-slot #sb-line-name-editor{order:0!important}
+#sb-service-create-slot #sb-line-remove-active{order:2!important}
+#sb-line-color-trigger{width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important}
+@media(max-width:700px){#sb-line-name-editor.is-editing{flex:0 1 154px!important;width:154px!important;max-width:154px!important;min-width:112px!important}}
+@media(max-width:390px){#sb-line-name-editor.is-editing{flex:0 1 126px!important;width:126px!important;max-width:126px!important;min-width:104px!important}}
+@media(prefers-reduced-motion:reduce){#sb-line-name-editor,#sb-line-name-editor *{transition:none!important}}
+#sb-construction-context-menu{box-sizing:border-box!important;width:auto!important;max-width:none!important;border:0!important;outline:0!important;border-radius:24px!important;padding:9px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+#sb-construction-context-menu .sb-construction-context-grid{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;grid-template-rows:repeat(9,minmax(48px,auto))!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}
+</style>
+
+
+<style id="sb-pr73-search-keyboard-color-scroll-menu-material-repair">
+/* Keep the floating create/search card above the live Android visual viewport. */
+body.sb-service-search-keyboard #sb-service-create-slot{
+ position:fixed!important;z-index:15010!important;
+ left:50%!important;right:auto!important;top:auto!important;
+ bottom:calc(var(--sb-keyboard-inset,0px) + 12px + env(safe-area-inset-bottom,0px))!important;
+ transform:translateX(-50%)!important;
+ width:max-content!important;max-width:calc(100vw - 16px)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor{
+ flex:0 1 min(340px,calc(100vw - 76px))!important;
+ width:min(340px,calc(100vw - 76px))!important;
+ min-width:min(180px,calc(100vw - 100px))!important;
+ max-width:calc(100vw - 76px)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-new-line-name{
+ min-width:0!important;flex:1 1 0!important;
+}
+#sb-service-search-backdrop{
+ position:fixed!important;inset:0!important;z-index:14900!important;
+ background:rgba(5,12,22,.24)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(115%)!important;
+ backdrop-filter:blur(7px) saturate(115%)!important;
+ pointer-events:auto!important;
+}
+body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!important}
+@media(max-width:380px){
+ body.sb-service-search-keyboard #sb-line-name-editor{min-width:0!important}
+}
+
+/* The palette is a document-level horizontal scroller; don't let flex items shrink or steal the gesture. */
+#sb-line-color-options{
+ position:fixed!important;z-index:30000!important;
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;
+ width:min(560px,calc(100vw - 18px))!important;max-width:calc(100vw - 18px)!important;
+ min-width:0!important;height:56px!important;min-height:56px!important;max-height:56px!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-x!important;
+ overscroll-behavior-x:contain!important;overscroll-behavior-y:none!important;
+ scrollbar-width:none!important;white-space:nowrap!important;
+}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options .sb-line-color-option,
+#sb-line-color-options .sb-custom-color-editor{
+ flex:0 0 auto!important;touch-action:pan-x!important;
+}
+#sb-line-color-options .sb-line-color-option{width:36px!important;height:36px!important}
+#sb-line-color-options.is-open{pointer-events:auto!important;overflow-x:auto!important;overflow-y:hidden!important}
+
+/* Game menu shares the docks' glass material and circular control language. */
+#sb-game-menu-card{
+ box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ width:min(440px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;
+ max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px)!important;
+ min-height:0!important;height:auto!important;padding:0!important;
+ border:0!important;outline:0!important;border-radius:26px!important;
+ background:rgba(13,25,42,.72)!important;background-image:none!important;
+ -webkit-backdrop-filter:blur(26px) saturate(175%)!important;
+ backdrop-filter:blur(26px) saturate(175%)!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.20)!important;overflow:hidden!important;
+}
+#sb-game-menu-card .sb-game-menu-header{
+ position:relative!important;flex:0 0 auto!important;min-height:54px!important;
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ margin:0!important;padding:10px 58px 10px 16px!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+}
+#sb-game-menu-card .sb-game-menu-header h2{
+ margin:0!important;color:#edf7ff!important;font-size:12px!important;
+ font-weight:750!important;letter-spacing:1.4px!important;
+}
+#sb-game-menu-card .sb-menu-header-actions{
+ position:absolute!important;right:8px!important;top:50%!important;transform:translateY(-50%)!important;
+ display:flex!important;align-items:center!important;gap:6px!important;
+}
+#sb-game-menu-card .sb-menu-header-actions button{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;
+ max-width:38px!important;max-height:38px!important;padding:0!important;margin:0!important;
+ border:0!important;border-radius:50%!important;color:#edf7ff!important;
+ background:rgba(225,241,255,.10)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.12)!important;
+ transition:background .16s ease,box-shadow .16s ease,transform .16s ease!important;
+}
+#sb-game-menu-card .sb-game-menu-view,
+#sb-game-menu-settings-view{
+ box-sizing:border-box!important;width:100%!important;flex:1 1 auto!important;min-height:0!important;
+ max-height:calc(100dvh - 110px)!important;height:auto!important;
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;
+ padding:12px 14px 16px!important;margin:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;
+}
+#sb-game-menu-card .sb-game-menu-view[hidden],
+#sb-game-menu-settings-view[hidden]{display:none!important}
+#sb-game-menu-card .sb-menu-section-label{
+ margin:0!important;padding:0 0 8px!important;
+ border:0!important;border-bottom:1px solid rgba(205,230,248,.13)!important;
+ color:rgba(220,237,248,.72)!important;font-size:10px!important;font-weight:800!important;letter-spacing:1.2px!important;
+}
+#sb-game-menu-card .sb-game-menu-view p{
+ margin:0!important;color:rgba(235,245,252,.72)!important;font-size:12px!important;line-height:1.5!important;
+}
+#sb-game-menu-card .sb-menu-action-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:stretch!important;gap:8px!important;width:100%!important;
+}
+#sb-game-menu-card .sb-game-menu-action{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ width:100%!important;min-width:0!important;min-height:46px!important;height:auto!important;max-height:none!important;
+ flex:0 0 auto!important;margin:0!important;padding:9px 12px!important;
+ border:0!important;border-radius:999px!important;color:#edf7ff!important;
+ background:rgba(225,241,255,.105)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(160%)!important;backdrop-filter:blur(22px) saturate(160%)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.12)!important;
+ font-size:12px!important;font-weight:650!important;line-height:1.2!important;white-space:normal!important;
+ transition:background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease!important;
+}
+#sb-game-menu-card .sb-game-menu-action.sb-menu-primary,
+#sb-game-menu-card .sb-game-menu-action.active,
+#sb-game-menu-card .sb-game-menu-action[aria-pressed="true"]{
+ color:#8affed!important;background:rgba(54,211,190,.20)!important;
+ box-shadow:inset 0 0 0 1px rgba(74,235,211,.34),0 0 14px rgba(38,220,196,.16)!important;
+}
+#sb-game-menu-card .sb-game-menu-action:active,
+#sb-game-menu-card .sb-menu-header-actions button:active{
+ transform:scale(.96)!important;background:rgba(54,211,190,.22)!important;
+ box-shadow:inset 0 0 0 1px rgba(74,235,211,.34),0 0 14px rgba(38,220,196,.16)!important;
+}
+#sb-game-menu-card .sb-game-menu-action:focus-visible,
+#sb-game-menu-card .sb-menu-header-actions button:focus-visible{
+ outline:0!important;box-shadow:inset 0 0 0 1px rgba(110,240,220,.62),0 0 0 3px rgba(54,211,190,.14)!important;
+}
+#sb-game-menu-card .sb-setting-row{
+ min-height:58px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;padding:8px 0!important;border:0!important;border-bottom:1px solid rgba(205,230,248,.12)!important;
+}
+#sb-game-menu-card .sb-setting-row>div{min-width:0!important;flex:1 1 auto!important}
+#sb-game-menu-card .sb-setting-row strong{display:block!important;color:#edf7ff!important;font-size:12px!important;font-weight:650!important}
+#sb-game-menu-card .sb-setting-row small{display:block!important;margin-top:3px!important;color:rgba(220,237,248,.58)!important;font-size:10px!important;line-height:1.35!important}
+#sb-game-menu-card .sb-ios-switch{border-radius:999px!important}
+@media(max-width:420px){
+ #sb-game-menu-card{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important}
+ #sb-game-menu-card .sb-game-menu-view,#sb-game-menu-settings-view{padding:11px 12px 14px!important;gap:9px!important}
+ #sb-game-menu-card .sb-game-menu-action{min-height:44px!important;padding:8px 9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-game-menu-card .sb-game-menu-action,#sb-game-menu-card .sb-menu-header-actions button{transition:none!important}
+}
+</style>
+
+
+<style id="sb-pr73-three-horizontal-dock-pills">
+/* Restore three distinct dock pills on one horizontal axis.
+   The center service pill flexes between fixed-content edit and build pills;
+   all three share one centerline and respect device/screen insets. */
+#sb-action-dock{
+ box-sizing:border-box!important;
+ position:fixed!important;
+ z-index:1600!important;
+ left:max(8px,env(safe-area-inset-left,0px))!important;
+ right:max(8px,env(safe-area-inset-right,0px))!important;
+ bottom:max(8px,env(safe-area-inset-bottom,0px))!important;
+ top:auto!important;
+ width:auto!important;height:58px!important;min-height:58px!important;max-height:58px!important;
+ display:flex!important;flex-flow:row nowrap!important;
+ align-items:center!important;justify-content:center!important;
+ gap:clamp(5px,1.6vw,10px)!important;
+ padding:0!important;margin:0!important;
+ background:transparent!important;background-image:none!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+ overflow:visible!important;
+}
+#sb-action-dock .sb-dock-panel{
+ box-sizing:border-box!important;
+ display:flex!important;flex-flow:row nowrap!important;
+ align-items:center!important;justify-content:center!important;
+ align-self:center!important;
+ flex:0 0 auto!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ min-width:0!important;width:max-content!important;max-width:none!important;
+ gap:7px!important;padding:6px 8px!important;margin:0!important;
+ border:0!important;border-radius:999px!important;
+ background:rgba(15,25,40,.56)!important;background-image:none!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 7px 20px rgba(0,0,0,.16)!important;
+ -webkit-backdrop-filter:blur(24px) saturate(170%)!important;
+ backdrop-filter:blur(24px) saturate(170%)!important;
+ overflow:visible!important;
+}
+#sb-action-dock .sb-dock-panel-left,
+#sb-action-dock .sb-dock-panel-right{
+ flex:0 0 auto!important;
+ width:max-content!important;min-width:max-content!important;
+ justify-content:center!important;margin:0!important;
+}
+#sb-action-dock .sb-dock-panel-service{
+ position:relative!important;
+ flex:1 1 0!important;width:auto!important;
+ min-width:54px!important;max-width:none!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ align-self:center!important;margin:0!important;padding:6px!important;
+ justify-content:flex-start!important;overflow:hidden!important;
+ transition:flex-grow .38s cubic-bezier(.2,.8,.2,1),background .2s ease!important;
+}
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded){
+ flex-grow:0!important;flex-basis:58px!important;width:58px!important;
+ min-width:58px!important;max-width:58px!important;
+ justify-content:center!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded{
+ flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;
+}
+#sb-action-dock .sb-dock-panel button{
+ box-sizing:border-box!important;flex:0 0 46px!important;
+ width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;
+ margin:0!important;border-radius:50%!important;
+}
+#sb-action-dock .sb-dock-panel-service #sb-service-dock-toggle{
+ flex:0 0 46px!important;align-self:center!important;
+}
+#sb-action-dock .sb-dock-panel-service #sb-service-lines{
+ min-width:0!important;width:0!important;flex:1 1 auto!important;
+ align-self:center!important;
+}
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines{
+ display:none!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+ display:grid!important;
+ grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) 46px!important;
+ align-items:center!important;gap:clamp(4px,1vw,8px)!important;
+ min-width:0!important;width:100%!important;height:100%!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-create-slot,
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content,
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ box-sizing:border-box!important;min-width:0!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:3px 5px!important;margin:0!important;
+ border:1px solid rgba(205,230,248,.13)!important;border-radius:999px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.105),rgba(170,207,236,.045))!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content{
+ flex:1 1 auto!important;width:auto!important;overflow-x:auto!important;overflow-y:hidden!important;
+ justify-content:flex-start!important;touch-action:pan-x!important;
+ -webkit-overflow-scrolling:touch!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ width:46px!important;min-width:46px!important;padding:3px!important;
+}
+@media(max-width:700px){
+ #sb-action-dock{
+  left:max(7px,env(safe-area-inset-left,0px))!important;
+  right:max(7px,env(safe-area-inset-right,0px))!important;
+  bottom:max(6px,env(safe-area-inset-bottom,0px))!important;
+  gap:clamp(4px,1.4vw,7px)!important;
+ }
+ #sb-action-dock .sb-dock-panel{
+  height:54px!important;min-height:54px!important;max-height:54px!important;
+  gap:clamp(4px,1vw,6px)!important;padding:4px 6px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service{
+  height:54px!important;min-height:54px!important;max-height:54px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service:not(.is-expanded){
+  flex-basis:54px!important;width:54px!important;min-width:54px!important;max-width:54px!important;
+ }
+ #sb-action-dock .sb-dock-panel button{
+  flex-basis:42px!important;width:42px!important;height:42px!important;
+  min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+  grid-template-columns:minmax(0,1fr) minmax(0,.88fr) 42px!important;gap:4px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-create-slot,
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content,
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+  height:42px!important;min-height:42px!important;max-height:42px!important;padding:2px 4px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+  width:42px!important;min-width:42px!important;
+ }
+}
+@media(max-width:380px){
+ #sb-action-dock{gap:4px!important}
+ #sb-action-dock .sb-dock-panel{padding:4px!important;gap:3px!important}
+ #sb-action-dock .sb-dock-panel button{
+  flex-basis:38px!important;width:38px!important;height:38px!important;
+  min-width:38px!important;min-height:38px!important;max-width:38px!important;max-height:38px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service:not(.is-expanded){
+  flex-basis:48px!important;width:48px!important;min-width:48px!important;max-width:48px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+  grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 38px!important;gap:3px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+  width:38px!important;min-width:38px!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-action-dock .sb-dock-panel-service{transition:none!important}
+}
+</style>
+
+<style id="sb-pr73-service-picker-top-row-and-mobile-platform-controls">
+#sb-service-create-slot{box-sizing:border-box!important;display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;padding:3px 6px!important;min-width:0!important}
+#sb-service-create-slot #sb-line-name-editor{order:0!important;flex:0 1 66px!important;min-width:66px!important;margin:0!important}
+#sb-service-create-slot .sb-line-color-picker{order:1!important;position:relative!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;margin:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#sb-service-create-slot #sb-line-color-trigger{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;margin:0!important;padding:0!important;border-radius:50%!important}
+#sb-service-create-slot #sb-line-remove-active{order:2!important;flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important;margin:0!important}
+#sb-line-color-options{position:fixed!important;z-index:12000!important;top:8px!important;bottom:auto!important;left:8px!important;right:auto!important;transform:none!important;box-sizing:border-box!important;width:min(320px,calc(100vw - 16px))!important;max-width:calc(100vw - 16px)!important;max-height:54px!important;height:54px!important;display:flex!important;flex-flow:row nowrap!important;align-items:center!important;overflow-x:auto!important;overflow-y:hidden!important;padding:6px!important;gap:6px!important;border-radius:999px!important}
+#sb-line-color-options.is-open{transform:none!important}
+@media(max-width:700px){
+ #sb-service-create-slot{gap:7px!important;padding:3px 6px!important}
+ #sb-service-create-slot #sb-line-name-editor{flex:0 1 66px!important;min-width:58px!important}
+ #sb-service-create-slot .sb-line-color-picker,#sb-service-create-slot #sb-line-color-trigger{flex-basis:38px!important;width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important}
+ #sb-service-create-slot #sb-line-remove-active{flex-basis:34px!important;width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important}
+ #sb-line-color-options{height:48px!important;max-height:48px!important;padding:4px!important;gap:5px!important}
+ #sb-line-color-options .sb-line-color-option{flex-basis:38px!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
+ #sb-construction-context-menu .sb-construction-context-grid button{display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;font-size:0!important;padding:0!important}
+ #sb-construction-context-menu .sb-construction-context-grid button span{display:none!important}
+ #sb-construction-context-menu .sb-construction-context-grid button svg{display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important;margin:0!important}
+ #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;white-space:nowrap!important}
+}
+</style>
+<script id="sb-pr73-dock-panel-alignment-runtime">
+(function(){
+ if(window.__sbPr73DockAlignment)return;
+ window.__sbPr73DockAlignment=true;
+ const byId=id=>document.getElementById(id);
+ function positionColorPalette(){
+  const palette=byId('sb-line-color-options'),top=byId('sb-top-dock');
+  const stats=top?.querySelector('.sb-top-panel-stats'),theme=top?.querySelector('.sb-top-panel-theme'),menu=top?.querySelector('.sb-top-panel-menu');
+  if(!palette||palette.hidden||!palette.classList.contains('is-open')||!top||!stats)return;
+  const topRect=top.getBoundingClientRect(),statsRect=stats.getBoundingClientRect();
+  const themeRect=theme?.getBoundingClientRect(),menuRect=menu?.getBoundingClientRect();
+  const leftControlsRight=Math.max(themeRect?.right||0,menuRect?.right||0),inset=8,gap=8;
+  const availableRight=Math.max(inset,statsRect.left-gap);
+  let left=Math.max(inset,leftControlsRight+gap),width=availableRight-left;
+  let topPosition=topRect.top+(topRect.height-48)/2;
+  if(width<96){
+   width=Math.max(96,Math.min(220,window.innerWidth-inset*2));
+   left=Math.max(inset,Math.min(statsRect.left-width-gap,window.innerWidth-width-inset));
+   topPosition=topRect.bottom+6;
+  }
+  palette.style.setProperty('position','fixed','important');palette.style.setProperty('left',left+'px','important');
+  palette.style.setProperty('right','auto','important');palette.style.setProperty('top',topPosition+'px','important');
+  palette.style.setProperty('bottom','auto','important');palette.style.setProperty('width',Math.max(96,width)+'px','important');
+  palette.style.setProperty('max-width','calc(100vw - 16px)','important');palette.style.setProperty('transform','none','important');
+ }
+ function positionConstruction(){
+  const menu=byId('sb-construction-context-menu');
+  const dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');
+  if(!menu||!dock)return;
+  const r=dock.getBoundingClientRect();
+  const topDock=byId('sb-top-dock');
+  const stats=topDock?.querySelector('.sb-top-panel-stats');
+  const sr=stats?.getBoundingClientRect();
+  const vv=window.visualViewport;
+  const viewportTop=vv?Math.max(0,vv.offsetTop):0;
+  const viewportBottom=vv?Math.min(window.innerHeight,vv.offsetTop+vv.height):window.innerHeight;
+  const safeTop=Math.max(viewportTop,parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'))||0)+8;
+  const safeBottom=Math.max(0,parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom'))||0);
+  const gap=10,edge=8;
+  const right=Math.min(r.right,window.innerWidth-edge-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-area-right'))||0));
+  const left=Math.max(edge,r.left);
+  const width=Math.max(1,Math.min(r.width,right-left));
+  const bottom=Math.max(safeTop+120,Math.min(r.top-gap,viewportBottom-safeBottom-gap));
+  const topLimit=Math.max(safeTop,sr&&sr.bottom>safeTop?sr.bottom+gap:safeTop);
+  const available=Math.max(120,bottom-topLimit);
+  /* Keep a stable panel height when space allows; shrink only for compact screens. */
+  const height=Math.min(460,available);
+  const top=bottom-height;
+  menu.style.setProperty('position','fixed','important');
+  menu.style.setProperty('box-sizing','border-box','important');
+  menu.style.setProperty('left',left+'px','important');
+  menu.style.setProperty('right','auto','important');
+  menu.style.setProperty('width',width+'px','important');
+  menu.style.setProperty('min-width',width+'px','important');
+  menu.style.setProperty('max-width',width+'px','important');
+  menu.style.setProperty('top',Math.max(topLimit,top)+'px','important');
+  menu.style.setProperty('bottom','auto','important');
+  menu.style.setProperty('height',height+'px','important');
+  menu.style.setProperty('min-height','0','important');
+  menu.style.setProperty('max-height',height+'px','important');
+ }
+ let dockFrame=0;
+ function followDockDuringMotion(){
+  if(dockFrame)return;
+  const tick=()=>{
+   dockFrame=0;
+   const dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');
+   const menu=byId('sb-construction-context-menu');
+   if(!menu||!dock)return;
+   positionConstruction();
+   if(dock.matches(':hover')||dock.getAnimations().some(animation=>animation.playState==='running')||
+      menu.getAnimations().some(animation=>animation.playState==='running')){
+    dockFrame=requestAnimationFrame(tick);
+   }
+  };
+  dockFrame=requestAnimationFrame(tick);
+ }
+
+ function refresh(){positionColorPalette();positionConstruction();followDockDuringMotion();}
+ document.addEventListener('click',event=>{if(event.target?.closest('#sb-line-color-trigger'))requestAnimationFrame(positionColorPalette);},true);
+ const observer=new MutationObserver(records=>{if(records.some(record=>record.target?.id==='sb-line-color-options'||record.type==='childList'))requestAnimationFrame(refresh);});
+ const observe=()=>{const palette=byId('sb-line-color-options');if(palette)observer.observe(palette,{attributes:true,attributeFilter:['class','hidden']});const dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');if(dock&&window.ResizeObserver){const ro=new ResizeObserver(()=>{positionConstruction();followDockDuringMotion();});ro.observe(dock);window.__sbPr73ConstructionDockResizeObserver=ro;dock.addEventListener('transitionrun',followDockDuringMotion);dock.addEventListener('transitionend',positionConstruction);dock.addEventListener('transitioncancel',positionConstruction);}if(document.body)observer.observe(document.body,{childList:true,subtree:true});};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
+ window.addEventListener('resize',refresh,{passive:true});window.addEventListener('orientationchange',()=>requestAnimationFrame(refresh),{passive:true});
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',refresh,{passive:true});window.visualViewport.addEventListener('scroll',refresh,{passive:true});}
+ window.sbPr73RefreshDockPanels=refresh;
+})();
+</script>
+
+<style id="sb-pr73-icon-only-construction-controls">
+#sb-construction-context-menu .sb-construction-context-grid button,
+#sb-construction-context-menu .sb-platform-size-grid button{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ gap:0!important;padding:0!important;font-size:0!important;line-height:0!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button span{display:none!important}
+#sb-construction-context-menu .sb-construction-context-grid button svg{
+ display:block!important;width:24px!important;height:24px!important;flex:0 0 24px!important;margin:0!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid button svg{
+ display:block!important;width:100%!important;height:100%!important;max-width:38px!important;max-height:38px!important;
+ flex:1 1 auto!important;margin:0!important;overflow:visible!important;
+}
+</style>

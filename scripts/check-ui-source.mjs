@@ -3,6 +3,11 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html = readFileSync('app/src/main/assets/index.html', 'utf8');
+const topologySource = readFileSync('app/src/main/assets/track-topology.js', 'utf8');
+new vm.Script(topologySource, { filename: 'track-topology.js' });
+assert.ok(html.includes('<script src="track-topology.js"></script>'),
+  'Track topology helpers must load before the app script');
+
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1].trim())
   .filter(Boolean);
@@ -50,6 +55,26 @@ for (const required of [
   ];
   assert.ok(declarations.some(declaration => html.includes(declaration)),
     'Expected core interaction ' + required + ' to be present');
+}
+
+for (const required of [
+  'function splitTrackAtCrosshair',
+  'function getTrackElevationAtFraction',
+  'interpolateElevationAtDistance',
+  'function pruneOrphanJunctions',
+  'function pauseSimulationBeforeTopologyChange',
+  'function findTrackGroupPath',
+  'getConnectedTrackCandidates',
+  "nodeType==='junction'",
+  'trackGroupId',
+  'centerline:Array.isArray(t.centerline)',
+  'const trainLineId=',
+  'const inheritedLayer=',
+  'offsetTransitionZones:t.offsetTransitionZones',
+  'splitAlongMeters',
+  'totalLengthMeters:totalRouteDistance'
+]) {
+  assert.ok(html.includes(required), 'Expected track topology guard: ' + required);
 }
 
 console.log('UI source checks passed: ' + scripts.length + ' inline scripts, ' + ids.length + ' IDs, ' + new Set(panelActions).size + ' panel actions.');

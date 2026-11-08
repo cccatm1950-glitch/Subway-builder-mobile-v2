@@ -1,0 +1,98 @@
+const assert = require('node:assert/strict');
+const topology = require('../app/src/main/assets/track-topology.js');
+
+const route = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }];
+const projection = topology.projectPointToPolyline({ x: 8, y: 2 }, route);
+assert.ok(projection);
+assert.equal(projection.segmentIndex, 0);
+assert.equal(projection.t, 0.8);
+assert.equal(projection.x, 8);
+assert.equal(projection.y, 0);
+assert.ok(Math.abs(projection.distance - 2) < 1e-9);
+assert.ok(Math.abs(projection.fraction - 8 / 20) < 1e-9);
+
+const split = topology.splitPolylineAtProjection(route, projection);
+assert.deepEqual(split.first, [{ x: 0, y: 0 }, { x: 8, y: 0 }]);
+assert.deepEqual(split.second, [{ x: 8, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }]);
+assert.equal(split.first[split.first.length - 1].x, split.second[0].x);
+assert.equal(split.first[split.first.length - 1].y, split.second[0].y);
+
+const track = {
+  a: 2, b: 7, trackGroupId: 'tg-original', style: 'parallel', curve: true, elevation: 'below',
+  startElevation: -20, endElevation: -10,
+  lineIds: ['line-1', 'line-2'], offsetTransitionZones: { start: 30, end: 80 },
+  waypoints: [{ lat: 1, lng: 2 }, { lat: 3, lng: 4 }]
+};
+const withLatLng = {
+  ...split, alongMeters: 50, totalLengthMeters: 100,
+  first: split.first.map(p => ({ lat: p.y, lng: p.x })),
+  second: split.second.map(p => ({ lat: p.y, lng: p.x }))
+};
+const sections = topology.cloneTrackSections(track, withLatLng, 9, [0.2, 0.8]);
+assert.ok(sections);
+assert.equal(sections.first.a, 2);
+assert.equal(sections.first.b, 9);
+assert.equal(sections.second.a, 9);
+assert.equal(sections.second.b, 7);
+assert.equal(sections.first.style, 'parallel');
+assert.equal(sections.first.trackGroupId, 'tg-original');
+assert.equal(sections.second.trackGroupId, 'tg-original');
+assert.equal(sections.second.elevation, 'below');
+assert.deepEqual(sections.first.offsetTransitionZones, { start: 30, end: 30 });
+assert.deepEqual(sections.second.offsetTransitionZones, { end: 50 });
+assert.deepEqual(sections.first.lineIds, ['line-1', 'line-2']);
+assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
+assert.equal(sections.splitElevation, -16);
+assert.deepEqual(sections.first.waypoints, [{ lat: 1, lng: 2 }]);
+assert.deepEqual(sections.second.waypoints, [{ lat: 3, lng: 4 }]);
+sections.first.lineIds.push('mutated');
+assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
+
+const transitionZones = topology.splitTransitionZones({ start: 30, end: 80 }, 50, 50);
+assert.deepEqual(transitionZones, [{ start: 30, end: 30 }, { end: 50 }]);
+assert.deepEqual(topology.splitTransitionZones({ start: 10 }, 20, 30), [{ start: 10 }, undefined]);
+assert.deepEqual(topology.splitTransitionZones(null, 20, 30), [undefined, undefined]);
+
+const elevationAnchors = [
+  { distance: 0, height: -20 },
+  { distance: 50, height: 5 },
+  { distance: 100, height: -10 }
+];
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 0), -20);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 25), -7.5);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 75), -2.5);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 100), -10);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 150), -10);
+
+const graphTracks = [
+  { a: 0, b: 1, lineIds: ['L1'] },
+  { a: 1, b: 2, lineIds: ['L1'] },
+  { a: 1, b: 3, lineIds: ['L2'] }
+];
+const sameLine = topology.getConnectedTrackCandidates(graphTracks, 0, 1, ['L1']);
+assert.deepEqual(sameLine.map(item => item.trackIndex), [1]);
+assert.equal(sameLine[0].fromNodeIndex, 1);
+assert.equal(sameLine[0].toNodeIndex, 2);
+const splitGroup = [
+  { a: 0, b: 1, trackGroupId: 'G1' },
+  { a: 1, b: 2, trackGroupId: 'G1' },
+  { a: 1, b: 3, trackGroupId: 'G2' }
+];
+assert.deepEqual(topology.findTrackGroupPath(splitGroup, 0, 2), [0, 1]);
+assert.equal(topology.findTrackGroupPath(splitGroup, 0, 3), null);
+const ambiguousGroups = [
+  { a: 0, b: 1, trackGroupId: 'G1' },
+  { a: 1, b: 2, trackGroupId: 'G1' },
+  { a: 0, b: 3, trackGroupId: 'G2' },
+  { a: 3, b: 2, trackGroupId: 'G2' }
+];
+assert.equal(topology.findTrackGroupPath(ambiguousGroups, 0, 2), null);
+
+const allLines = topology.getConnectedTrackCandidates(graphTracks, 0, 1, []);
+assert.deepEqual(allLines.map(item => item.trackIndex), [1, 2]);
+assert.deepEqual(topology.getConnectedTrackCandidates(graphTracks, 0, 9, []), []);
+
+assert.equal(topology.projectPointToPolyline({ x: 1, y: 1 }, [{ x: 0, y: 0 }]), null);
+assert.equal(topology.splitPolylineAtProjection(route, null), null);
+assert.equal(topology.cloneTrackSections(track, { ...withLatLng, fraction: 0 }, 9, [0.2, 0.8]), null);
+console.log('Track topology tests passed.');
