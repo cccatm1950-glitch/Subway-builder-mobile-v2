@@ -4896,8 +4896,9 @@ function toggleDefaultDarkOnStart(){
    const vv=window.visualViewport;
    const visibleHeight=vv?vv.height:window.innerHeight;
    const offsetTop=vv?vv.offsetTop:0;
-   /* Capture the pre-keyboard viewport once; Android adjustResize can shrink innerHeight too. */
-   const inset=baseViewportHeight?Math.max(0,Math.round(baseViewportHeight-visibleHeight-offsetTop)):0;
+   /* Use the pre-keyboard layout height as well as the live viewport. Android may resize either one. */
+   const layoutHeight=Math.max(baseViewportHeight,document.documentElement.clientHeight||0,window.innerHeight||0);
+   const inset=Math.max(0,Math.round(layoutHeight-(visibleHeight+offsetTop)));
    document.documentElement.style.setProperty('--sb-keyboard-inset',inset+'px');
    document.body.classList.toggle('sb-service-search-keyboard',keyboardActive);
    if(createSlot&&keyboardActive){
@@ -4907,7 +4908,8 @@ function toggleDefaultDarkOnStart(){
   const restoreSlot=(collapseEditor=true)=>{
    keyboardActive=false;
    document.body.classList.remove('sb-service-search-keyboard');
-   if(searchBackdrop){searchBackdrop.remove();searchBackdrop=null;}
+   searchBackdrop?.remove();searchBackdrop=null;
+   document.getElementById('sb-service-search-backdrop')?.remove();
    if(createSlot)createSlot.style.removeProperty('bottom');
    if(slotPlaceholder&&slotPlaceholder.parentNode){
     slotPlaceholder.parentNode.insertBefore(createSlot,slotPlaceholder);
@@ -4921,11 +4923,12 @@ function toggleDefaultDarkOnStart(){
    if(collapseEditor){
     editor.classList.remove('is-editing');
     editor.removeAttribute('data-keyboard-active');
+    input.setAttribute('aria-hidden','true');
    }
   };
   const activate=()=>{
    if(keyboardActive){input.focus({preventScroll:true});return;}
-   baseViewportHeight=window.innerHeight;
+   baseViewportHeight=Math.max(window.innerHeight||0,document.documentElement.clientHeight||0);
    editor.classList.add('is-editing');
    input.setAttribute('aria-hidden','false');
    keyboardActive=true;
@@ -5018,9 +5021,8 @@ function toggleDefaultDarkOnStart(){
   if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}
   const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};
   lines.push(line);activeLineId=line.id;input.value='';
-  /* Tear down the floating keyboard surface before blurring the input. On Android,
-     blur can be delayed while the moved create slot and its backdrop are still active. */
-  if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard();
+  /* Always remove the keyboard overlay synchronously before focus changes on Android. */
+  if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard(true);
   input.blur();
   document.body.classList.remove('sb-service-search-keyboard');
   document.getElementById('sb-service-search-backdrop')?.remove();
@@ -8766,4 +8768,158 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 @media(prefers-reduced-motion:reduce){#sb-line-name-editor,#sb-line-name-editor *{transition:none!important}}
 #sb-construction-context-menu{box-sizing:border-box!important;width:auto!important;max-width:none!important;border:0!important;outline:0!important;border-radius:24px!important;padding:9px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
 #sb-construction-context-menu .sb-construction-context-grid{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;grid-template-rows:repeat(9,minmax(48px,auto))!important;-webkit-overflow-scrolling:touch!important;touch-action:pan-y!important}
+</style>
+
+
+<style id="sb-pr73-search-keyboard-color-scroll-menu-material-repair">
+/* Keep the floating create/search card above the live Android visual viewport. */
+body.sb-service-search-keyboard #sb-service-create-slot{
+ position:fixed!important;z-index:15010!important;
+ left:50%!important;right:auto!important;top:auto!important;
+ bottom:calc(var(--sb-keyboard-inset,0px) + 12px + env(safe-area-inset-bottom,0px))!important;
+ transform:translateX(-50%)!important;
+ width:max-content!important;max-width:calc(100vw - 16px)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor{
+ flex:0 1 min(340px,calc(100vw - 76px))!important;
+ width:min(340px,calc(100vw - 76px))!important;
+ min-width:min(180px,calc(100vw - 100px))!important;
+ max-width:calc(100vw - 76px)!important;
+}
+body.sb-service-search-keyboard #sb-line-name-editor #sb-new-line-name{
+ min-width:0!important;flex:1 1 0!important;
+}
+#sb-service-search-backdrop{
+ position:fixed!important;inset:0!important;z-index:14900!important;
+ background:rgba(5,12,22,.24)!important;
+ -webkit-backdrop-filter:blur(7px) saturate(115%)!important;
+ backdrop-filter:blur(7px) saturate(115%)!important;
+ pointer-events:auto!important;
+}
+body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!important}
+@media(max-width:380px){
+ body.sb-service-search-keyboard #sb-line-name-editor{min-width:0!important}
+}
+
+/* The palette is a document-level horizontal scroller; don't let flex items shrink or steal the gesture. */
+#sb-line-color-options{
+ position:fixed!important;z-index:30000!important;
+ display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;
+ width:min(560px,calc(100vw - 18px))!important;max-width:calc(100vw - 18px)!important;
+ min-width:0!important;height:56px!important;min-height:56px!important;max-height:56px!important;
+ overflow-x:auto!important;overflow-y:hidden!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-x!important;
+ overscroll-behavior-x:contain!important;overscroll-behavior-y:none!important;
+ scrollbar-width:none!important;white-space:nowrap!important;
+}
+#sb-line-color-options::-webkit-scrollbar{display:none!important}
+#sb-line-color-options .sb-line-color-option,
+#sb-line-color-options .sb-custom-color-editor{
+ flex:0 0 auto!important;touch-action:pan-x!important;
+}
+#sb-line-color-options .sb-line-color-option{width:36px!important;height:36px!important}
+#sb-line-color-options.is-open{pointer-events:auto!important;overflow-x:auto!important;overflow-y:hidden!important}
+
+/* Game menu shares the docks' glass material and circular control language. */
+#sb-game-menu-card{
+ box-sizing:border-box!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ width:min(440px,calc(100vw - 24px))!important;max-width:calc(100vw - 24px)!important;
+ max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px)!important;
+ min-height:0!important;height:auto!important;padding:0!important;
+ border:0!important;outline:0!important;border-radius:26px!important;
+ background:rgba(13,25,42,.72)!important;background-image:none!important;
+ -webkit-backdrop-filter:blur(26px) saturate(175%)!important;
+ backdrop-filter:blur(26px) saturate(175%)!important;
+ box-shadow:0 9px 26px rgba(0,0,0,.20)!important;overflow:hidden!important;
+}
+#sb-game-menu-card .sb-game-menu-header{
+ position:relative!important;flex:0 0 auto!important;min-height:54px!important;
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;
+ margin:0!important;padding:10px 58px 10px 16px!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+}
+#sb-game-menu-card .sb-game-menu-header h2{
+ margin:0!important;color:#edf7ff!important;font-size:12px!important;
+ font-weight:750!important;letter-spacing:1.4px!important;
+}
+#sb-game-menu-card .sb-menu-header-actions{
+ position:absolute!important;right:8px!important;top:50%!important;transform:translateY(-50%)!important;
+ display:flex!important;align-items:center!important;gap:6px!important;
+}
+#sb-game-menu-card .sb-menu-header-actions button{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;
+ max-width:38px!important;max-height:38px!important;padding:0!important;margin:0!important;
+ border:0!important;border-radius:50%!important;color:#edf7ff!important;
+ background:rgba(225,241,255,.10)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.12)!important;
+ transition:background .16s ease,box-shadow .16s ease,transform .16s ease!important;
+}
+#sb-game-menu-card .sb-game-menu-view,
+#sb-game-menu-settings-view{
+ box-sizing:border-box!important;width:100%!important;flex:1 1 auto!important;min-height:0!important;
+ max-height:calc(100dvh - 110px)!important;height:auto!important;
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important;
+ padding:12px 14px 16px!important;margin:0!important;
+ border:0!important;background:transparent!important;box-shadow:none!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;
+}
+#sb-game-menu-card .sb-game-menu-view[hidden],
+#sb-game-menu-settings-view[hidden]{display:none!important}
+#sb-game-menu-card .sb-menu-section-label{
+ margin:0!important;padding:0 0 8px!important;
+ border:0!important;border-bottom:1px solid rgba(205,230,248,.13)!important;
+ color:rgba(220,237,248,.72)!important;font-size:10px!important;font-weight:800!important;letter-spacing:1.2px!important;
+}
+#sb-game-menu-card .sb-game-menu-view p{
+ margin:0!important;color:rgba(235,245,252,.72)!important;font-size:12px!important;line-height:1.5!important;
+}
+#sb-game-menu-card .sb-menu-action-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ align-items:stretch!important;gap:8px!important;width:100%!important;
+}
+#sb-game-menu-card .sb-game-menu-action{
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ width:100%!important;min-width:0!important;min-height:46px!important;height:auto!important;max-height:none!important;
+ flex:0 0 auto!important;margin:0!important;padding:9px 12px!important;
+ border:0!important;border-radius:999px!important;color:#edf7ff!important;
+ background:rgba(225,241,255,.105)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(160%)!important;backdrop-filter:blur(22px) saturate(160%)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.12)!important;
+ font-size:12px!important;font-weight:650!important;line-height:1.2!important;white-space:normal!important;
+ transition:background .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease!important;
+}
+#sb-game-menu-card .sb-game-menu-action.sb-menu-primary,
+#sb-game-menu-card .sb-game-menu-action.active,
+#sb-game-menu-card .sb-game-menu-action[aria-pressed="true"]{
+ color:#8affed!important;background:rgba(54,211,190,.20)!important;
+ box-shadow:inset 0 0 0 1px rgba(74,235,211,.34),0 0 14px rgba(38,220,196,.16)!important;
+}
+#sb-game-menu-card .sb-game-menu-action:active,
+#sb-game-menu-card .sb-menu-header-actions button:active{
+ transform:scale(.96)!important;background:rgba(54,211,190,.22)!important;
+ box-shadow:inset 0 0 0 1px rgba(74,235,211,.34),0 0 14px rgba(38,220,196,.16)!important;
+}
+#sb-game-menu-card .sb-game-menu-action:focus-visible,
+#sb-game-menu-card .sb-menu-header-actions button:focus-visible{
+ outline:0!important;box-shadow:inset 0 0 0 1px rgba(110,240,220,.62),0 0 0 3px rgba(54,211,190,.14)!important;
+}
+#sb-game-menu-card .sb-setting-row{
+ min-height:58px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;padding:8px 0!important;border:0!important;border-bottom:1px solid rgba(205,230,248,.12)!important;
+}
+#sb-game-menu-card .sb-setting-row>div{min-width:0!important;flex:1 1 auto!important}
+#sb-game-menu-card .sb-setting-row strong{display:block!important;color:#edf7ff!important;font-size:12px!important;font-weight:650!important}
+#sb-game-menu-card .sb-setting-row small{display:block!important;margin-top:3px!important;color:rgba(220,237,248,.58)!important;font-size:10px!important;line-height:1.35!important}
+#sb-game-menu-card .sb-ios-switch{border-radius:999px!important}
+@media(max-width:420px){
+ #sb-game-menu-card{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important}
+ #sb-game-menu-card .sb-game-menu-view,#sb-game-menu-settings-view{padding:11px 12px 14px!important;gap:9px!important}
+ #sb-game-menu-card .sb-game-menu-action{min-height:44px!important;padding:8px 9px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-game-menu-card .sb-game-menu-action,#sb-game-menu-card .sb-menu-header-actions button{transition:none!important}
+}
 </style>
