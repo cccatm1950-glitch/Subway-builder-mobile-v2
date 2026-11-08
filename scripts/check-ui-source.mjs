@@ -3,6 +3,11 @@ import vm from 'node:vm';
 import assert from 'node:assert/strict';
 
 const html = readFileSync('app/src/main/assets/index.html', 'utf8');
+const topologySource = readFileSync('app/src/main/assets/track-topology.js', 'utf8');
+new vm.Script(topologySource, { filename: 'track-topology.js' });
+assert.ok(html.includes('<script src="track-topology.js"></script>'),
+  'Track topology helpers must load before the app script');
+
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)]
   .map((match) => match[1].trim())
   .filter(Boolean);
