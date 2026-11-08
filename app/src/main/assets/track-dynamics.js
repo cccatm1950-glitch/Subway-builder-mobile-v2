@@ -35,7 +35,7 @@
  }
  function getMaxSpeedForRadiusAndSlope(input={}){
   const top=Number(input.maxSpeedKmh);if(!Number.isFinite(top)||top<=0)return 0;
-  let cap=top;const r=Number(input.radiusMeters),minR=Number(input.minTurnRadiusMeters)||0,lat=Number(input.maxLateralAcceleration)||.8;
+  let cap=top;const r=Number(input.radiusMeters),minR=Number(input.minTurnRadiusMeters)||0,lat=Number(input.maxLateralAcceleration)||1;
   if(Number.isFinite(r)&&r>0&&lat>0)cap=Math.min(cap,Math.sqrt(Math.max(1,r)*lat)*KMH);
   cap*=Number.isFinite(input.curveSpeedMultiplier)?Math.max(.5,input.curveSpeedMultiplier):1;
   cap=getMaxSpeedForSlope(cap,input.slopePercent,input.slopeThresholds);if(input.stationTrack)cap*=.5;
