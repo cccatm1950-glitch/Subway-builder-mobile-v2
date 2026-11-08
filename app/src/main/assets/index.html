@@ -5584,6 +5584,19 @@ function splitTrackAtCrosshair(trackHit,latlng){
  const shouldConnect=previousSelection!==null&&previousSelection!==track.a&&previousSelection!==track.b;
  const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
  if(!sections)return null;
+ // A saved centerline takes precedence over the live spline renderer, so
+ // split curved tracks would bypass station/junction tangent alignment.
+ // Keep the exact split location as a waypoint on both halves, then let the
+ // tangent-aware Catmull-Rom path rebuild each section from its endpoints.
+ if(track.curve){
+  const splitWaypoint={lat:snapped.lat,lng:snapped.lng,elevation:'at'};
+  sections.first.waypoints.push({...splitWaypoint});
+  sections.second.waypoints.unshift({...splitWaypoint});
+  delete sections.first.centerline;
+  delete sections.second.centerline;
+  sections.first.curve=true;
+  sections.second.curve=true;
+ }
  const junctionElevation=getTrackElevationAtFraction(track,route,projection.fraction);
  sections.first.endElevation=junctionElevation;
  sections.second.startElevation=junctionElevation;
