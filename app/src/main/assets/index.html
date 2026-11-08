@@ -3483,6 +3483,7 @@ function toggleSimulation(){
     if(nextSegment>=route.length-1){
      const nodeIndex=currentToNode;
      const node=stations[nodeIndex];
+     if(node)train.setLatLng([node.lat,node.lng]);
      let stopDuration=node&&node.nodeType!=='junction'?1800:350;
      if(node&&node.nodeType!=='junction'){
       const alighted=Math.min(onboard,Math.floor(Math.random()*7));
