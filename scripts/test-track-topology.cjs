@@ -7,8 +7,10 @@ const route = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }];
 const eastWestAlignment = topology.calculateStationTangentControls(
   { x: 0, y: 0 }, { x: 100, y: 0 }, 90, 90
 );
-assert.deepEqual(eastWestAlignment.firstControl, { x: 50, y: 0 });
-assert.deepEqual(eastWestAlignment.secondControl, { x: 50, y: 0 });
+assert.ok(Math.abs(eastWestAlignment.firstControl.x - 50) < 1e-9);
+assert.ok(Math.abs(eastWestAlignment.firstControl.y) < 1e-9);
+assert.ok(Math.abs(eastWestAlignment.secondControl.x - 50) < 1e-9);
+assert.ok(Math.abs(eastWestAlignment.secondControl.y) < 1e-9);
 assert.equal(eastWestAlignment.startBearing, 90);
 assert.equal(eastWestAlignment.endBearing, 270);
 const reversedAlignment = topology.calculateStationTangentControls(
@@ -16,8 +18,10 @@ const reversedAlignment = topology.calculateStationTangentControls(
 );
 assert.equal(reversedAlignment.startBearing, 90);
 assert.equal(reversedAlignment.endBearing, 270);
-assert.deepEqual(reversedAlignment.firstControl, { x: 50, y: 0 });
-assert.deepEqual(reversedAlignment.secondControl, { x: 150, y: 0 });
+assert.ok(Math.abs(reversedAlignment.firstControl.x - 50) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.firstControl.y) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.secondControl.x - 150) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.secondControl.y) < 1e-9);
 const oneSidedAlignment = topology.calculateStationTangentControls(
   { x: 0, y: 0 }, { x: 0, y: 100 }, 0, null
 );
