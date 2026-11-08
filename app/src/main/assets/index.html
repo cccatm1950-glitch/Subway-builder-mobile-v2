@@ -5440,6 +5440,34 @@ function junctionAtCrosshair(){
  });
  return best;
 }
+function getTrackElevationAtFraction(track,route,fraction){
+ if(!Array.isArray(route)||route.length<2)return Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const cumulative=[0];
+ for(let i=1;i<route.length;i++)cumulative[i]=cumulative[i-1]+map.distance(route[i-1],route[i]);
+ const total=cumulative[cumulative.length-1]||0;
+ const start=Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const end=Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation);
+ const anchors=[{distance:0,height:start}];
+ (track.waypoints||[]).forEach(waypoint=>{
+  if(waypoint.elevation!=='below'&&waypoint.elevation!=='above')return;
+  let nearestIndex=0,nearestDistance=Infinity;
+  for(let i=0;i<route.length;i++){
+   const distance=map.distance(route[i],[waypoint.lat,waypoint.lng]);
+   if(distance<nearestDistance){nearestDistance=distance;nearestIndex=i;}
+  }
+  anchors.push({distance:cumulative[nearestIndex]||0,height:legacyTrackElevation(waypoint.elevation)});
+ });
+ anchors.push({distance:total,height:end});
+ anchors.sort((a,b)=>a.distance-b.distance);
+ const target=total*Math.max(0,Math.min(1,fraction));
+ let right=anchors.findIndex(anchor=>anchor.distance>=target);
+ if(right<0)return anchors[anchors.length-1].height;
+ if(right===0)return anchors[0].height;
+ const left=anchors[right-1],next=anchors[right],span=next.distance-left.distance;
+ const ratio=span>0?Math.max(0,Math.min(1,(target-left.distance)/span)):0;
+ return left.height+(next.height-left.height)*ratio;
+}
+
 function splitTrackAtCrosshair(trackHit,latlng){
  const track=trackHit&&tracks[trackHit.index];
  if(!track||!window.SBTrackTopology)return null;
@@ -5474,8 +5502,10 @@ function splitTrackAtCrosshair(trackHit,latlng){
  const shouldConnect=previousSelection!==null&&previousSelection!==track.a&&previousSelection!==track.b;
  const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
  if(!sections)return null;
- const junctionElevation=Number.isFinite(sections.splitElevation)?sections.splitElevation:
-  startElevation+(endElevation-startElevation)*projection.fraction;
+ const junctionElevation=getTrackElevationAtFraction(track,route,projection.fraction);
+ sections.first.endElevation=junctionElevation;
+ sections.second.startElevation=junctionElevation;
+ sections.splitElevation=junctionElevation;
  const junctionNumber=stations.filter(node=>node.nodeType==='junction').length+1;
  pauseSimulationBeforeTopologyChange();
  stations.push({lat:snapped.lat,lng:snapped.lng,name:'Junction '+junctionNumber,nodeType:'junction',
