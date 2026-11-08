@@ -65,6 +65,20 @@
       along: projection.along, totalLength: projection.totalLength };
   }
 
+  function getConnectedTrackCandidates(tracks, currentTrackIndex, nodeIndex, preferredLineIds) {
+    if (!Array.isArray(tracks) || !Number.isInteger(nodeIndex)) return [];
+    const preferred = Array.isArray(preferredLineIds) ? preferredLineIds.filter(id => typeof id === 'string') : [];
+    return tracks.map((track, trackIndex) => ({ track, trackIndex }))
+      .filter(({ track, trackIndex }) => track && trackIndex !== currentTrackIndex &&
+        (track.a === nodeIndex || track.b === nodeIndex))
+      .filter(({ track }) => !preferred.length ||
+        (Array.isArray(track.lineIds) && track.lineIds.some(id => preferred.includes(id))))
+      .map(({ track, trackIndex }) => ({
+        track, trackIndex, fromNodeIndex: nodeIndex,
+        toNodeIndex: track.a === nodeIndex ? track.b : track.a
+      }));
+  }
+
   function cloneTrackSections(track, split, junctionIndex, waypointFractions) {
     if (!track || !split || !Array.isArray(split.first) || !Array.isArray(split.second) ||
         split.first.length < 2 || split.second.length < 2 ||
@@ -95,5 +109,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates });
 });
