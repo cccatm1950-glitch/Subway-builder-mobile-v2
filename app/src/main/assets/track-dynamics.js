@@ -23,7 +23,8 @@
  }
  function getMaxSpeedForSlope(maxSpeedKmh,slopePercent,thresholds={}){
   if(!Number.isFinite(maxSpeedKmh)||maxSpeedKmh<=0)return 0;
-  const s=Math.abs(Number.isFinite(slopePercent)?slopePercent:0);
+  // Match the Windows model's signed start-to-end grade convention: positive uphill grade is capped; downhill grade is not mirrored into an uphill penalty.
+  const s=Number.isFinite(slopePercent)?slopePercent:0;
   const low=Number.isFinite(thresholds.low)?thresholds.low:6;
   const medium=Number.isFinite(thresholds.medium)?thresholds.medium:8;
   const high=Number.isFinite(thresholds.high)?thresholds.high:9.5;
