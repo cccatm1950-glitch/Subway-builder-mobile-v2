@@ -55,6 +55,21 @@ const sameLine = topology.getConnectedTrackCandidates(graphTracks, 0, 1, ['L1'])
 assert.deepEqual(sameLine.map(item => item.trackIndex), [1]);
 assert.equal(sameLine[0].fromNodeIndex, 1);
 assert.equal(sameLine[0].toNodeIndex, 2);
+const splitGroup = [
+  { a: 0, b: 1, trackGroupId: 'G1' },
+  { a: 1, b: 2, trackGroupId: 'G1' },
+  { a: 1, b: 3, trackGroupId: 'G2' }
+];
+assert.deepEqual(topology.findTrackGroupPath(splitGroup, 0, 2), [0, 1]);
+assert.equal(topology.findTrackGroupPath(splitGroup, 0, 3), null);
+const ambiguousGroups = [
+  { a: 0, b: 1, trackGroupId: 'G1' },
+  { a: 1, b: 2, trackGroupId: 'G1' },
+  { a: 0, b: 3, trackGroupId: 'G2' },
+  { a: 3, b: 2, trackGroupId: 'G2' }
+];
+assert.equal(topology.findTrackGroupPath(ambiguousGroups, 0, 2), null);
+
 const allLines = topology.getConnectedTrackCandidates(graphTracks, 0, 1, []);
 assert.deepEqual(allLines.map(item => item.trackIndex), [1, 2]);
 assert.deepEqual(topology.getConnectedTrackCandidates(graphTracks, 0, 9, []), []);
