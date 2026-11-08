@@ -12,7 +12,7 @@ assert.equal(d.getMaxSpeedForSlope(100,-9.5),100); // downhill grade does not re
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000}),100);
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20})<100);
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:100,minTurnRadiusMeters:29})>d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20,minTurnRadiusMeters:29,maxLateralAcceleration:1}));
-assert.ok(Math.abs(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20,minTurnRadiusMeters:29})-Math.sqrt(20)*3.6)<1e-8);
+assert.ok(Math.abs(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20,minTurnRadiusMeters:29,maxLateralAcceleration:1})-Math.sqrt(20)*3.6)<1e-8);
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000,stationTrack:true}),50);
 assert.equal(d.getSpeedBand(49),'moderate');assert.equal(d.getSpeedBand(130),'high-speed');
 const analysis=d.analyzeTrack([{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:20,y:10}],{
