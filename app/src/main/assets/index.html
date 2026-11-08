@@ -6014,7 +6014,7 @@ function waypointAtCrosshair(){
  }
  function cancel(){
   if(!previewActive())return false;
-  window.pendingStationPlacement=null;
+  pendingStationPlacement=null;
   window.selectedTrackIndex=null;
   window.selected=null;
   if(typeof window.clearStationPlacementPreview==='function')window.clearStationPlacementPreview();
