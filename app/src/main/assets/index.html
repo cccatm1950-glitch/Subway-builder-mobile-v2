@@ -2556,6 +2556,47 @@ function getTrackCenterlinePoints(track){
  return getStationTangentCenterline(a,b);
 }
 
+function renderTrackDynamicsOverlay(track,points,layer){
+ if(!track||!Array.isArray(points)||points.length<3||!layer||!window.SBTrackDynamics)return [];
+ const latitudeReference=points.reduce((sum,p)=>sum+p[0],0)/points.length*Math.PI/180;
+ const metricPoints=points.map(p=>({x:p[1]*Math.cos(latitudeReference)*111320,y:p[0]*111320}));
+ const cumulative=[0];
+ for(let i=1;i<points.length;i++)cumulative[i]=cumulative[i-1]+map.distance(points[i-1],points[i]);
+ const trackLengthMeters=cumulative[cumulative.length-1]||0;
+ const startHeight=Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const endHeight=Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation);
+ const elevationAtFraction=(fraction)=>{
+  if(typeof getTrackElevationAtFraction==='function'&&window.SBTrackTopology?.interpolateElevationAtDistance)
+   return getTrackElevationAtFraction(track,points,fraction);
+  return startHeight+(endHeight-startHeight)*fraction;
+ };
+ const elevations=points.map((point,index)=>elevationAtFraction(trackLengthMeters>0?cumulative[index]/trackLengthMeters:index/(points.length-1)));
+ const gradeProfile=points.map((point,index)=>{
+  const before=Math.max(0,index-1),after=Math.min(points.length-1,index+1);
+  const run=cumulative[after]-cumulative[before];
+  return run>0?(elevations[after]-elevations[before])/run*100:0;
+ });
+ const widthFactor=Math.max(.5,1-(1*((3.05+1)/2))/200);
+ const measures=window.SBTrackDynamics.analyzeTrack(metricPoints,{
+  minTurnRadiusMeters:29,maxLateralAcceleration:1,maxSpeedKmh:24.72*3.6,
+  curveSpeedMultiplier:widthFactor,slopePercent:gradeProfile,
+  slopeThresholds:{low:5.5*.6,medium:5.5*.8,high:5.5*.95},
+  stationTrack:track.type==='station',smoothingRadius:2
+ });
+ let lastMeasureDistance=-Infinity;
+ const colors={'very-slow':'#ff6b6b','slow':'#ff9d65','moderate':'#ffc66d','medium':'#b8df78','fast':'#65e6c2','very-fast':'#65d9ff','high-speed':'#9cb8ff','unknown':'#d5e1ed'};
+ measures.forEach(measure=>{
+  if(measure.distanceMeters-lastMeasureDistance<35)return;
+  lastMeasureDistance=measure.distanceMeters;
+  const color=colors[measure.speedBand]||colors.unknown;
+  const radius=Math.round(measure.radiusMeters),speed=Math.round(measure.speedKmh);
+  const label='<div style="padding:4px 7px;border:1px solid '+color+'88;border-radius:10px;background:rgba(7,18,31,.9);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:'+color+'">R '+radius+' m</span><br><span>'+speed+' km/h · '+measure.speedBand.replace(/-/g,' ')+'</span></div>';
+  L.circleMarker(points[measure.pointIndex],{pane:'sbTrackPane',radius:3,color:color,weight:1.5,fillColor:color,fillOpacity:.95,interactive:false}).addTo(layer);
+  L.marker(points[measure.pointIndex],{pane:'sbTrackPane',interactive:false,keyboard:false,icon:L.divIcon({className:'sb-track-dynamics-label',html:label,iconSize:[112,42],iconAnchor:[56,21]})}).addTo(layer);
+ });
+ return measures;
+}
+
 function renderNetwork(){
  platformCrowdMarkers.forEach(marker=>map.removeLayer(marker));
  platformCrowdMarkers=[];
@@ -2639,7 +2680,7 @@ if(mode==='delete'){
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
-    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();message('Track selected. Tap the map to add a curve point.');}
+    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Pan the map to preview curve radius and speed, then tap to add a curve point.');}
     else if(mode==='delete'){pauseSimulationBeforeTopologyChange();tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
@@ -2748,61 +2789,9 @@ if(mode==='delete'){
    L.polyline(overlay,{pane:'sbTrackPane',color:line.color,weight:4,opacity:1,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   });
 
-  // Windows-engine heavy-metro curve-speed model: minimum turn radius,
-  // lateral acceleration, train maximum speed and grade-based speed reductions.
-  // Mobile currently has no per-line train selector, so use its documented
-  // default heavy-metro profile until that setting is exposed in the UI.
+  // Keep curve measurements attached to the selected track and its active geometry.
   if(mode==='curve'&&selectedTrackIndex===trackIndex&&points.length>=3){
-   const MOBILE_CURVE_MIN_RADIUS_METERS=29;
-   const MOBILE_CURVE_MAX_LATERAL_ACCELERATION=1;
-   const MOBILE_CURVE_MAX_SPEED_MPS=24.72;
-   const MOBILE_CURVE_MAX_SLOPE_PERCENTAGE=5.5;
-   const MOBILE_CURVE_TRAIN_WIDTH_METERS=3.05;
-   const MOBILE_CURVE_TRACK_CLEARANCE_METERS=1;
-   const averageTrainAndClearanceWidth=(MOBILE_CURVE_TRAIN_WIDTH_METERS+MOBILE_CURVE_TRACK_CLEARANCE_METERS)/2;
-   const curveWidthFactor=Math.max(.5,1-(MOBILE_CURVE_TRACK_CLEARANCE_METERS*averageTrainAndClearanceWidth)/200);
-   const rawRadii=new Array(points.length).fill(null);
-   for(let i=1;i<points.length-1;i++){
-    const p0=points[i-1],p1=points[i],p2=points[i+1];
-    const latitude=p1[0]*Math.PI/180;
-    const incoming={x:(p1[1]-p0[1])*Math.cos(latitude),y:p1[0]-p0[0]};
-    const outgoing={x:(p2[1]-p1[1])*Math.cos(latitude),y:p2[0]-p1[0]};
-    const inLength=Math.hypot(incoming.x,incoming.y),outLength=Math.hypot(outgoing.x,outgoing.y);
-    if(inLength<1e-10||outLength<1e-10)continue;
-    const cosine=Math.max(-1,Math.min(1,(incoming.x*outgoing.x+incoming.y*outgoing.y)/(inLength*outLength)));
-    const turnAngle=Math.acos(cosine);
-    if(turnAngle<Math.PI/180)continue;
-    const chord=map.distance(p0,p2);
-    const radius=chord/(2*Math.sin(turnAngle/2));
-    if(Number.isFinite(radius))rawRadii[i]=radius;
-   }
-   // Match the desktop engine's five-vertex rolling minimum smoothing window.
-   const smoothRadii=rawRadii.map((radius,index)=>{
-    if(radius===null)return null;
-    const neighbors=rawRadii.slice(Math.max(1,index-2),Math.min(rawRadii.length-1,index+3)).filter(value=>value!==null);
-    return neighbors.length?Math.max(MOBILE_CURVE_MIN_RADIUS_METERS,Math.min(...neighbors)):MOBILE_CURVE_MIN_RADIUS_METERS;
-   });
-   const trackLengthMeters=cumulativeTrackMeters[cumulativeTrackMeters.length-1]||0;
-   // The desktop speed model uses signed start-to-end grade; the mobile
-   // track currently stores one direction, so retain that same convention.
-   const trackGradePercentage=trackLengthMeters>0?((Number.isFinite(t.endElevation)?t.endElevation:0)-(Number.isFinite(t.startElevation)?t.startElevation:0))/trackLengthMeters*100:0;
-   let gradeSpeedLimit=Infinity;
-   if(trackGradePercentage>=MOBILE_CURVE_MAX_SLOPE_PERCENTAGE*.95)gradeSpeedLimit=MOBILE_CURVE_MAX_SPEED_MPS*.6;
-   else if(trackGradePercentage>=MOBILE_CURVE_MAX_SLOPE_PERCENTAGE*.8)gradeSpeedLimit=MOBILE_CURVE_MAX_SPEED_MPS*.75;
-   else if(trackGradePercentage>=MOBILE_CURVE_MAX_SLOPE_PERCENTAGE*.6)gradeSpeedLimit=MOBILE_CURVE_MAX_SPEED_MPS*.9;
-   let lastMeasureDistance=-Infinity;
-   for(let i=1;i<smoothRadii.length-1;i++){
-    const radius=smoothRadii[i];
-    if(radius===null||radius>(smoothRadii[i-1]??Infinity)||radius>(smoothRadii[i+1]??Infinity))continue;
-    const distanceAlong=cumulativeTrackMeters[i]||0;
-    if(distanceAlong-lastMeasureDistance<35)continue;
-    lastMeasureDistance=distanceAlong;
-    const stationSpeedFactor=t.type==='station'?.5:1;
-    const curveSpeedMps=Math.min(Math.sqrt(MOBILE_CURVE_MAX_LATERAL_ACCELERATION*Math.max(radius,MOBILE_CURVE_MIN_RADIUS_METERS))*curveWidthFactor*stationSpeedFactor,gradeSpeedLimit,MOBILE_CURVE_MAX_SPEED_MPS);
-    const curveSpeed=curveSpeedMps*3.6;
-    const label='<div style="padding:4px 7px;border:1px solid rgba(255,255,255,.34);border-radius:10px;background:rgba(7,18,31,.88);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:#65ffe4">R '+Math.round(radius)+' m</span><br><span>'+Math.round(curveSpeed)+' km/h cap</span></div>';
-    L.marker(points[i],{pane:'sbTrackPane',interactive:false,keyboard:false,icon:L.divIcon({className:'',html:label,iconSize:[86,38],iconAnchor:[43,19]})}).addTo(window.networkLayer);
-   }
+   renderTrackDynamicsOverlay(t,points,window.networkLayer);
   }
 });
 
@@ -2880,6 +2869,7 @@ function setMode(newMode){
  if(newMode!=='station'&&pendingStationPlacement){pendingStationPlacement=null;clearStationPlacementPreview();}
  mode=newMode;
  if(mode==='station')updateStationPlacementPreview();else clearStationPlacementPreview();
+ if(mode==='curve')scheduleCurvePlacementPreview();else clearCurvePlacementPreview();
  // Keep the construction drawer open while a tool is active. The user closes
  // it explicitly with the construction toggle; only the selected category collapses.
  document.querySelectorAll('#constructionPanel details.tool-group').forEach(group=>{group.open=false;});
@@ -3297,6 +3287,31 @@ window.addEventListener('resize',function(){if(stationMenuIndex!==null)positionS
 // Station placement: tap to set its center, pan to stretch/rotate the platform,
 // then tap again to commit the station and its platform footprint.
 let stationPlacementPreview=null;
+let curvePlacementPreviewLayer=null;
+function clearCurvePlacementPreview(){
+ if(curvePlacementPreviewLayer){map.removeLayer(curvePlacementPreviewLayer);curvePlacementPreviewLayer=null;}
+}
+let curvePreviewFrame=0;
+function scheduleCurvePlacementPreview(){
+ if(curvePreviewFrame)return;
+ curvePreviewFrame=requestAnimationFrame(()=>{curvePreviewFrame=0;updateCurvePlacementPreview();});
+}
+function updateCurvePlacementPreview(){
+ if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]||
+    document.getElementById('sb-3d-map')?.classList.contains('active')){
+  clearCurvePlacementPreview();return;
+ }
+ const baseTrack=tracks[selectedTrackIndex];
+ const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
+ const previewTrack={...baseTrack,curve:true,waypoints:[...(Array.isArray(baseTrack.waypoints)?baseTrack.waypoints:[]),{lat:crosshair.lat,lng:crosshair.lng,elevation:'at'}]};
+ delete previewTrack.centerline;
+ const previewPoints=getTrackCenterlinePoints(previewTrack);
+ if(previewPoints.length<3){clearCurvePlacementPreview();return;}
+ clearCurvePlacementPreview();
+ curvePlacementPreviewLayer=L.layerGroup().addTo(map);
+ L.polyline(previewPoints,{pane:'sbTrackPane',color:'#65ffe4',weight:4,opacity:.82,dashArray:'7 6',lineCap:'round',lineJoin:'round',interactive:false}).addTo(curvePlacementPreviewLayer);
+ renderTrackDynamicsOverlay(previewTrack,previewPoints,curvePlacementPreviewLayer);
+}
 let stationPlatformPreview=null;
 let stationEndpointPreview=null;
 let pendingStationPlacement=null;
@@ -3352,7 +3367,8 @@ function syncStationPreviewGestureNodes(){
  stationEndpointPreview.getLayers().forEach(node=>node.setLatLng(crosshair));
 }
 map.on('movestart zoomstart',function(){if(mode==='station'&&pendingStationPlacement){sbStationPreviewGestureActive=true;syncStationPreviewGestureNodes();}});
-map.on('move zoom',function(){updateStationPlacementPreview();if(sbStationPreviewGestureActive)syncStationPreviewGestureNodes();});
+map.on('move zoom',function(){updateStationPlacementPreview();if(sbStationPreviewGestureActive)syncStationPreviewGestureNodes();scheduleCurvePlacementPreview();});
+map.on('mousemove touchmove',function(){if(mode==='curve')scheduleCurvePlacementPreview();});
 map.on('moveend zoomend',function(){sbStationPreviewGestureActive=false;updateStationPlacementPreview();syncStationEndpointVisibility();});
 map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPreview();});
 
@@ -4435,11 +4451,11 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   menu.setAttribute('role','dialog');
   menu.setAttribute('aria-label','Construction tools');
   menu.innerHTML='<div class="sb-construction-context-heading">CONSTRUCTION</div><div class="sb-construction-context-grid">'+
-   '<button type="button" data-mode="station">Station</button>'+
-   '<button type="button" data-mode="track">Track</button>'+
-   '<button type="button" data-mode="curve">Curve</button>'+
-   '<button type="button" data-mode="waypoint">Waypoint</button>'+
-   '<button type="button" data-mode="inspect">Inspect</button>'+
+   '<button type="button" data-mode="station" aria-label="Station" title="Station"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>'+
+   '<button type="button" data-mode="track" aria-label="Track" title="Track"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3 9 21M19 3l-4 18M7 7h10M8 12h8M9 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+   '<button type="button" data-mode="curve" aria-label="Curve" title="Curve"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19c5 0 4-14 10-14h6M16 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+   '<button type="button" data-mode="waypoint" aria-label="Waypoint" title="Waypoint"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 18 11 6l8 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="18" r="2" fill="currentColor"/><circle cx="11" cy="6" r="2" fill="currentColor"/><circle cx="19" cy="18" r="2" fill="currentColor"/></svg></button>'+
+   '<button type="button" data-mode="inspect" aria-label="Inspect" title="Inspect"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>'+
    '</div>'+
    '<div class="sb-platform-size-heading">PLATFORM SIZE</div>'+
    '<div class="sb-platform-size-grid">'+
@@ -5888,6 +5904,56 @@ function waypointAtCrosshair(){
 }
 </style>
 
+
+<style id="sb-pr74-run-button-menu-highlight-construction-icons">
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) 46px!important}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ box-sizing:border-box!important;display:flex!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ align-items:center!important;justify-content:center!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;background-image:none!important;
+ box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+ box-sizing:border-box!important;display:inline-flex!important;flex:0 0 46px!important;
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;margin:0!important;padding:0!important;
+}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1fr) minmax(0,.88fr) 46px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot,
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+  flex-basis:46px!important;width:46px!important;min-width:46px!important;height:46px!important;min-height:46px!important;
+ }
+}
+@media(max-width:380px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 46px!important}
+}
+#sb-top-dock #sb-game-menu-toggle{transition:none!important;animation:none!important;transform:none!important;-webkit-tap-highlight-color:transparent!important}
+#sb-top-dock #sb-game-menu-toggle[aria-expanded="true"],
+#sb-top-dock #sb-game-menu-toggle.active{
+ color:#fff!important;background:rgba(255,255,255,.16)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 8px rgba(255,255,255,.32),0 0 18px rgba(255,255,255,.24)!important;
+}
+#sb-top-dock #sb-game-menu-toggle[aria-expanded="false"]{
+ color:rgba(245,249,255,.88)!important;background:rgba(255,255,255,.08)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.10)!important;
+}
+#sb-top-dock #sb-game-menu-toggle:hover,#sb-top-dock #sb-game-menu-toggle:active,
+#sb-top-dock #sb-game-menu-toggle:focus,#sb-top-dock #sb-game-menu-toggle:focus-visible{
+ transition:none!important;animation:none!important;transform:none!important;outline:0!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button{
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
+ gap:0!important;padding:0!important;font-size:0!important;line-height:0!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button svg{
+ display:block!important;flex:0 0 24px!important;width:24px!important;height:24px!important;
+ max-width:24px!important;max-height:24px!important;margin:0!important;pointer-events:none!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important}
+</style>
 </body>
 <style id="sb-nov06-final-dock-layout">
 /* The 128px construction dock must be a true 2-column x 4-row grid.
@@ -9109,7 +9175,7 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
  #sb-construction-context-menu .sb-construction-context-grid button{display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;font-size:0!important;padding:0!important}
  #sb-construction-context-menu .sb-construction-context-grid button span{display:none!important}
  #sb-construction-context-menu .sb-construction-context-grid button svg{display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important;margin:0!important}
- #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;white-space:nowrap!important}
+ #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important;white-space:nowrap!important}
 }
 </style>
 <script id="sb-pr73-dock-panel-alignment-runtime">
@@ -9202,8 +9268,7 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 </script>
 
 <style id="sb-pr73-icon-only-construction-controls">
-#sb-construction-context-menu .sb-construction-context-grid button,
-#sb-construction-context-menu .sb-platform-size-grid button{
+#sb-construction-context-menu .sb-construction-context-grid button{
  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
  gap:0!important;padding:0!important;font-size:0!important;line-height:0!important;
 }
@@ -9211,8 +9276,5 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 #sb-construction-context-menu .sb-construction-context-grid button svg{
  display:block!important;width:24px!important;height:24px!important;flex:0 0 24px!important;margin:0!important;
 }
-#sb-construction-context-menu .sb-platform-size-grid button svg{
- display:block!important;width:100%!important;height:100%!important;max-width:38px!important;max-height:38px!important;
- flex:1 1 auto!important;margin:0!important;overflow:visible!important;
-}
+#sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important;white-space:nowrap!important}
 </style>
