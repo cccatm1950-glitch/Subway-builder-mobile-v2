@@ -2593,6 +2593,7 @@ if(mode==='delete'){
   }).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
     t.waypoints.splice(waypointIndex,1);
+    delete t.centerline;
     saveHistory();
     renderNetwork();
     message('Waypoint deleted.');
@@ -3331,6 +3332,7 @@ else if(mode==='delete'){
   const curveTrack=tracks[selectedTrackIndex];if(!curveTrack)return;
   curveTrack.waypoints=Array.isArray(curveTrack.waypoints)?curveTrack.waypoints:[];
   curveTrack.curve=true;
+  delete curveTrack.centerline;
   curveTrack.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
   saveHistory();renderNetwork();message('Curve point added.');
  }
@@ -3344,6 +3346,7 @@ else if(mode==='delete'){
   if(!track)return;
 
   if(!track.waypoints)track.waypoints=[];
+  delete track.centerline;
 
   track.waypoints.push({
    lat:latlng.lat,
@@ -5421,6 +5424,7 @@ function waypointAtCrosshair(){
    const track=tracks[selectedTrackIndex];
    if(!Array.isArray(track.waypoints))track.waypoints=[];
    if(mode==='curve')track.curve=true;
+   delete track.centerline;
    // One committed geometry point equals one independent undo/redo entry.
    track.waypoints.push({lat:center.lat,lng:center.lng,elevation:'at'});
    saveHistory();
@@ -5438,6 +5442,7 @@ function waypointAtCrosshair(){
    const waypoint=waypointAtCrosshair();
    if(waypoint){
     tracks[waypoint.trackIndex].waypoints.splice(waypoint.waypointIndex,1);
+    delete tracks[waypoint.trackIndex].centerline;
     saveHistory();renderNetwork();message('Waypoint deleted at crosshair.');return;
    }
    const track=trackAtCrosshair();
