@@ -34,6 +34,39 @@
   cap=getMaxSpeedForSlope(cap,input.slopePercent);if(input.stationTrack)cap*=.5;
   return Math.max(0,cap);
  }
+ function analyzeTrack(points,options={}){
+  if(!Array.isArray(points)||points.length<3)return [];
+  const radii=calculateSmoothedTrackRadii(points,{
+   smoothingRadius:options.smoothingRadius??2,
+   minTurnRadius:options.minTurnRadiusMeters??29,
+   cubic:false
+  });
+  const distances=[0];
+  for(let i=1;i<points.length;i++)distances[i]=distances[i-1]+dist(points[i-1],points[i]);
+  const measures=[];
+  for(let i=0;i<radii.length;i++){
+   const radius=radii[i];
+   if(!Number.isFinite(radius))continue;
+   const pointIndex=i+1;
+   const speedKmh=getMaxSpeedForRadiusAndSlope({
+    maxSpeedKmh:options.maxSpeedKmh??88.992,
+    radiusMeters:radius,
+    minTurnRadiusMeters:options.minTurnRadiusMeters??29,
+    maxLateralAcceleration:options.maxLateralAcceleration??1,
+    curveSpeedMultiplier:options.curveSpeedMultiplier??1,
+    slopePercent:options.slopePercent??0,
+    stationTrack:!!options.stationTrack
+   });
+   measures.push({
+    pointIndex,
+    distanceMeters:distances[pointIndex],
+    radiusMeters:radius,
+    speedKmh,
+    speedBand:getSpeedBand(speedKmh)
+   });
+  }
+  return measures;
+ }
  function getSpeedBand(v){if(!Number.isFinite(v)||v<0)return'unknown';if(v<10)return'very-slow';if(v<25)return'slow';if(v<50)return'moderate';if(v<75)return'medium';if(v<90)return'fast';if(v<130)return'very-fast';return'high-speed';}
- return{calculateTurnRadius,calculateSmoothedTrackRadii,getMaxSpeedForSlope,getMaxSpeedForRadiusAndSlope,getSpeedBand};
+ return{calculateTurnRadius,calculateSmoothedTrackRadii,getMaxSpeedForSlope,getMaxSpeedForRadiusAndSlope,getSpeedBand,analyzeTrack};
 });
