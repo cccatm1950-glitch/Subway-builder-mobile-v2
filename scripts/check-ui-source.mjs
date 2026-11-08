@@ -57,4 +57,16 @@ for (const required of [
     'Expected core interaction ' + required + ' to be present');
 }
 
+for (const required of [
+  'function splitTrackAtCrosshair',
+  'function pruneOrphanJunctions',
+  'function findTrackGroupPath',
+  'getConnectedTrackCandidates',
+  "nodeType==='junction'",
+  'trackGroupId',
+  'centerline:Array.isArray(t.centerline)'
+]) {
+  assert.ok(html.includes(required), 'Expected track topology guard: ' + required);
+}
+
 console.log('UI source checks passed: ' + scripts.length + ' inline scripts, ' + ids.length + ' IDs, ' + new Set(panelActions).size + ' panel actions.');
