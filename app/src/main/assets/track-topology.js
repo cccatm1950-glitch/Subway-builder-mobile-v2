@@ -129,6 +129,28 @@
     return matches.length === 1 ? matches[0] : null;
   }
 
+  // Build the lateral offset fade along a route. Explicit per-track transition
+  // extents survive topology splits; legacy tracks retain the 50 m default.
+  function calculateOffsetTransitionProfile(cumulativeDistances, totalLength, startOffset, endOffset, zones, defaultLength = 50) {
+    if (!Array.isArray(cumulativeDistances)) return [];
+    if (!Number.isFinite(totalLength) || totalLength <= 0) return cumulativeDistances.map(() => 0);
+    const hasExplicitZones = !!zones && typeof zones === 'object';
+    const extent = key => {
+      const value = hasExplicitZones ? zones[key] : defaultLength;
+      return Number.isFinite(value) && value > 0 ? Math.min(value, totalLength / 2) : 0;
+    };
+    const startLength = extent('start'), endLength = extent('end');
+    const smoothstep = value => {
+      const x = Math.max(0, Math.min(1, value));
+      return x * x * (3 - 2 * x);
+    };
+    return cumulativeDistances.map(distance => {
+      const fromStart = startLength > 0 ? startOffset * (1 - smoothstep(distance / startLength)) : 0;
+      const fromEnd = endLength > 0 ? endOffset * smoothstep((distance - (totalLength - endLength)) / endLength) : 0;
+      return fromStart + fromEnd;
+    });
+  }
+
   // Desktop stores ramp/transition extents as distances from each track endpoint.
   // When a track is split, clip those extents to the two new section lengths.
   function splitTransitionZones(zones, firstLength, secondLength) {
@@ -190,5 +212,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, splitTransitionZones });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones });
 });
