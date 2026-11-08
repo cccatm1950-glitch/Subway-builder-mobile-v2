@@ -20,11 +20,11 @@ assert.equal(split.first[split.first.length - 1].y, split.second[0].y);
 const track = {
   a: 2, b: 7, trackGroupId: 'tg-original', style: 'parallel', curve: true, elevation: 'below',
   startElevation: -20, endElevation: -10,
-  lineIds: ['line-1', 'line-2'],
+  lineIds: ['line-1', 'line-2'], offsetTransitionZones: { start: 30, end: 80 },
   waypoints: [{ lat: 1, lng: 2 }, { lat: 3, lng: 4 }]
 };
 const withLatLng = {
-  ...split,
+  ...split, alongMeters: 50, totalLengthMeters: 100,
   first: split.first.map(p => ({ lat: p.y, lng: p.x })),
   second: split.second.map(p => ({ lat: p.y, lng: p.x }))
 };
@@ -38,6 +38,8 @@ assert.equal(sections.first.style, 'parallel');
 assert.equal(sections.first.trackGroupId, 'tg-original');
 assert.equal(sections.second.trackGroupId, 'tg-original');
 assert.equal(sections.second.elevation, 'below');
+assert.deepEqual(sections.first.offsetTransitionZones, { start: 30, end: 30 });
+assert.deepEqual(sections.second.offsetTransitionZones, { start: 30, end: 50 });
 assert.deepEqual(sections.first.lineIds, ['line-1', 'line-2']);
 assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
 assert.equal(sections.splitElevation, -16);
@@ -45,6 +47,11 @@ assert.deepEqual(sections.first.waypoints, [{ lat: 1, lng: 2 }]);
 assert.deepEqual(sections.second.waypoints, [{ lat: 3, lng: 4 }]);
 sections.first.lineIds.push('mutated');
 assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
+
+const transitionZones = topology.splitTransitionZones({ start: 30, end: 80 }, 50, 50);
+assert.deepEqual(transitionZones, [{ start: 30, end: 30 }, { start: 30, end: 50 }]);
+assert.deepEqual(topology.splitTransitionZones({ start: 10 }, 20, 30), [{ start: 10 }, undefined]);
+assert.deepEqual(topology.splitTransitionZones(null, 20, 30), [undefined, undefined]);
 
 const elevationAnchors = [
   { distance: 0, height: -20 },
