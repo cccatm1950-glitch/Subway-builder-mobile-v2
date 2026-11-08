@@ -2575,9 +2575,11 @@ function renderTrackDynamicsOverlay(track,points,layer){
  measures.forEach(measure=>{
   if(measure.distanceMeters-lastMeasureDistance<35)return;
   lastMeasureDistance=measure.distanceMeters;
-  const color=colors[measure.speedBand]||colors.unknown;
+  const violation=!!measure.violatesMinimumRadius;
+  const color=violation?'#ff6877':(colors[measure.speedBand]||colors.unknown);
   const radius=Math.round(measure.radiusMeters),speed=Math.round(measure.speedKmh);
-  const label='<div style="padding:4px 7px;border:1px solid '+color+'88;border-radius:10px;background:rgba(7,18,31,.9);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:'+color+'">R '+radius+' m</span><br><span>'+speed+' km/h · '+measure.speedBand.replace(/-/g,' ')+'</span></div>';
+  const radiusText=violation?'R '+radius+' m · MIN '+Math.round(measure.minimumRadiusMeters)+' m':'R '+radius+' m';
+  const label='<div style="padding:4px 7px;border:1px solid '+color+'88;border-radius:10px;background:rgba(7,18,31,.9);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:'+color+'">'+radiusText+'</span><br><span>'+speed+' km/h · '+(violation?'too tight':measure.speedBand.replace(/-/g,' '))+'</span></div>';
   L.circleMarker(points[measure.pointIndex],{pane:'sbTrackPane',radius:3,color:color,weight:1.5,fillColor:color,fillOpacity:.95,interactive:false}).addTo(layer);
   L.marker(points[measure.pointIndex],{pane:'sbTrackPane',interactive:false,keyboard:false,icon:L.divIcon({className:'sb-track-dynamics-label',html:label,iconSize:[112,42],iconAnchor:[56,21]})}).addTo(layer);
  });
