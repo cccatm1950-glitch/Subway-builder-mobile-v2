@@ -8334,8 +8334,8 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   ['width-narrow','narrow','Narrow width'],
   ['width-default','standard','Standard width'],
   ['width-wide','wide','Wide width'],
-  ['theme-dark','tunnel','Dark map'],
-  ['theme-light','station','Light map']
+  ['clear-selection','inspect','Clear selection'],
+  ['toggle-3d','island','3D city view']
  ];
  function enhance(menu){
   if(!menu||menu.dataset.sbSvgInventory==='ready')return;
@@ -8366,18 +8366,24 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  }
  function sync(menu){
   if(!menu)return;
+  const currentTrackStyle=typeof trackStyle!=='undefined'?trackStyle:null;
+  const currentCurveMode=typeof curveMode!=='undefined'?!!curveMode:false;
+  const currentTunnelMode=typeof tunnelMode!=='undefined'?!!tunnelMode:false;
+  const currentPlatformType=typeof platformType!=='undefined'?platformType:null;
+  const currentPlatformWidth=typeof platformWidth!=='undefined'?platformWidth:null;
+  const currentPlatformSize=typeof platformSize!=='undefined'?platformSize:null;
   const states={
-   'track-single':window.trackStyle==='single',
-   'track-parallel':window.trackStyle==='parallel',
-   'curve-mode':!!window.curveMode,
-   'tunnel-mode':!!window.tunnelMode,
-   'platform-island':window.platformType==='island',
-   'platform-side':window.platformType==='side',
-   'width-narrow':window.platformWidth==='narrow',
-   'width-default':window.platformWidth==='default',
-   'width-wide':window.platformWidth==='wide',
-   'theme-dark':document.documentElement.getAttribute('data-sb-theme')==='dark',
-   'theme-light':document.documentElement.getAttribute('data-sb-theme')==='light'
+   'track-single':currentTrackStyle==='single',
+   'track-parallel':currentTrackStyle==='parallel',
+   'curve-mode':currentCurveMode,
+   'tunnel-mode':currentTunnelMode,
+   'platform-island':currentPlatformType==='island',
+   'platform-side':currentPlatformType==='side',
+   'width-narrow':currentPlatformWidth==='narrow',
+   'width-default':currentPlatformWidth==='default',
+   'width-wide':currentPlatformWidth==='wide',
+   'clear-selection':false,
+   'toggle-3d':!!document.getElementById('sb-3d-map')?.classList.contains('active')
   };
   menu.querySelectorAll('button[data-sb-action]').forEach(button=>{
    const active=!!states[button.dataset.sbAction];
@@ -8390,7 +8396,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    button.setAttribute('aria-pressed',String(active));
   });
   menu.querySelectorAll('button[data-platform-size]').forEach(button=>{
-   const active=button.dataset.platformSize===window.platformSize;
+   const active=button.dataset.platformSize===currentPlatformSize;
    button.classList.toggle('active',active);
    button.setAttribute('aria-pressed',String(active));
   });
@@ -8410,8 +8416,8 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-narrow':()=>setPlatformWidth('narrow'),
    'width-default':()=>setPlatformWidth('default'),
    'width-wide':()=>setPlatformWidth('wide'),
-   'theme-dark':()=>setMapTheme('dark'),
-   'theme-light':()=>setMapTheme('light')
+   'clear-selection':()=>resetSelection(),
+   'toggle-3d':()=>window.toggle3DCityView()
   };
   if(typeof actions[action]!=='function')return false;
   actions[action]();
