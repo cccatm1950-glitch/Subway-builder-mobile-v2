@@ -3448,17 +3448,22 @@ function toggleSimulation(){
  const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'];
  function createTrain(){
   if(!running||sbInGameMenuOpen||!tracks.length)return;
-  const trackIndex=Math.floor(Math.random()*tracks.length),track=tracks[trackIndex];
-  const from=stations[track.a],to=stations[track.b];if(!from||!to)return;
-  let route=getTrackCenterlinePoints(track);
-  if(Math.random()<.5)route=route.slice().reverse();
-  const lengths=[];let total=0;
-  for(let i=1;i<route.length;i++){const d=map.distance(route[i-1],route[i]);lengths.push(d);total+=d;}
-  if(total<1)return;
-  const color=colors[trackIndex%colors.length];
+  let currentTrackIndex=Math.floor(Math.random()*tracks.length);
+  let currentTrack=tracks[currentTrackIndex];
+  const from=stations[currentTrack.a],to=stations[currentTrack.b];if(!from||!to)return;
+  let currentFromNode=currentTrack.a,currentToNode=currentTrack.b;
+  let route=getTrackCenterlinePoints(currentTrack);
+  if(Math.random()<.5){
+   route=route.slice().reverse();
+   [currentFromNode,currentToNode]=[currentToNode,currentFromNode];
+  }
+  const measureRoute=points=>points.slice(1).map((point,index)=>Math.max(1,map.distance(points[index],point)));
+  let lengths=measureRoute(route);
+  if(!lengths.length)return;
+  const color=colors[currentTrackIndex%colors.length];
   const train=L.marker(route[0],{icon:L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(map);
   trainMarkers.push(train);
-  let segment=0,segmentProgress=0,direction=1,stoppedUntil=0;
+  let segment=0,segmentProgress=0,stoppedUntil=0;
   const capacity=60;
   let onboard=10+Math.floor(Math.random()*16);
   train.bindTooltip('On board: '+onboard+'/'+capacity,{direction:'top'});
@@ -3466,37 +3471,60 @@ function toggleSimulation(){
    if(!running||sbInGameMenuOpen)return;
    const now=Date.now();
    if(stoppedUntil>now)return;
-   if(stoppedUntil&&now>=stoppedUntil){stoppedUntil=0;train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));}
+   if(stoppedUntil&&now>=stoppedUntil){
+    stoppedUntil=0;
+    train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-body">▣</div>',iconSize:[34,34],iconAnchor:[17,17]}));
+   }
    const step=2.2;
    segmentProgress+=step/Math.max(1,lengths[segment]);
    if(segmentProgress>=1){
     segmentProgress=0;
-    const next=segment+direction;
-    if(next<0||next>=route.length-1){
-     const stationIndex=direction>0?track.b:track.a;
-     const station=stations[stationIndex];
-     if(station&&station.nodeType!=='junction'){
+    const nextSegment=segment+1;
+    if(nextSegment>=route.length-1){
+     const nodeIndex=currentToNode;
+     const node=stations[nodeIndex];
+     let stopDuration=node&&node.nodeType!=='junction'?1800:350;
+     if(node&&node.nodeType!=='junction'){
       const alighted=Math.min(onboard,Math.floor(Math.random()*7));
       onboard-=alighted;
-      const waiting=Number.isFinite(station.waitingPassengers)?station.waitingPassengers:0;
+      const waiting=Number.isFinite(node.waitingPassengers)?node.waitingPassengers:0;
       const boarded=Math.min(waiting,capacity-onboard,3+Math.floor(Math.random()*9));
-      station.waitingPassengers=waiting-boarded;
+      node.waitingPassengers=waiting-boarded;
       onboard+=boarded;
       passengers+=boarded;
-      station.waitingPassengers+=1+Math.floor(Math.random()*4);
+      node.waitingPassengers+=1+Math.floor(Math.random()*4);
       updateUI();
-      train.setLatLng([station.lat,station.lng]);
+      train.setLatLng([node.lat,node.lng]);
       train.setIcon(L.divIcon({className:'sb-train-marker',html:'<div class="sb-train-stop"><span>▣</span><b>+'+boarded+' boarding<span class="load">'+alighted+' off · '+onboard+'/'+capacity+' aboard</span></b></div>',iconSize:[132,52],iconAnchor:[66,26]}));
-      train.bindTooltip(station.name+' · '+boarded+' boarded · '+alighted+' left',{direction:'top',offset:[0,-18]}).openTooltip();
+      train.bindTooltip(node.name+' · '+boarded+' boarded · '+alighted+' left',{direction:'top',offset:[0,-18]}).openTooltip();
       renderNetwork();
-      message(station.name+': '+alighted+' off, '+boarded+' boarded · train '+onboard+'/'+capacity+' full.');
+      message(node.name+': '+alighted+' off, '+boarded+' boarded · train '+onboard+'/'+capacity+' full.');
      }
-     direction*=-1;
-     segment=direction>0?0:route.length-2;
-     stoppedUntil=now+1800;
+     const nextTracks=window.SBTrackTopology.getConnectedTrackCandidates(
+      tracks,currentTrackIndex,nodeIndex,currentTrack.lineIds||[]
+     );
+     if(nextTracks.length){
+      const next=nextTracks[Math.floor(Math.random()*nextTracks.length)];
+      currentTrackIndex=next.trackIndex;
+      currentTrack=next.track;
+      currentFromNode=nodeIndex;
+      currentToNode=next.toNodeIndex;
+      route=getTrackCenterlinePoints(currentTrack);
+      if(currentTrack.a!==nodeIndex)route=route.slice().reverse();
+      lengths=measureRoute(route);
+      if(!lengths.length)return;
+      segment=0;segmentProgress=0;
+      stoppedUntil=now+stopDuration;
+     }else{
+      route=route.slice().reverse();
+      [currentFromNode,currentToNode]=[currentToNode,currentFromNode];
+      lengths=measureRoute(route);
+      segment=0;segmentProgress=0;
+      stoppedUntil=now+1800;
+     }
      return;
     }
-    segment=next;
+    segment=nextSegment;
    }
    const p=route[segment],q=route[segment+1],fraction=segmentProgress;
    train.setLatLng([p[0]+(q[0]-p[0])*fraction,p[1]+(q[1]-p[1])*fraction]);
