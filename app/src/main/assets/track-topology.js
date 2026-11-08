@@ -146,10 +146,15 @@
       if (difference > 90) bearing = (bearing + 180) % 360;
       return bearing;
     };
-    // The start tangent follows the route direction; the end tangent faces
-    // back toward the route so its incoming Bezier handle points forward.
+    // The start tangent follows the route direction. The end tangent is
+    // expressed back toward the route; its handle side follows the original
+    // start-platform orientation so reversing that platform reverses the
+    // connection's arrival side without changing the resolved bearings.
     const resolvedStart = alignBearing(startBearing, routeBearing);
     const resolvedEnd = alignBearing(endBearing, (routeBearing + 180) % 360);
+    const startWasReversed = Number.isFinite(startBearing) &&
+      Math.abs(((startBearing - routeBearing + 540) % 360) - 180) > 90;
+    const endControlDirection = startWasReversed ? 1 : -1;
     const handleLength = chord / 2;
     const controlPoint = (origin, bearing, direction) => {
       if (bearing === null) return null;
@@ -159,7 +164,7 @@
     };
     return { chord, startBearing: resolvedStart, endBearing: resolvedEnd,
       firstControl: controlPoint(start, resolvedStart, 1),
-      secondControl: controlPoint(end, resolvedEnd, -1) };
+      secondControl: controlPoint(end, resolvedEnd, endControlDirection) };
   }
 
   // Build the lateral offset fade along a route. Explicit per-track transition
