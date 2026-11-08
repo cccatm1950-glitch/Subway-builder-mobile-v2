@@ -139,15 +139,17 @@
     if (chord < 1e-6) return { chord, startBearing: null, endBearing: null,
       firstControl: null, secondControl: null };
     const routeBearing = (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
-    const alignBearing = value => {
+    const alignBearing = (value, targetBearing) => {
       if (!Number.isFinite(value)) return null;
       let bearing = ((value % 360) + 360) % 360;
-      const difference = Math.abs(((bearing - routeBearing + 540) % 360) - 180);
+      const difference = Math.abs(((bearing - targetBearing + 540) % 360) - 180);
       if (difference > 90) bearing = (bearing + 180) % 360;
       return bearing;
     };
-    const resolvedStart = alignBearing(startBearing);
-    const resolvedEnd = alignBearing(endBearing);
+    // The start tangent follows the route direction; the end tangent faces
+    // back toward the route so its incoming Bezier handle points forward.
+    const resolvedStart = alignBearing(startBearing, routeBearing);
+    const resolvedEnd = alignBearing(endBearing, (routeBearing + 180) % 360);
     const handleLength = chord / 2;
     const controlPoint = (origin, bearing, direction) => {
       if (bearing === null) return null;
