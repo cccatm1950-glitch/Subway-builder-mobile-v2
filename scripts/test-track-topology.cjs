@@ -46,6 +46,17 @@ assert.deepEqual(sections.second.waypoints, [{ lat: 3, lng: 4 }]);
 sections.first.lineIds.push('mutated');
 assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
 
+const elevationAnchors = [
+  { distance: 0, height: -20 },
+  { distance: 50, height: 5 },
+  { distance: 100, height: -10 }
+];
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 0), -20);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 25), -7.5);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 75), -2.5);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 100), -10);
+assert.equal(topology.interpolateElevationAtDistance(elevationAnchors, 150), -10);
+
 const graphTracks = [
   { a: 0, b: 1, lineIds: ['L1'] },
   { a: 1, b: 2, lineIds: ['L1'] },
