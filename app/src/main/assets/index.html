@@ -5584,6 +5584,20 @@ function splitTrackAtCrosshair(trackHit,latlng){
  const shouldConnect=previousSelection!==null&&previousSelection!==track.a&&previousSelection!==track.b;
  const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
  if(!sections)return null;
+ // A saved centerline takes precedence over the live spline renderer, so
+ // split curved tracks would bypass the station/junction tangent alignment.
+ // Rebuild each half from its ordered waypoints and the exact split point.
+ // This keeps the junction anchored while allowing both new endpoints to
+ // inherit their station or junction platform axis.
+ if(track.curve){
+  const splitWaypoint={lat:snapped.lat,lng:snapped.lng,elevation:'at'};
+  sections.first.waypoints.push({...splitWaypoint});
+  sections.second.waypoints.unshift({...splitWaypoint});
+  delete sections.first.centerline;
+  delete sections.second.centerline;
+  sections.first.curve=true;
+  sections.second.curve=true;
+ }
  const junctionElevation=getTrackElevationAtFraction(track,route,projection.fraction);
  sections.first.endElevation=junctionElevation;
  sections.second.startElevation=junctionElevation;
