@@ -2668,7 +2668,7 @@ if(mode==='delete'){
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
-    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();requestAnimationFrame(updateCurvePlacementPreview);message('Track selected. Pan the map to preview curve radius and speed, then tap to add a curve point.');}
+    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Pan the map to preview curve radius and speed, then tap to add a curve point.');}
     else if(mode==='delete'){pauseSimulationBeforeTopologyChange();tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
@@ -2857,7 +2857,7 @@ function setMode(newMode){
  if(newMode!=='station'&&pendingStationPlacement){pendingStationPlacement=null;clearStationPlacementPreview();}
  mode=newMode;
  if(mode==='station')updateStationPlacementPreview();else clearStationPlacementPreview();
- if(mode==='curve')requestAnimationFrame(updateCurvePlacementPreview);else clearCurvePlacementPreview();
+ if(mode==='curve')scheduleCurvePlacementPreview();else clearCurvePlacementPreview();
  // Keep the construction drawer open while a tool is active. The user closes
  // it explicitly with the construction toggle; only the selected category collapses.
  document.querySelectorAll('#constructionPanel details.tool-group').forEach(group=>{group.open=false;});
@@ -3279,6 +3279,11 @@ let curvePlacementPreviewLayer=null;
 function clearCurvePlacementPreview(){
  if(curvePlacementPreviewLayer){map.removeLayer(curvePlacementPreviewLayer);curvePlacementPreviewLayer=null;}
 }
+let curvePreviewFrame=0;
+function scheduleCurvePlacementPreview(){
+ if(curvePreviewFrame)return;
+ curvePreviewFrame=requestAnimationFrame(()=>{curvePreviewFrame=0;updateCurvePlacementPreview();});
+}
 function updateCurvePlacementPreview(){
  if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]||
     document.getElementById('sb-3d-map')?.classList.contains('active')){
@@ -3350,8 +3355,8 @@ function syncStationPreviewGestureNodes(){
  stationEndpointPreview.getLayers().forEach(node=>node.setLatLng(crosshair));
 }
 map.on('movestart zoomstart',function(){if(mode==='station'&&pendingStationPlacement){sbStationPreviewGestureActive=true;syncStationPreviewGestureNodes();}});
-map.on('move zoom',function(){updateStationPlacementPreview();if(sbStationPreviewGestureActive)syncStationPreviewGestureNodes();updateCurvePlacementPreview();});
-map.on('mousemove touchmove',function(){if(mode==='curve')updateCurvePlacementPreview();});
+map.on('move zoom',function(){updateStationPlacementPreview();if(sbStationPreviewGestureActive)syncStationPreviewGestureNodes();scheduleCurvePlacementPreview();});
+map.on('mousemove touchmove',function(){if(mode==='curve')scheduleCurvePlacementPreview();});
 map.on('moveend zoomend',function(){sbStationPreviewGestureActive=false;updateStationPlacementPreview();syncStationEndpointVisibility();});
 map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPreview();});
 
