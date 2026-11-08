@@ -2066,7 +2066,8 @@ button.sb-flat-close,[data-flat-close="true"]{
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
-<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">×</button></div>
+<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5M4 9h9a7 7 0 0 1 0 14h-2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 14 5-5-5-5m5 5h-9a7 7 0 0 0 0 14h2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">×</button></div>
+<style id="sb-undo-redo-centered-svg-icons">#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{display:grid!important;place-items:center!important;padding:0!important;line-height:0!important;font-size:0!important;letter-spacing:normal!important}#sb-action-dock #undoBtn svg,#sb-action-dock #redoBtn svg{display:block!important;width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important;margin:0!important;flex:none!important;overflow:visible}</style>
 
 
 
