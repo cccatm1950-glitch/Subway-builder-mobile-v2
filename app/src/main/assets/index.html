@@ -2642,7 +2642,7 @@ if(mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
     if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();message('Track selected. Tap the map to add a curve point.');}
-    else if(mode==='delete'){tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
+    else if(mode==='delete'){pauseSimulationBeforeTopologyChange();tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
   }
@@ -3120,6 +3120,10 @@ function pruneOrphanJunctions(){
   removed=true;
  }
  return removed;
+}
+
+function pauseSimulationBeforeTopologyChange(){
+ if(running&&typeof toggleSimulation==='function')toggleSimulation();
 }
 
 function handleStationClick(index){
@@ -5477,6 +5481,7 @@ function splitTrackAtCrosshair(trackHit,latlng){
  const junctionElevation=Number.isFinite(sections.splitElevation)?sections.splitElevation:
   startElevation+(endElevation-startElevation)*projection.fraction;
  const junctionNumber=stations.filter(node=>node.nodeType==='junction').length+1;
+ pauseSimulationBeforeTopologyChange();
  stations.push({lat:snapped.lat,lng:snapped.lng,name:'Junction '+junctionNumber,nodeType:'junction',
   elevation:track.elevation||'at',elevationMeters:junctionElevation});
  tracks.splice(trackHit.index,1,sections.first,sections.second);
@@ -5551,6 +5556,7 @@ function waypointAtCrosshair(){
    }
    const track=trackAtCrosshair();
    if(track){
+    pauseSimulationBeforeTopologyChange();
     tracks.splice(track.index,1);pruneOrphanJunctions();selectedTrackIndex=null;
     saveHistory();renderNetwork();message('Track section deleted at crosshair.');return;
    }
