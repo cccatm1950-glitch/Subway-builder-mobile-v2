@@ -2523,7 +2523,7 @@ function getTrackCenterlinePoints(track){
   // waypoint instead of the station platform axis. Add virtual tangent
   // handles outside the route, then sample only the real start-to-end span.
   const alignment=window.SBTrackTopology?.calculateStationTangentControls?.(
-   route[1],route[route.length-1],a.platformBearing,b.platformBearing
+   route[0],route[route.length-1],a.platformBearing,b.platformBearing
   );
   if(alignment?.firstControl&&alignment?.secondControl){
    const start=route[0],end=route[route.length-1];
