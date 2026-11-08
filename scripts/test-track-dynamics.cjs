@@ -25,5 +25,12 @@ assert.equal(analysis[0].speedBand,'slow');
 assert.equal(d.getMaxSpeedForSlope(100,4,{low:3.3,medium:4.4,high:5.225}),90);
 assert.equal(d.getMaxSpeedForSlope(100,4.5,{low:3.3,medium:4.4,high:5.225}),75);
 assert.equal(d.getMaxSpeedForSlope(100,6,{low:3.3,medium:4.4,high:5.225}),60);
+const gradeProfile=d.analyzeTrack([{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:20,y:10}],{
+ minTurnRadiusMeters:29,maxLateralAcceleration:1,maxSpeedKmh:100,
+ slopePercent:[0,4.5,0,0],slopeThresholds:{low:3.3,medium:4.4,high:5.225}
+});
+assert.equal(gradeProfile.length,2);
+assert.ok(gradeProfile[0].speedKmh<gradeProfile[1].speedKmh);
+assert.ok(Math.abs(gradeProfile[0].speedKmh/gradeProfile[1].speedKmh-.75)<1e-8);
 assert.deepEqual(d.analyzeTrack([{x:0,y:0},{x:10,y:0}],{}),[]);
 console.log('Track dynamics tests passed');
