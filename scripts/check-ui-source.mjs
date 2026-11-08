@@ -65,7 +65,9 @@ for (const required of [
   'getConnectedTrackCandidates',
   "nodeType==='junction'",
   'trackGroupId',
-  'centerline:Array.isArray(t.centerline)'
+  'centerline:Array.isArray(t.centerline)',
+  'const trainLineId=',
+  'const inheritedLayer='
 ]) {
   assert.ok(html.includes(required), 'Expected track topology guard: ' + required);
 }
