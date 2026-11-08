@@ -4419,7 +4419,11 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    menu.style.boxSizing='border-box';
    menu.style.display='flex';
    menu.style.flexDirection='column';
-   menu.style.overflow='hidden';
+   menu.style.overflowX='hidden';
+   menu.style.overflowY='auto';
+   menu.style.webkitOverflowScrolling='touch';
+   menu.style.touchAction='pan-y';
+   menu.style.overscrollBehaviorY='contain';
    return;
   }
   const availableAbove=Math.max(0,rect.top-edge-gap);
@@ -7931,7 +7935,9 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 <style id="sb-game-menu-match-dock-glass-surface">
 /* Match the pause menu card to the top and bottom dock glass material. */
 #sb-game-menu-card{
- box-sizing:border-box!important;
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;
+ max-height:calc(100dvh - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px) - 20px)!important;
+ min-height:0!important;box-sizing:border-box!important;
  border:1px solid rgba(205,230,248,.15)!important;
  border-radius:22px!important;
  background:rgba(13,25,42,.64)!important;
@@ -7948,6 +7954,10 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 #sb-game-menu-card .sb-game-menu-view{
  background:transparent!important;
+ box-sizing:border-box!important;flex:1 1 0!important;min-height:0!important;
+ max-height:none!important;overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;scrollbar-width:thin!important;
 }
 #sb-game-menu-card .sb-game-menu-action{
  background:rgba(13,25,42,.64)!important;
@@ -8277,9 +8287,9 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  padding:16px!important;
 }
 #sb-construction-context-menu .sb-construction-context-grid{
- display:grid!important;flex:1 1 auto!important;min-height:0!important;
+ display:grid!important;flex:0 0 auto!important;min-height:0!important;
  grid-template-columns:repeat(2,minmax(0,1fr))!important;
- grid-template-rows:repeat(9,minmax(0,1fr))!important;
+ grid-template-rows:repeat(9,minmax(54px,auto))!important;
  gap:7px!important;align-items:stretch!important
 }
 #sb-construction-context-menu .sb-construction-context-grid button{
@@ -8330,6 +8340,9 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 }
 /* Layered glass surfaces and separators for the construction panel and its slot groups. */
 #sb-construction-context-menu{
+ overflow-x:hidden!important;overflow-y:auto!important;
+ -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+ overscroll-behavior-y:contain!important;scrollbar-width:thin!important;
  border:1px solid rgba(205,231,250,.20)!important;
  background:linear-gradient(155deg,rgba(20,39,59,.94),rgba(8,22,38,.91))!important;
  box-shadow:0 20px 52px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(255,255,255,.035)!important;
