@@ -2071,6 +2071,7 @@ button.sb-flat-close,[data-flat-close="true"]{
 
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="track-topology.js"></script>
 <script>
 const map=L.map('map',{zoomControl:false,attributionControl:false}).setView([37.7749,-122.4194],13);
 map.createPane('sbTrackPane');map.getPane('sbTrackPane').style.zIndex=410;
@@ -2245,7 +2246,7 @@ function snapshot(){
   curveMode:curveMode,
   tunnelMode:tunnelMode,
   stations:stations.map(s=>({
-   lat:s.lat,lng:s.lng,name:s.name,elevation:s.elevation||'at',
+   lat:s.lat,lng:s.lng,name:s.name,nodeType:s.nodeType==='junction'?'junction':'station',elevation:s.elevation||'at',
    elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
    platformType:s.platformType||'island',
    platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
@@ -2259,7 +2260,8 @@ function snapshot(){
    startElevation:Number.isFinite(t.startElevation)?t.startElevation:null,
    endElevation:Number.isFinite(t.endElevation)?t.endElevation:null,
    lineIds:Array.isArray(t.lineIds)?t.lineIds.slice():[],
-   waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
+   waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'})),
+   centerline:Array.isArray(t.centerline)?t.centerline.map(p=>({lat:p.lat,lng:p.lng})):null
   })),
   lines:lines.map(line=>({id:line.id,name:line.name,color:line.color}))
  };
@@ -2284,7 +2286,8 @@ function restoreSnapshot(data){
  if(['single','parallel'].includes(data.trackStyle))trackStyle=data.trackStyle;
  curveMode=!!data.curveMode;tunnelMode=!!data.tunnelMode;
  stations=data.stations.map((s,i)=>({
-  lat:Number(s.lat),lng:Number(s.lng),name:s.name||'Station '+(i+1),
+  lat:Number(s.lat),lng:Number(s.lng),name:s.name||(s.nodeType==='junction'?'Junction '+(i+1):'Station '+(i+1)),
+  nodeType:s.nodeType==='junction'?'junction':'station',
   elevation:s.elevation||'at',
   elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
   platformType:s.platformType||'island',
@@ -2298,7 +2301,8 @@ function restoreSnapshot(data){
   startElevation:Number.isFinite(t.startElevation)?t.startElevation:null,
   endElevation:Number.isFinite(t.endElevation)?t.endElevation:null,
   lineIds:Array.isArray(t.lineIds)?t.lineIds.filter(id=>typeof id==='string'):[],
-  waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'}))
+  waypoints:(t.waypoints||[]).map(w=>({lat:w.lat,lng:w.lng,elevation:w.elevation||'at'})),
+  centerline:Array.isArray(t.centerline)?t.centerline.map(p=>({lat:Number(p.lat),lng:Number(p.lng)})).filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)):null
  })).filter(t=>Number.isInteger(t.a)&&Number.isInteger(t.b)&&stations[t.a]&&stations[t.b]);
  lines=Array.isArray(data.lines)?data.lines.filter(x=>x&&typeof x.id==='string').map(x=>({id:x.id,name:String(x.name||'Line'),color:/^#[0-9a-f]{6}$/i.test(x.color)?x.color:'#42d69a'})):[];
  nextLineId=lines.reduce((m,x)=>Math.max(m,Number(x.id.replace(/\\D/g,''))||0),0)+1;
@@ -2383,7 +2387,7 @@ window.getSubway3DTracks=function(){
  }).filter(Boolean);
 };
 window.getSubway3DStations=function(){
- return stations.map((s,i)=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
+ return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
   geometry:{type:'Point',coordinates:[s.lng,s.lat]}}));
 };
 
@@ -2460,7 +2464,7 @@ function renderNetwork(){
    platform edge; side platforms retain a centered corridor between them. */
 function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
  const station=stations[stationIndex];
- if(!station||!fromPoint||!toPoint)return 0;
+ if(!station||station.nodeType==='junction'||!fromPoint||!toPoint)return 0;
  if((station.platformType||platformType)==='side'||style==='parallel')return 0;
  const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
  const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
@@ -2570,7 +2574,9 @@ if(mode==='delete'){
  });
 }
 
-  if(t.curve&&(t.waypoints||[]).length){
+  if(Array.isArray(t.centerline)&&t.centerline.length>=2){
+  points=t.centerline.map(p=>[p.lat,p.lng]);
+ }else if(t.curve&&(t.waypoints||[]).length){
  // Centripetal Catmull-Rom in projected map space. Parameterizing by chord
  // length reduces loops/overshoot when waypoints are unevenly spaced, while
  // the projected coordinates keep curve shape consistent across latitudes.
@@ -2775,6 +2781,12 @@ if(mode==='delete'){
 });
 
  stations.forEach((s,i)=>{
+  if(s.nodeType==='junction'){
+   L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:7,color:'#e8fbff',weight:2,fillColor:'#54e3d2',fillOpacity:1,interactive:true,bubblingMouseEvents:false})
+    .addTo(window.networkLayer).bindTooltip('Track junction',{direction:'top'})
+    .on('click',function(e){L.DomEvent.stopPropagation(e);handleStationClick(i);});
+   return;
+  }
   /* Platform alignment is fixed at placement time. Connections and camera
      gestures never rewrite the saved bearing or rotate the platform. */
   const fixedBearing=Number.isFinite(s.platformBearing)?s.platformBearing:90;
@@ -2830,7 +2842,7 @@ if(mode==='delete'){
 function updateUI(){
  const moneyEl=document.getElementById('money');if(moneyEl)moneyEl.textContent='$'+money.toLocaleString();
  const passengersEl=document.getElementById('passengers');if(passengersEl)passengersEl.textContent=passengers.toLocaleString();
- const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.length;
+ const stationCountEl=document.getElementById('stationCount');if(stationCountEl)stationCountEl.textContent='Stations: '+stations.filter(s=>s.nodeType!=='junction').length;
  const trackCountEl=document.getElementById('trackCount');if(trackCountEl)trackCountEl.textContent='Track: '+tracks.length+' sections';
  const canUndo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex>0;
  const canRedo=Array.isArray(sbEditHistory)&&Number.isInteger(historyIndex)&&historyIndex<sbEditHistory.length-1;
@@ -3295,7 +3307,8 @@ function handleMapPlacement(latlng){
   money-=500;
   stations.push({
    lat:center.lat,lng:center.lng,
-   name:'Station '+(stations.length+1),
+   name:'Station '+(stations.filter(s=>s.nodeType!=='junction').length+1),
+   nodeType:'station',
    platformType:platformType,
    platformSize:platformSize,
    platformLengthMeters:geometry.lengthMeters,
@@ -3357,9 +3370,9 @@ function toggleSimulation(){
   if(window.syncServiceRunControl)window.syncServiceRunControl();
   message('Simulation paused.');return;
  }
- if(stations.length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
+ if(stations.filter(s=>s.nodeType!=='junction').length<2||tracks.length<1){message('Build and connect at least two stations first.');return;}
  running=true;if(window.syncServiceRunControl)window.syncServiceRunControl();
- stations.forEach(station=>{if(!Number.isFinite(station.waitingPassengers))station.waitingPassengers=8+Math.floor(Math.random()*17);});
+ stations.filter(station=>station.nodeType!=='junction').forEach(station=>{if(!Number.isFinite(station.waitingPassengers))station.waitingPassengers=8+Math.floor(Math.random()*17);});
  renderNetwork();
  message('Trains are running — platform crowds are waiting and trains have limited capacity.');
  const colors=['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'];
@@ -3392,7 +3405,7 @@ function toggleSimulation(){
     if(next<0||next>=route.length-1){
      const stationIndex=direction>0?track.b:track.a;
      const station=stations[stationIndex];
-     if(station){
+     if(station&&station.nodeType!=='junction'){
       const alighted=Math.min(onboard,Math.floor(Math.random()*7));
       onboard-=alighted;
       const waiting=Number.isFinite(station.waitingPassengers)?station.waitingPassengers:0;
