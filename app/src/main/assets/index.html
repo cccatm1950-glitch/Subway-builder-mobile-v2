@@ -2352,6 +2352,7 @@ function undo(){
   message('Nothing to undo.');
   return;
  }
+ pauseSimulationBeforeTopologyChange();
  historyIndex--;
  restoreSnapshot(sbEditHistory[historyIndex]);
  message('Last construction action undone.');
@@ -2362,6 +2363,7 @@ function redo(){
   message('Nothing to redo.');
   return;
  }
+ pauseSimulationBeforeTopologyChange();
  historyIndex++;
  restoreSnapshot(sbEditHistory[historyIndex]);
  message('Construction action restored.');
