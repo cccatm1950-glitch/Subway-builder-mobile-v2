@@ -79,6 +79,21 @@
       }));
   }
 
+  function interpolateElevationAtDistance(anchors, distance) {
+    if (!Array.isArray(anchors) || !anchors.length || !Number.isFinite(distance)) return null;
+    const sorted = anchors.filter(anchor => anchor &&
+      Number.isFinite(anchor.distance) && Number.isFinite(anchor.height))
+      .slice().sort((a, b) => a.distance - b.distance);
+    if (!sorted.length) return null;
+    let right = sorted.findIndex(anchor => anchor.distance >= distance);
+    if (right < 0) return sorted[sorted.length - 1].height;
+    if (right === 0) return sorted[0].height;
+    const left = sorted[right - 1], next = sorted[right];
+    const span = next.distance - left.distance;
+    const ratio = span > 0 ? Math.max(0, Math.min(1, (distance - left.distance) / span)) : 0;
+    return left.height + (next.height - left.height) * ratio;
+  }
+
   function findTrackGroupPath(tracks, startIndex, endIndex) {
     if (!Array.isArray(tracks) || !Number.isInteger(startIndex) ||
         !Number.isInteger(endIndex) || startIndex === endIndex) return null;
@@ -144,5 +159,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance });
 });
