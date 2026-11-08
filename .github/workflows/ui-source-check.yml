@@ -7,6 +7,7 @@ on:
       - 'app/src/main/assets/track-topology.js'
       - 'app/src/main/assets/track-dynamics.js'
       - 'scripts/test-track-dynamics.cjs'
+      - 'scripts/test-track-dynamics.cjs'
       - 'scripts/test-track-topology.cjs'
       - 'scripts/check-ui-source.mjs'
       - '.github/workflows/ui-source-check.yml'
@@ -31,3 +32,5 @@ jobs:
         run: node scripts/check-ui-source.mjs
       - name: Test track topology primitives
         run: node scripts/test-track-topology.cjs
+      - name: Test track dynamics primitives
+        run: node scripts/test-track-dynamics.cjs
