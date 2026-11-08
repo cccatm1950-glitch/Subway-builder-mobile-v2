@@ -129,6 +129,31 @@
     return matches.length === 1 ? matches[0] : null;
   }
 
+  // Desktop stores ramp/transition extents as distances from each track endpoint.
+  // When a track is split, clip those extents to the two new section lengths.
+  function splitTransitionZones(zones, firstLength, secondLength) {
+    if (!zones || typeof zones !== 'object' ||
+        !Number.isFinite(firstLength) || !Number.isFinite(secondLength) ||
+        firstLength <= 0 || secondLength <= 0) {
+      const copy = zones && typeof zones === 'object' ? { ...zones } : undefined;
+      return [copy, copy ? { ...copy } : undefined];
+    }
+    const positive = value => Number.isFinite(value) && value > 0.01 ? value : undefined;
+    const make = (start, end) => {
+      const result = {};
+      const clippedStart = positive(start), clippedEnd = positive(end);
+      if (clippedStart !== undefined) result.start = clippedStart;
+      if (clippedEnd !== undefined) result.end = clippedEnd;
+      return Object.keys(result).length ? result : undefined;
+    };
+    const start = Number.isFinite(zones.start) ? zones.start : 0;
+    const end = Number.isFinite(zones.end) ? zones.end : 0;
+    return [
+      make(Math.min(start, firstLength), Math.max(0, end - secondLength)),
+      make(Math.max(0, start - firstLength), Math.min(end, secondLength))
+    ];
+  }
+
   function cloneTrackSections(track, split, junctionIndex, waypointFractions) {
     if (!track || !split || !Array.isArray(split.first) || !Array.isArray(split.second) ||
         split.first.length < 2 || split.second.length < 2 ||
@@ -147,17 +172,23 @@
     const splitElevation = startElevation !== null && endElevation !== null
       ? startElevation + (endElevation - startElevation) * split.fraction : null;
     const common = { ...track, waypoints: [] };
+    const hasTransitionZones = track.offsetTransitionZones && typeof track.offsetTransitionZones === 'object';
+    const canSplitTransitionZones = Number.isFinite(split.alongMeters) && Number.isFinite(split.totalLengthMeters) &&
+      split.alongMeters > 0 && split.totalLengthMeters > split.alongMeters;
+    const transitionSections = hasTransitionZones && canSplitTransitionZones
+      ? splitTransitionZones(track.offsetTransitionZones, split.alongMeters, split.totalLengthMeters - split.alongMeters)
+      : null;
     const copyLineIds = () => Array.isArray(track.lineIds) ? track.lineIds.slice() : [];
-    const first = { ...common, lineIds: copyLineIds(), a: track.a, b: junctionIndex,
+    const first = { ...common, ...(transitionSections ? { offsetTransitionZones: transitionSections[0] } : {}), lineIds: copyLineIds(), a: track.a, b: junctionIndex,
       centerline: split.first.map(p => ({ ...p })),
       waypoints: firstWaypoints,
       startElevation, endElevation: splitElevation };
-    const second = { ...common, lineIds: copyLineIds(), a: junctionIndex, b: track.b,
+    const second = { ...common, ...(transitionSections ? { offsetTransitionZones: transitionSections[1] } : {}), lineIds: copyLineIds(), a: junctionIndex, b: track.b,
       centerline: split.second.map(p => ({ ...p })),
       waypoints: secondWaypoints,
       startElevation: splitElevation, endElevation };
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, splitTransitionZones });
 });
