@@ -52,6 +52,14 @@ const transitionZones = topology.splitTransitionZones({ start: 30, end: 80 }, 50
 assert.deepEqual(transitionZones, [{ start: 30, end: 30 }, { end: 50 }]);
 assert.deepEqual(topology.splitTransitionZones({ start: 10 }, 20, 30), [{ start: 10 }, undefined]);
 assert.deepEqual(topology.splitTransitionZones(null, 20, 30), [undefined, undefined]);
+const transitionProfile=topology.calculateOffsetTransitionProfile(
+  [0, 15, 30, 50, 70, 85, 100],100,2,-2,{start:30,end:30}
+);
+assert.deepEqual(transitionProfile,[2,1,0,0,0,-1,-2]);
+const legacyTransitionProfile=topology.calculateOffsetTransitionProfile([0,25,50,75,100],100,2,-2,null);
+assert.deepEqual(legacyTransitionProfile,[2,1,0,-1,-2]);
+const noTransitionProfile=topology.calculateOffsetTransitionProfile([0,50,100],100,2,-2,{start:0,end:0});
+assert.deepEqual(noTransitionProfile,[0,0,0]);
 
 const elevationAnchors = [
   { distance: 0, height: -20 },
