@@ -85,11 +85,11 @@
     const common = { ...track, lineIds: Array.isArray(track.lineIds) ? track.lineIds.slice() : [],
       waypoints: [] };
     const first = { ...common, a: track.a, b: junctionIndex,
-      centerline: split.first.map(p => ({ x: p.x, y: p.y })),
+      centerline: split.first.map(p => ({ ...p })),
       waypoints: firstWaypoints,
       startElevation, endElevation: splitElevation };
     const second = { ...common, a: junctionIndex, b: track.b,
-      centerline: split.second.map(p => ({ x: p.x, y: p.y })),
+      centerline: split.second.map(p => ({ ...p })),
       waypoints: secondWaypoints,
       startElevation: splitElevation, endElevation };
     return { first, second, splitElevation };
