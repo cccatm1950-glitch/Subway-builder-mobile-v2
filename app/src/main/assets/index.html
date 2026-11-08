@@ -3236,8 +3236,9 @@ function handleStationClick(index){
   }
 
   money-=150;
-  const inheritedJunction=[stations[first],stations[second]].find(node=>node&&node.nodeType==='junction');
-  const newTrackElevation=tunnelMode?'below':(inheritedJunction?.elevation||'at');
+  const inheritedTrack=tracks.find(track=>track.a===first||track.b===first||track.a===second||track.b===second);
+  const inheritedLayer=inheritedTrack?.elevation||stations[first].elevation||stations[second].elevation||'at';
+  const newTrackElevation=tunnelMode?'below':inheritedLayer;
   stations[first].elevationMeters=proposedStartElevation;
   stations[second].elevationMeters=proposedEndElevation;
   tracks.push({
