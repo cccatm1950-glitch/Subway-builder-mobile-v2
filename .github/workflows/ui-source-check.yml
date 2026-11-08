@@ -12,6 +12,8 @@ on:
     branches: [main]
     paths:
       - 'app/src/main/assets/index.html'
+      - 'app/src/main/assets/track-topology.js'
+      - 'scripts/test-track-topology.cjs'
       - 'scripts/check-ui-source.mjs'
       - '.github/workflows/ui-source-check.yml'
 
