@@ -151,7 +151,8 @@
     // start-platform orientation so reversing that platform reverses the
     // connection's arrival side without changing the resolved bearings.
     const resolvedStart = alignBearing(startBearing, routeBearing);
-    const resolvedEnd = alignBearing(endBearing, (routeBearing + 180) % 360);
+    const endControlBearing = alignBearing(endBearing, routeBearing);
+    const resolvedEnd = endControlBearing === null ? null : (endControlBearing + 180) % 360;
     const startWasReversed = Number.isFinite(startBearing) &&
       Math.abs(((startBearing - routeBearing + 540) % 360) - 180) > 90;
     const endControlDirection = startWasReversed ? 1 : -1;
@@ -164,7 +165,7 @@
     };
     return { chord, startBearing: resolvedStart, endBearing: resolvedEnd,
       firstControl: controlPoint(start, resolvedStart, 1),
-      secondControl: controlPoint(end, resolvedEnd, endControlDirection) };
+      secondControl: controlPoint(end, endControlBearing, endControlDirection) };
   }
 
   // Build the lateral offset fade along a route. Explicit per-track transition
