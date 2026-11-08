@@ -79,6 +79,41 @@
       }));
   }
 
+  function findTrackGroupPath(tracks, startIndex, endIndex) {
+    if (!Array.isArray(tracks) || !Number.isInteger(startIndex) ||
+        !Number.isInteger(endIndex) || startIndex === endIndex) return null;
+    const groups = [...new Set(tracks.map(track => track && track.trackGroupId)
+      .filter(id => typeof id === 'string' && id.length))];
+    const matches = [];
+    for (const groupId of groups) {
+      const queue = [startIndex], previous = new Map([[startIndex, null]]), previousTrack = new Map();
+      for (let cursor = 0; cursor < queue.length && !previous.has(endIndex); cursor++) {
+        const node = queue[cursor];
+        tracks.forEach((track, trackIndex) => {
+          if (!track || track.trackGroupId !== groupId) return;
+          let next = null;
+          if (track.a === node) next = track.b;
+          else if (track.b === node) next = track.a;
+          if (next === null || previous.has(next)) return;
+          previous.set(next, node);
+          previousTrack.set(next, trackIndex);
+          queue.push(next);
+        });
+      }
+      if (!previous.has(endIndex)) continue;
+      const path = [];
+      let node = endIndex;
+      while (node !== startIndex) {
+        const edge = previousTrack.get(node);
+        if (!Number.isInteger(edge)) { path.length = 0; break; }
+        path.unshift(edge);
+        node = previous.get(node);
+      }
+      if (path.length) matches.push(path);
+    }
+    return matches.length === 1 ? matches[0] : null;
+  }
+
   function cloneTrackSections(track, split, junctionIndex, waypointFractions) {
     if (!track || !split || !Array.isArray(split.first) || !Array.isArray(split.second) ||
         split.first.length < 2 || split.second.length < 2 ||
@@ -109,5 +144,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath });
 });
