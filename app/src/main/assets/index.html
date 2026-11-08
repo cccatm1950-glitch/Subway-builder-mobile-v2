@@ -2560,14 +2560,26 @@ function renderTrackDynamicsOverlay(track,points,layer){
  if(!track||!Array.isArray(points)||points.length<3||!layer||!window.SBTrackDynamics)return [];
  const latitudeReference=points.reduce((sum,p)=>sum+p[0],0)/points.length*Math.PI/180;
  const metricPoints=points.map(p=>({x:p[1]*Math.cos(latitudeReference)*111320,y:p[0]*111320}));
- let trackLengthMeters=0;
- for(let i=1;i<points.length;i++)trackLengthMeters+=map.distance(points[i-1],points[i]);
- const grade=trackLengthMeters>0?
-  ((Number.isFinite(track.endElevation)?track.endElevation:0)-(Number.isFinite(track.startElevation)?track.startElevation:0))/trackLengthMeters*100:0;
+ const cumulative=[0];
+ for(let i=1;i<points.length;i++)cumulative[i]=cumulative[i-1]+map.distance(points[i-1],points[i]);
+ const trackLengthMeters=cumulative[cumulative.length-1]||0;
+ const startHeight=Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const endHeight=Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation);
+ const elevationAtFraction=(fraction)=>{
+  if(typeof getTrackElevationAtFraction==='function'&&window.SBTrackTopology?.interpolateElevationAtDistance)
+   return getTrackElevationAtFraction(track,points,fraction);
+  return startHeight+(endHeight-startHeight)*fraction;
+ };
+ const elevations=points.map((point,index)=>elevationAtFraction(trackLengthMeters>0?cumulative[index]/trackLengthMeters:index/(points.length-1)));
+ const gradeProfile=points.map((point,index)=>{
+  const before=Math.max(0,index-1),after=Math.min(points.length-1,index+1);
+  const run=cumulative[after]-cumulative[before];
+  return run>0?(elevations[after]-elevations[before])/run*100:0;
+ });
  const widthFactor=Math.max(.5,1-(1*((3.05+1)/2))/200);
  const measures=window.SBTrackDynamics.analyzeTrack(metricPoints,{
   minTurnRadiusMeters:29,maxLateralAcceleration:1,maxSpeedKmh:24.72*3.6,
-  curveSpeedMultiplier:widthFactor,slopePercent:grade,
+  curveSpeedMultiplier:widthFactor,slopePercent:gradeProfile,
   slopeThresholds:{low:5.5*.6,medium:5.5*.8,high:5.5*.95},
   stationTrack:track.type==='station',smoothingRadius:2
  });
