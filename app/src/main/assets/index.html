@@ -5999,6 +5999,7 @@ function waypointAtCrosshair(){
  const button=()=>document.getElementById('trashModeBtn');
  function previewActive(){
   if(window.mode==='station')return true;
+  if(window.mode==='track'&&window.selected!==null)return true;
   if((window.mode==='curve'||window.mode==='waypoint')&&Number.isInteger(window.selectedTrackIndex)&&window.selectedTrackIndex!==null)return true;
   return false;
  }
