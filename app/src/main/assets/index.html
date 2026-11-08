@@ -5010,7 +5010,23 @@ function toggleDefaultDarkOnStart(){
   activeLineId=lines[0]?.id||null;saveHistory();renderNetwork();draw();
  }
  /* The remove button is reserved for deleting the selected custom palette color. */
- function addLine(){const input=document.getElementById('sb-new-line-name');if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};lines.push(line);activeLineId=line.id;input.value='';input.blur();if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard();document.getElementById('sb-line-name-editor')?.classList.remove('is-editing');saveHistory();draw();message(line.name+' created.');}
+ function addLine(){
+  const input=document.getElementById('sb-new-line-name');
+  if(!input||!input.value.trim()){message('Enter a line name first.');input?.focus();return;}
+  const line={id:'line-'+(nextLineId++),name:input.value.trim(),color:draftColor};
+  lines.push(line);activeLineId=line.id;input.value='';
+  /* Tear down the floating keyboard surface before blurring the input. On Android,
+     blur can be delayed while the moved create slot and its backdrop are still active. */
+  if(typeof window.sbCloseServiceSearchKeyboard==='function')window.sbCloseServiceSearchKeyboard();
+  input.blur();
+  document.body.classList.remove('sb-service-search-keyboard');
+  document.getElementById('sb-service-search-backdrop')?.remove();
+  document.documentElement.style.removeProperty('--sb-keyboard-inset');
+  const editor=document.getElementById('sb-line-name-editor');
+  editor?.classList.remove('is-editing');editor?.removeAttribute('data-keyboard-active');
+  input.setAttribute('aria-hidden','true');
+  saveHistory();draw();message(line.name+' created.');
+ }
  document.addEventListener('click',event=>{if(event.target?.id==='sb-line-add')addLine();});
  document.addEventListener('keydown',event=>{if(event.target?.id==='sb-new-line-name'&&event.key==='Enter'){event.preventDefault();addLine();}});
  document.addEventListener('DOMContentLoaded',mount,{once:true});mount();
