@@ -2,6 +2,28 @@ const assert = require('node:assert/strict');
 const topology = require('../app/src/main/assets/track-topology.js');
 
 const route = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }];
+
+// Station platform bearings resolve to route-facing endpoint tangents.
+const eastWestAlignment = topology.calculateStationTangentControls(
+  { x: 0, y: 0 }, { x: 100, y: 0 }, 90, 90
+);
+assert.deepEqual(eastWestAlignment.firstControl, { x: 50, y: 0 });
+assert.deepEqual(eastWestAlignment.secondControl, { x: 50, y: 0 });
+assert.equal(eastWestAlignment.startBearing, 90);
+assert.equal(eastWestAlignment.endBearing, 270);
+const reversedAlignment = topology.calculateStationTangentControls(
+  { x: 0, y: 0 }, { x: 100, y: 0 }, 270, 90
+);
+assert.equal(reversedAlignment.startBearing, 90);
+assert.equal(reversedAlignment.endBearing, 270);
+assert.deepEqual(reversedAlignment.firstControl, { x: 50, y: 0 });
+assert.deepEqual(reversedAlignment.secondControl, { x: 150, y: 0 });
+const oneSidedAlignment = topology.calculateStationTangentControls(
+  { x: 0, y: 0 }, { x: 0, y: 100 }, 0, null
+);
+assert.ok(oneSidedAlignment.firstControl);
+assert.equal(oneSidedAlignment.secondControl, null);
+assert.equal(topology.calculateStationTangentControls(null, { x: 1, y: 1 }, 0, 0), null);
 const projection = topology.projectPointToPolyline({ x: 8, y: 2 }, route);
 assert.ok(projection);
 assert.equal(projection.segmentIndex, 0);
