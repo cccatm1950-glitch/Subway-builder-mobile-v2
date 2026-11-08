@@ -8328,6 +8328,49 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  #sb-construction-context-menu .sb-construction-context-grid{gap:6px!important}
  #sb-construction-context-menu .sb-construction-context-grid button{font-size:9px!important;gap:2px!important;padding:3px 2px!important}#sb-construction-context-menu .sb-construction-context-grid button svg{width:15px!important;height:15px!important;min-width:15px!important;flex-basis:15px!important}
 }
+/* Layered glass surfaces and separators for the construction panel and its slot groups. */
+#sb-construction-context-menu{
+ border:1px solid rgba(205,231,250,.20)!important;
+ background:linear-gradient(155deg,rgba(20,39,59,.94),rgba(8,22,38,.91))!important;
+ box-shadow:0 20px 52px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.10),inset 0 -1px 0 rgba(255,255,255,.035)!important;
+ -webkit-backdrop-filter:blur(30px) saturate(165%)!important;
+ backdrop-filter:blur(30px) saturate(165%)!important;
+}
+#sb-construction-context-menu>.sb-construction-context-heading{
+ position:relative!important;margin:0 0 12px!important;padding:2px 0 13px!important;
+ border-bottom:1px solid rgba(210,235,252,.16)!important;
+ text-shadow:0 1px 8px rgba(190,225,250,.12)!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid{
+ position:relative!important;padding:9px!important;
+ border:1px solid rgba(207,232,250,.15)!important;border-radius:19px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.075),rgba(170,207,236,.025))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.075),inset 0 -1px 0 rgba(255,255,255,.025),0 5px 16px rgba(0,0,0,.10)!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button{
+ border-color:rgba(210,234,250,.17)!important;
+ background:linear-gradient(145deg,rgba(236,247,255,.105),rgba(188,220,245,.045))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),inset 0 -1px 0 rgba(255,255,255,.025)!important;
+}
+#sb-construction-context-menu .sb-platform-size-heading{
+ position:relative!important;margin:12px 0 8px!important;padding:13px 2px 0!important;
+ border-top:1px solid rgba(210,235,252,.16)!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid{
+ padding:9px!important;border:1px solid rgba(207,232,250,.15)!important;
+ border-radius:17px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.065),rgba(170,207,236,.02))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 5px 16px rgba(0,0,0,.09)!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid button{
+ border-color:rgba(210,234,250,.18)!important;
+ background:linear-gradient(145deg,rgba(236,247,255,.10),rgba(188,220,245,.04))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+@media(max-width:380px){
+ #sb-construction-context-menu .sb-construction-context-grid{padding:7px!important}
+ #sb-construction-context-menu .sb-platform-size-grid{padding:7px!important}
+}
 @media(prefers-reduced-motion:reduce){
  #sb-construction-context-menu .sb-construction-context-grid button{transition:none!important}
 }
