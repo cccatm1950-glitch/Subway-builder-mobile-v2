@@ -8627,6 +8627,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  let modeBeforeDelete='station';
  let syncing=false;
  function byId(id){return document.getElementById(id);}
+ function setAttr(el,name,value){const next=String(value);if(el.getAttribute(name)!==next)el.setAttribute(name,next);}
  function currentMode(){return typeof mode!=='undefined'?mode:window.mode;}
  function constructionMenuOpen(){
   const menu=byId('sb-construction-context-menu');
@@ -8640,15 +8641,15 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   if(trash){
    trash.disabled=false;
    trash.classList.toggle('active',deleting);
-   trash.setAttribute('aria-pressed',String(deleting));
-   trash.setAttribute('aria-disabled','false');
+   setAttr(trash,'aria-pressed',deleting);
+   setAttr(trash,'aria-disabled','false');
   }
   if(build){
    const active=!deleting&&constructionMenuOpen();
    build.classList.toggle('active',active);
-   build.setAttribute('aria-pressed',String(active));
-   build.setAttribute('aria-disabled',String(!!build.disabled));
-   if(build.disabled){build.classList.remove('active');build.setAttribute('aria-pressed','false');}
+   setAttr(build,'aria-pressed',active);
+   setAttr(build,'aria-disabled',!!build.disabled);
+   if(build.disabled){build.classList.remove('active');setAttr(build,'aria-pressed',false);}
   }
   syncing=false;
  }
