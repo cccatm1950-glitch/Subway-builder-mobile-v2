@@ -3500,6 +3500,8 @@ function toggleSimulation(){
       renderNetwork();
       message(node.name+': '+alighted+' off, '+boarded+' boarded · train '+onboard+'/'+capacity+' full.');
      }
+     const liveTrackIndex=tracks.indexOf(currentTrack);
+     currentTrackIndex=liveTrackIndex;
      const nextTracks=window.SBTrackTopology.getConnectedTrackCandidates(
       tracks,currentTrackIndex,nodeIndex,currentTrack.lineIds||[]
      );
