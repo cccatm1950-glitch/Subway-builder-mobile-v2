@@ -4443,9 +4443,9 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    '</div>'+
    '<div class="sb-platform-size-heading">PLATFORM SIZE</div>'+
    '<div class="sb-platform-size-grid">'+
-   '<button type="button" data-platform-size="compact" aria-pressed="'+String(platformSize==='compact')+'" class="'+(platformSize==='compact'?'active':'')+'">60m</button>'+
-   '<button type="button" data-platform-size="standard" aria-pressed="'+String(platformSize==='standard')+'" class="'+(platformSize==='standard'?'active':'')+'">90m</button>'+
-   '<button type="button" data-platform-size="long" aria-pressed="'+String(platformSize==='long')+'" class="'+(platformSize==='long'?'active':'')+'">150m</button>'+
+   '<button type="button" data-platform-size="compact" aria-pressed="'+String(platformSize==='compact')+'" class="'+(platformSize==='compact'?'active':'')+'">6m</button>'+
+   '<button type="button" data-platform-size="standard" aria-pressed="'+String(platformSize==='standard')+'" class="'+(platformSize==='standard'?'active':'')+'">8m</button>'+
+   '<button type="button" data-platform-size="long" aria-pressed="'+String(platformSize==='long')+'" class="'+(platformSize==='long'?'active':'')+'">10m</button>'+
    '</div>';
   menu.addEventListener('click',function(event){
    const sizeAction=event.target.closest('button[data-platform-size]');
@@ -4699,8 +4699,8 @@ function toggleDefaultDarkOnStart(){
   const createSlot=document.getElementById("sb-service-create-slot");
   const colorPicker=createSlot?.querySelector(".sb-line-color-picker");
   const nameEditor=createSlot?.querySelector("#sb-line-name-editor");
-  /* Place the color toggle at the inner-left edge, immediately after the service dock toggle. */
-  if(createSlot&&colorPicker&&nameEditor)createSlot.insertBefore(colorPicker,nameEditor);
+  /* Keep the color picker in the slot immediately after the expanding search/add control. */
+  if(createSlot&&colorPicker&&nameEditor)nameEditor.after(colorPicker);
   buildPalette();draw();bindDeleteCustomColor();bindRunButton();bindServiceDockToggle();bindServiceNameSearch();
  }
  function bindDeleteCustomColor(){
@@ -9081,3 +9081,71 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
  #sb-action-dock .sb-dock-panel-service{transition:none!important}
 }
 </style>
+
+<style id="sb-pr73-service-picker-top-row-and-mobile-platform-controls">
+#sb-service-create-slot{box-sizing:border-box!important;display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:8px!important;padding:3px 6px!important;min-width:0!important}
+#sb-service-create-slot #sb-line-name-editor{order:0!important;flex:0 1 66px!important;min-width:66px!important;margin:0!important}
+#sb-service-create-slot .sb-line-color-picker{order:1!important;position:relative!important;flex:0 0 40px!important;width:40px!important;min-width:40px!important;height:40px!important;margin:0!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#sb-service-create-slot #sb-line-color-trigger{box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;width:40px!important;height:40px!important;min-width:40px!important;min-height:40px!important;margin:0!important;padding:0!important;border-radius:50%!important}
+#sb-service-create-slot #sb-line-remove-active{order:2!important;flex:0 0 36px!important;width:36px!important;min-width:36px!important;height:36px!important;min-height:36px!important;margin:0!important}
+#sb-line-color-options{position:fixed!important;z-index:12000!important;top:8px!important;bottom:auto!important;left:8px!important;right:auto!important;transform:none!important;box-sizing:border-box!important;width:min(320px,calc(100vw - 16px))!important;max-width:calc(100vw - 16px)!important;max-height:54px!important;height:54px!important;display:flex!important;flex-flow:row nowrap!important;align-items:center!important;overflow-x:auto!important;overflow-y:hidden!important;padding:6px!important;gap:6px!important;border-radius:999px!important}
+#sb-line-color-options.is-open{transform:none!important}
+@media(max-width:700px){
+ #sb-service-create-slot{gap:7px!important;padding:3px 6px!important}
+ #sb-service-create-slot #sb-line-name-editor{flex:0 1 66px!important;min-width:58px!important}
+ #sb-service-create-slot .sb-line-color-picker,#sb-service-create-slot #sb-line-color-trigger{flex-basis:38px!important;width:38px!important;min-width:38px!important;height:38px!important;min-height:38px!important}
+ #sb-service-create-slot #sb-line-remove-active{flex-basis:34px!important;width:34px!important;min-width:34px!important;height:34px!important;min-height:34px!important}
+ #sb-line-color-options{height:48px!important;max-height:48px!important;padding:4px!important;gap:5px!important}
+ #sb-line-color-options .sb-line-color-option{flex-basis:38px!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important}
+ #sb-construction-context-menu .sb-construction-context-grid button{display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;font-size:0!important;padding:0!important}
+ #sb-construction-context-menu .sb-construction-context-grid button span{display:none!important}
+ #sb-construction-context-menu .sb-construction-context-grid button svg{display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important;margin:0!important}
+ #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;white-space:nowrap!important}
+}
+</style>
+<script id="sb-pr73-dock-panel-alignment-runtime">
+(function(){
+ if(window.__sbPr73DockAlignment)return;
+ window.__sbPr73DockAlignment=true;
+ const byId=id=>document.getElementById(id);
+ function positionColorPalette(){
+  const palette=byId('sb-line-color-options'),top=byId('sb-top-dock');
+  const stats=top?.querySelector('.sb-top-panel-stats'),theme=top?.querySelector('.sb-top-panel-theme'),menu=top?.querySelector('.sb-top-panel-menu');
+  if(!palette||palette.hidden||!palette.classList.contains('is-open')||!top||!stats)return;
+  const topRect=top.getBoundingClientRect(),statsRect=stats.getBoundingClientRect();
+  const themeRect=theme?.getBoundingClientRect(),menuRect=menu?.getBoundingClientRect();
+  const leftControlsRight=Math.max(themeRect?.right||0,menuRect?.right||0),inset=8,gap=8;
+  const availableRight=Math.max(inset,statsRect.left-gap);
+  let left=Math.max(inset,leftControlsRight+gap),width=availableRight-left;
+  let topPosition=topRect.top+(topRect.height-48)/2;
+  if(width<96){
+   width=Math.max(96,Math.min(220,window.innerWidth-inset*2));
+   left=Math.max(inset,Math.min(statsRect.left-width-gap,window.innerWidth-width-inset));
+   topPosition=topRect.bottom+6;
+  }
+  palette.style.setProperty('position','fixed','important');palette.style.setProperty('left',left+'px','important');
+  palette.style.setProperty('right','auto','important');palette.style.setProperty('top',topPosition+'px','important');
+  palette.style.setProperty('bottom','auto','important');palette.style.setProperty('width',Math.max(96,width)+'px','important');
+  palette.style.setProperty('max-width','calc(100vw - 16px)','important');palette.style.setProperty('transform','none','important');
+ }
+ function positionConstruction(){
+  const menu=byId('sb-construction-context-menu'),dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');
+  if(!menu||!dock)return;
+  const r=dock.getBoundingClientRect(),top=byId('sb-top-dock'),stats=top?.querySelector('.sb-top-panel-stats');
+  const tr=top?.getBoundingClientRect(),sr=stats?.getBoundingClientRect(),edge=8,width=Math.max(1,r.width);
+  const left=Math.max(edge,Math.min(r.right-width,window.innerWidth-width-edge));
+  const topLimit=sr&&sr.bottom>0?sr.bottom+10:(tr?.bottom||edge)+10,bottomLimit=Math.max(topLimit+120,r.top-10);
+  menu.style.boxSizing='border-box';menu.style.width=width+'px';menu.style.maxWidth=width+'px';
+  menu.style.left=left+'px';menu.style.right='auto';menu.style.top=topLimit+'px';menu.style.bottom='auto';
+  menu.style.height=Math.max(120,bottomLimit-topLimit)+'px';menu.style.maxHeight=Math.max(120,bottomLimit-topLimit)+'px';
+ }
+ function refresh(){positionColorPalette();positionConstruction();}
+ document.addEventListener('click',event=>{if(event.target?.closest('#sb-line-color-trigger'))requestAnimationFrame(positionColorPalette);},true);
+ const observer=new MutationObserver(records=>{if(records.some(record=>record.target?.id==='sb-line-color-options'||record.target?.id==='sb-construction-context-menu'))requestAnimationFrame(refresh);});
+ const observe=()=>{['sb-line-color-options','sb-top-dock','sb-construction-context-menu'].map(byId).filter(Boolean).forEach(el=>observer.observe(el,{attributes:true,attributeFilter:['class','hidden','style']}));};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
+ window.addEventListener('resize',refresh,{passive:true});window.addEventListener('orientationchange',()=>requestAnimationFrame(refresh),{passive:true});
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',refresh,{passive:true});window.visualViewport.addEventListener('scroll',refresh,{passive:true});}
+ window.sbPr73RefreshDockPanels=refresh;
+})();
+</script>
