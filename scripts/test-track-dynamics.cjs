@@ -24,7 +24,8 @@ assert.equal(analysis[0].pointIndex,1);
 assert.ok(Math.abs(analysis[0].radiusMeters-10)<1e-8);
 assert.equal(analysis[0].minimumRadiusMeters,29);
 assert.equal(analysis[0].violatesMinimumRadius,true);
-assert.ok(Math.abs(analysis[0].speedKmh-Math.sqrt(10)*3.6)<1e-8);
+// The curve multiplier scales the radius-derived speed cap after the lateral-acceleration calculation.
+assert.ok(Math.abs(analysis[0].speedKmh-Math.sqrt(10)*3.6*.99)<1e-8);
 assert.ok(analysis[0].speedKmh>0&&analysis[0].speedKmh<25);
 assert.equal(analysis[0].speedBand,'slow');
 assert.equal(analysis[1].violatesMinimumRadius,true);
