@@ -2479,6 +2479,57 @@ function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
  const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+width*Math.abs(alignment);
  return side*(support+MOBILE_PLATFORM_CLEARANCE_METERS);
 }
+// Desktop-style station alignment: use each platform's longitudinal bearing as
+// an endpoint tangent, choosing its forward/reverse orientation toward the
+// destination. This keeps a new connection entering and leaving each platform
+// along its axis instead of forcing a straight center-to-center chord.
+function getStationTangentCenterline(startStation,endStation){
+ const start=map.project(L.latLng(startStation.lat,startStation.lng),18);
+ const end=map.project(L.latLng(endStation.lat,endStation.lng),18);
+ const dx=end.x-start.x,dy=end.y-start.y,chord=Math.hypot(dx,dy);
+ if(chord<1e-6)return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
+ const routeBearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
+ const alignBearing=value=>{
+  if(!Number.isFinite(value))return null;
+  let bearing=((value%360)+360)%360;
+  const difference=Math.abs(((bearing-routeBearing+540)%360)-180);
+  if(difference>90)bearing=(bearing+180)%360;
+  return bearing;
+ };
+ const startBearing=alignBearing(startStation.platformBearing);
+ const endBearing=alignBearing(endStation.platformBearing);
+ if(startBearing===null&&endBearing===null)return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
+ const half=chord/2;
+ const controlPoint=(origin,bearing,direction)=>{
+  const radians=bearing*Math.PI/180;
+  return {x:origin.x+Math.sin(radians)*half*direction,y:origin.y-Math.cos(radians)*half*direction};
+ };
+ const firstControl=startBearing===null?null:controlPoint(start,startBearing,1);
+ const secondControl=endBearing===null?null:controlPoint(end,endBearing,-1);
+ const meters=map.distance(L.latLng(startStation.lat,startStation.lng),L.latLng(endStation.lat,endStation.lng));
+ const steps=Math.max(8,Math.min(64,Math.ceil(meters/20)));
+ const mix=(p,q,t)=>({x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t});
+ const result=[];
+ for(let i=0;i<=steps;i++){
+  const t=i/steps,u=1-t;
+  let point;
+  if(firstControl&&secondControl){
+   point={
+    x:u*u*u*start.x+3*u*u*t*firstControl.x+3*u*t*t*secondControl.x+t*t*t*end.x,
+    y:u*u*u*start.y+3*u*u*t*firstControl.y+3*u*t*t*secondControl.y+t*t*t*end.y
+   };
+  }else{
+   const control=firstControl||secondControl;
+   point={
+    x:u*u*start.x+2*u*t*control.x+t*t*end.x,
+    y:u*u*start.y+2*u*t*control.y+t*t*end.y
+   };
+  }
+  const latlng=map.unproject(point,18);
+  result.push([latlng.lat,latlng.lng]);
+ }
+ return result;
+}
 tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
   let b=stations[t.b];
@@ -2549,11 +2600,9 @@ if(mode==='delete'){
   }
  }
 }else{
- points=[
-  [start.lat,start.lng],
-  ...(t.waypoints||[]).map(w=>[w.lat,w.lng]),
-  [end.lat,end.lng]
- ];
+ // With no manually placed curve waypoints, follow the station platform
+ // bearings using the same quadratic/cubic tangent construction as desktop.
+ points=getStationTangentCenterline(a,b);
 }
 
   // Transparent edit hitbox follows the sampled route, not the station chord.
