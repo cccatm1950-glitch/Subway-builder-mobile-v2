@@ -2066,7 +2066,8 @@ button.sb-flat-close,[data-flat-close="true"]{
 <!-- ========================================================
      SECTION 09 — BOTTOM TOOLBAR AND MESSAGES
      ======================================================== -->
-<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()">↶</button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()">↷</button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">×</button></div>
+<div id="sb-action-dock" aria-label="Edit actions"><button id="undoBtn" type="button" title="Undo" aria-label="Undo" onclick="undo()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 14 4 9l5-5M4 9h9a7 7 0 0 1 0 14h-2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="redoBtn" type="button" title="Redo" aria-label="Redo" onclick="redo()"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15 14 5-5-5-5m5 5h-9a7 7 0 0 0 0 14h2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button id="trashModeBtn" class="trash-dock-btn" type="button" onclick="activateDeleteMode()" aria-label="Delete mode" title="Delete">×</button></div>
+<style id="sb-undo-redo-centered-svg-icons">#sb-action-dock #undoBtn,#sb-action-dock #redoBtn{display:grid!important;place-items:center!important;padding:0!important;line-height:0!important;font-size:0!important;letter-spacing:normal!important}#sb-action-dock #undoBtn svg,#sb-action-dock #redoBtn svg{display:block!important;width:25px!important;height:25px!important;max-width:25px!important;max-height:25px!important;margin:0!important;flex:none!important;overflow:visible}</style>
 
 
 
@@ -2471,26 +2472,12 @@ function getTrackLayerStyle(type,active){
 function getStationTangentCenterline(startStation,endStation){
  const start=map.project(L.latLng(startStation.lat,startStation.lng),18);
  const end=map.project(L.latLng(endStation.lat,endStation.lng),18);
- const dx=end.x-start.x,dy=end.y-start.y,chord=Math.hypot(dx,dy);
- if(chord<1e-6)return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
- const routeBearing=(Math.atan2(dx,-dy)*180/Math.PI+360)%360;
- const alignBearing=value=>{
-  if(!Number.isFinite(value))return null;
-  let bearing=((value%360)+360)%360;
-  const difference=Math.abs(((bearing-routeBearing+540)%360)-180);
-  if(difference>90)bearing=(bearing+180)%360;
-  return bearing;
- };
- const startBearing=alignBearing(startStation.platformBearing);
- const endBearing=alignBearing(endStation.platformBearing);
- if(startBearing===null&&endBearing===null)return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
- const half=chord/2;
- const controlPoint=(origin,bearing,direction)=>{
-  const radians=bearing*Math.PI/180;
-  return {x:origin.x+Math.sin(radians)*half*direction,y:origin.y-Math.cos(radians)*half*direction};
- };
- const firstControl=startBearing===null?null:controlPoint(start,startBearing,1);
- const secondControl=endBearing===null?null:controlPoint(end,endBearing,-1);
+ const alignment=window.SBTrackTopology?.calculateStationTangentControls?.(
+  start,end,startStation.platformBearing,endStation.platformBearing
+ );
+ if(!alignment||alignment.chord<1e-6||(!alignment.firstControl&&!alignment.secondControl))
+  return [[startStation.lat,startStation.lng],[endStation.lat,endStation.lng]];
+ const firstControl=alignment.firstControl,secondControl=alignment.secondControl;
  const meters=map.distance(L.latLng(startStation.lat,startStation.lng),L.latLng(endStation.lat,endStation.lng));
  const steps=Math.max(8,Math.min(64,Math.ceil(meters/20)));
  const mix=(p,q,t)=>({x:p.x+(q.x-p.x)*t,y:p.y+(q.y-p.y)*t});
@@ -2588,9 +2575,11 @@ function renderTrackDynamicsOverlay(track,points,layer){
  measures.forEach(measure=>{
   if(measure.distanceMeters-lastMeasureDistance<35)return;
   lastMeasureDistance=measure.distanceMeters;
-  const color=colors[measure.speedBand]||colors.unknown;
+  const violation=!!measure.violatesMinimumRadius;
+  const color=violation?'#ff6877':(colors[measure.speedBand]||colors.unknown);
   const radius=Math.round(measure.radiusMeters),speed=Math.round(measure.speedKmh);
-  const label='<div style="padding:4px 7px;border:1px solid '+color+'88;border-radius:10px;background:rgba(7,18,31,.9);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:'+color+'">R '+radius+' m</span><br><span>'+speed+' km/h · '+measure.speedBand.replace(/-/g,' ')+'</span></div>';
+  const radiusText=violation?'R '+radius+' m · MIN '+Math.round(measure.minimumRadiusMeters)+' m':'R '+radius+' m';
+  const label='<div style="padding:4px 7px;border:1px solid '+color+'88;border-radius:10px;background:rgba(7,18,31,.9);backdrop-filter:blur(10px);color:#f4fbff;font:600 10px/1.35 system-ui,sans-serif;white-space:nowrap;box-shadow:0 2px 12px rgba(0,0,0,.45);text-align:center"><span style="color:'+color+'">'+radiusText+'</span><br><span>'+speed+' km/h · '+(violation?'too tight':measure.speedBand.replace(/-/g,' '))+'</span></div>';
   L.circleMarker(points[measure.pointIndex],{pane:'sbTrackPane',radius:3,color:color,weight:1.5,fillColor:color,fillOpacity:.95,interactive:false}).addTo(layer);
   L.marker(points[measure.pointIndex],{pane:'sbTrackPane',interactive:false,keyboard:false,icon:L.divIcon({className:'sb-track-dynamics-label',html:label,iconSize:[112,42],iconAnchor:[56,21]})}).addTo(layer);
  });
@@ -2724,14 +2713,17 @@ if(mode==='delete'){
    const ratio=span>0?Math.max(0,Math.min(1,(distance-left.distance)/span)):0;
    return left.height+(next.height-left.height)*ratio;
   }
-  const transitionMeters=Math.min(OFFSET_TRANSITION_LENGTH_METERS,totalTrackMeters/2);
-  const smoothstep01=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
-  const stationOffsets=cumulativeTrackMeters.map(distance=>{
-   if(transitionMeters<=0)return 0;
-   const fromStart=startOffset*(1-smoothstep01(distance/transitionMeters));
-   const fromEnd=endOffset*smoothstep01((distance-(totalTrackMeters-transitionMeters))/transitionMeters);
-   return fromStart+fromEnd;
-  });
+  const stationOffsets=window.SBTrackTopology?.calculateOffsetTransitionProfile
+   ?window.SBTrackTopology.calculateOffsetTransitionProfile(cumulativeTrackMeters,totalTrackMeters,startOffset,endOffset,t.offsetTransitionZones,OFFSET_TRANSITION_LENGTH_METERS)
+   :cumulativeTrackMeters.map(distance=>{
+    const transitionMeters=Math.min(OFFSET_TRANSITION_LENGTH_METERS,totalTrackMeters/2);
+    if(transitionMeters<=0)return 0;
+    const xStart=Math.max(0,Math.min(1,distance/transitionMeters));
+    const xEnd=Math.max(0,Math.min(1,(distance-(totalTrackMeters-transitionMeters))/transitionMeters));
+    const fromStart=startOffset*(1-xStart*xStart*(3-2*xStart));
+    const fromEnd=endOffset*(xEnd*xEnd*(3-2*xEnd));
+    return fromStart+fromEnd;
+   });
   const shiftTrackPoints=offset=>points.map((p,i)=>{
    let prev=points[Math.max(0,i-1)];
    let next=points[Math.min(points.length-1,i+1)];
@@ -4514,17 +4506,25 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const menuOpen=!!document.getElementById('sb-construction-context-menu');
   const isDelete=currentMode==='delete';
   const isConstruction=['station','track','curve','waypoint'].includes(currentMode);
-  /* Construction is active for a selected build tool or an open tool menu; Delete is exclusive. */
+  const isBuildActive=menuOpen||isConstruction;
+  /* Both mode controls must remain operable: disabling the opposite control
+     traps the user in the currently selected mode. setMode() is the single
+     source of truth and clears the competing active state on every switch. */
   if(button){
-   const active=menuOpen||isConstruction;
-   button.classList.toggle('active',active);
-   button.dataset.toggleState=active?'active':'inactive';
-   button.setAttribute('aria-pressed',String(active));
+   button.classList.toggle('active',isBuildActive);
+   button.dataset.toggleState=isBuildActive?'active':'inactive';
+   button.setAttribute('aria-pressed',String(isBuildActive));
+   button.disabled=false;
+   button.setAttribute('aria-disabled','false');
+   button.title='Construction toggle';
   }
   if(del){
    del.classList.toggle('active',isDelete);
    del.dataset.toggleState=isDelete?'active':'inactive';
    del.setAttribute('aria-pressed',String(isDelete));
+   del.disabled=false;
+   del.setAttribute('aria-disabled','false');
+   del.title='Delete mode';
   }
  }
  window.syncBuildDockSelectedState=syncBuildState;
@@ -4709,7 +4709,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-create-slot"><div id="sb-line-name-editor"><button id="sb-line-name-search" type="button" aria-label="Search service lines" title="Search service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="10.8" cy="10.8" r="6.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m16 16 4.6 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button><input id="sb-new-line-name" type="text" maxlength="24" placeholder="New line name" aria-label="New line name" autocomplete="off"><button id="sb-line-add" class="sb-line-add" type="button" aria-label="Add service line" title="Add service line">+</button></div><div class="sb-line-color-picker"><button id="sb-line-color-trigger" type="button" class="sb-line-color-trigger" aria-label="Choose line color" aria-expanded="false"></button><div id="sb-line-color-options" class="sb-line-color-options" role="listbox" aria-label="Preset and custom line colors" hidden></div></div><button id="sb-line-remove-active" class="sb-line-remove-active" type="button" aria-label="Delete selected color" title="Select a custom color to enable deletion" disabled>×</button></div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   const createSlot=document.getElementById("sb-service-create-slot");
@@ -5954,6 +5954,100 @@ function waypointAtCrosshair(){
 }
 #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important}
 </style>
+
+<style id="sb-top-message-independent-dock-pr78">
+/* Message status is a peer dock panel between menu and stats, not a floating banner. */
+#sb-top-dock{justify-content:flex-start!important;gap:8px!important}
+#sb-top-dock>.sb-top-panel-menu{order:1!important}
+#sb-top-dock>#sb-dashboard-dialog{
+ order:2!important;position:relative!important;inset:auto!important;
+ transform:none!important;box-sizing:border-box!important;
+ display:none!important;flex:1 1 0!important;width:auto!important;min-width:0!important;
+ max-width:none!important;height:58px!important;min-height:58px!important;max-height:58px!important;
+ margin:0!important;padding:6px 14px!important;border-radius:999px!important;
+ align-items:center!important;justify-content:center!important;
+ overflow:hidden!important;overflow-wrap:anywhere!important;
+ font-size:clamp(10px,1.15vw,14px)!important;line-height:1.3!important;
+ text-align:center!important;pointer-events:none!important;
+}
+#sb-top-dock>#sb-dashboard-dialog.open{display:flex!important}
+#sb-top-dock>.sb-top-panel-stats{order:3!important;margin-left:0!important;flex-shrink:0!important}
+#sb-top-dock>.sb-top-panel-theme{order:0!important}
+@media(max-width:700px){
+ #sb-top-dock{gap:6px!important}
+ #sb-top-dock>#sb-dashboard-dialog{height:56px!important;min-height:56px!important;max-height:56px!important;padding:5px 8px!important;font-size:10px!important}
+}
+</style>
+
+<style id="sb-preview-cancel-delete-dock-state-pr78">
+#sb-action-dock #trashModeBtn.sb-preview-cancel{
+ color:#fff!important;
+ background:rgba(255,255,255,.14)!important;
+ border-color:rgba(255,255,255,.92)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 8px rgba(255,255,255,.72),0 0 19px rgba(255,255,255,.48)!important;
+ animation:sb-preview-cancel-pulse 1.35s ease-in-out infinite!important;
+}
+@keyframes sb-preview-cancel-pulse{
+ 0%,100%{box-shadow:inset 0 0 0 1px rgba(255,255,255,.58),0 0 7px rgba(255,255,255,.55),0 0 14px rgba(255,255,255,.28)}
+ 50%{box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.95),0 0 11px rgba(255,255,255,.9),0 0 25px rgba(255,255,255,.62)}
+}
+#sb-action-dock #trashModeBtn.sb-preview-cancel:active{transform:scale(.93)!important}
+@media(prefers-reduced-motion:reduce){#sb-action-dock #trashModeBtn.sb-preview-cancel{animation:none!important}}
+</style>
+<script id="sb-preview-cancel-dock-runtime">
+(function(){
+ if(window.__sbPreviewCancelDock)return;
+ window.__sbPreviewCancelDock=true;
+ const button=()=>document.getElementById('trashModeBtn');
+ function previewActive(){
+  if(window.mode==='station')return true;
+  if(window.mode==='track'&&window.selected!==null)return true;
+  if((window.mode==='curve'||window.mode==='waypoint')&&Number.isInteger(window.selectedTrackIndex)&&window.selectedTrackIndex!==null)return true;
+  return false;
+ }
+ function sync(){
+  const el=button();if(!el)return;
+  const active=previewActive();
+  el.classList.toggle('sb-preview-cancel',active);
+  el.dataset.previewCancel=String(active);
+  el.setAttribute('aria-label',active?'Cancel placement preview':window.mode==='delete'?'Exit delete mode':'Delete mode');
+  el.title=active?'Cancel active preview':window.mode==='delete'?'Exit delete mode':'Delete';
+  if(active)el.setAttribute('aria-pressed','true');
+  else el.setAttribute('aria-pressed',String(window.mode==='delete'));
+ }
+ function cancel(){
+  if(!previewActive())return false;
+  pendingStationPlacement=null;
+  window.selectedTrackIndex=null;
+  window.selected=null;
+  if(typeof window.clearStationPlacementPreview==='function')window.clearStationPlacementPreview();
+  if(typeof window.clearCurvePlacementPreview==='function')window.clearCurvePlacementPreview();
+  if(typeof window.setMode==='function')window.setMode('none');
+  else window.mode='none';
+  if(typeof window.renderNetwork==='function')window.renderNetwork();
+  if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
+  if(typeof window.message==='function')window.message('Placement preview cancelled.');
+  sync();
+  return true;
+ }
+ document.addEventListener('click',event=>{
+  const el=event.target.closest&&event.target.closest('#trashModeBtn');
+  if(!el||!cancel())return;
+  event.preventDefault();event.stopImmediatePropagation();
+ },true);
+ const originalSetMode=window.setMode;
+ if(typeof originalSetMode==='function')window.setMode=function(){const result=originalSetMode.apply(this,arguments);requestAnimationFrame(sync);return result;};
+ document.addEventListener('DOMContentLoaded',sync);
+ document.addEventListener('click',event=>{
+  if(event.target.closest('#constructionPanel button[data-panel-action]'))requestAnimationFrame(sync);
+ },true);
+ if(typeof map!=='undefined'&&map&&typeof map.on==='function'){
+  map.on('move zoom moveend zoomend click',()=>requestAnimationFrame(sync));
+ }
+ window.addEventListener('resize',sync);
+ sync();
+})();
+</script>
 </body>
 <style id="sb-nov06-final-dock-layout">
 /* The 128px construction dock must be a true 2-column x 4-row grid.
@@ -8618,6 +8712,9 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 })();
 </script>
 
+
+
+
 </html>
 
 <style id="sb-pr73-service-pills-and-overlay-touch-repair">
@@ -9277,4 +9374,167 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
  display:block!important;width:24px!important;height:24px!important;flex:0 0 24px!important;margin:0!important;
 }
 #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important;white-space:nowrap!important}
+</style>
+
+<style id="sb-remove-service-line-create-slot">
+/* Remove the service-line creation controls while retaining existing lines and Run. */
+#sb-service-create-slot{display:none!important}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 46px!important;
+}
+#sb-service-lines-content{min-width:0!important;width:100%!important}
+</style>
+
+<style id="sb-global-focus-ring-removal">
+/* Remove keyboard/browser focus rings only; preserve control backgrounds,
+   active-mode styling, disabled states, and all interaction behavior. */
+:focus,:focus-visible{
+ outline:none!important;
+}
+:focus-visible{
+ box-shadow:none!important;
+}
+</style>
+
+
+<style id="sb-pr75-service-dock-single-panel-layout">
+/* The service dock is one continuous expandable glass panel.  Keep the
+   existing-lines scroller as the live content host, but remove its former
+   inset slot treatment; Run gets its own matching inset slot at the far end. */
+#sb-action-dock .sb-dock-panel-service{
+ box-sizing:border-box!important;
+ flex:0 1 54px!important;
+ min-width:54px!important;
+ width:auto!important;
+ max-width:none!important;
+ overflow:hidden!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded{
+ flex:1 1 0!important;
+ width:auto!important;
+ min-width:0!important;
+ max-width:none!important;
+ justify-content:flex-start!important;
+ padding:4px 6px!important;
+}
+#sb-action-dock .sb-dock-panel-service #sb-service-lines{
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex:1 1 auto!important;
+ flex-flow:row nowrap!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ gap:8px!important;
+ width:0!important;
+ min-width:0!important;
+ height:100%!important;
+ min-height:0!important;
+ padding:0!important;
+ margin:0!important;
+}
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines{
+ display:none!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content{
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex:1 1 auto!important;
+ width:0!important;
+ min-width:0!important;
+ max-width:none!important;
+ height:100%!important;
+ min-height:0!important;
+ max-height:none!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ gap:8px!important;
+ margin:0!important;
+ padding:0 2px!important;
+ overflow-x:auto!important;
+ overflow-y:hidden!important;
+ border:0!important;
+ border-radius:0!important;
+ background:transparent!important;
+ background-image:none!important;
+ box-shadow:none!important;
+ -webkit-backdrop-filter:none!important;
+ backdrop-filter:none!important;
+ touch-action:pan-x!important;
+ -webkit-overflow-scrolling:touch!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ box-sizing:border-box!important;
+ display:flex!important;
+ flex:0 0 46px!important;
+ align-items:center!important;
+ justify-content:center!important;
+ width:46px!important;
+ min-width:46px!important;
+ max-width:46px!important;
+ height:46px!important;
+ min-height:46px!important;
+ max-height:46px!important;
+ margin:0!important;
+ padding:0!important;
+ border:1px solid rgba(205,230,248,.16)!important;
+ border-radius:999px!important;
+ background:linear-gradient(145deg,rgba(225,242,255,.105),rgba(170,207,236,.045))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.075),0 4px 12px rgba(0,0,0,.10)!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+ box-sizing:border-box!important;
+ display:inline-flex!important;
+ flex:0 0 42px!important;
+ width:42px!important;
+ min-width:42px!important;
+ max-width:42px!important;
+ height:42px!important;
+ min-height:42px!important;
+ max-height:42px!important;
+ margin:0!important;
+ padding:0!important;
+}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded{padding:4px 5px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{gap:6px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+  flex-basis:42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+  flex-basis:38px!important;width:38px!important;min-width:38px!important;max-width:38px!important;
+  height:38px!important;min-height:38px!important;max-height:38px!important;
+ }
+}
+@media(max-width:380px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded{padding:3px 4px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{gap:4px!important}
+}
+</style>
+
+
+<style id="sb-pr77-exclusive-dock-disabled-states">
+/* Disabled means unavailable, not merely visually unselected. Keep the
+   active mode operable while clearly muting only its competing control. */
+#sb-action-dock #sb-build-dock-btn:disabled,
+#sb-action-dock #trashModeBtn:disabled,
+#sb-action-dock #sb-build-dock-btn[aria-disabled="true"],
+#sb-action-dock #trashModeBtn[aria-disabled="true"]{
+  opacity:.30!important;
+  filter:saturate(.38)!important;
+  cursor:not-allowed!important;
+  pointer-events:none!important;
+  box-shadow:inset 0 0 0 1px rgba(225,240,255,.045)!important;
+}
+#sb-action-dock #sb-build-dock-btn:disabled[aria-pressed="true"],
+#sb-action-dock #trashModeBtn:disabled[aria-pressed="true"]{
+  background:rgba(235,245,255,.045)!important;
+  color:rgba(220,232,243,.38)!important;
+}
+#sb-action-dock #sb-build-dock-btn:not(:disabled):not([aria-disabled="true"]),
+#sb-action-dock #trashModeBtn:not(:disabled):not([aria-disabled="true"]){
+  pointer-events:auto!important;
+  filter:none!important;
+}
 </style>

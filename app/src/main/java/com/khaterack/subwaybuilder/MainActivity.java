@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient());
 
         setContentView(webView);
-        webView.loadUrl("file:///android_asset/index.html?sbdebug=1");
+        webView.loadUrl("file:///android_asset/index.html");
     }
 
 

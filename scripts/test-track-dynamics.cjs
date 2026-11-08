@@ -12,6 +12,7 @@ assert.equal(d.getMaxSpeedForSlope(100,-9.5),100); // downhill grade does not re
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000}),100);
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20})<100);
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:100,minTurnRadiusMeters:29})>d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20,minTurnRadiusMeters:29}));
+assert.ok(Math.abs(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20,minTurnRadiusMeters:29})-Math.sqrt(20)*3.6)<1e-8);
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000,stationTrack:true}),50);
 assert.equal(d.getSpeedBand(49),'moderate');assert.equal(d.getSpeedBand(130),'high-speed');
 const analysis=d.analyzeTrack([{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:20,y:10}],{
@@ -20,9 +21,13 @@ const analysis=d.analyzeTrack([{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:20,y:10}],{
 });
 assert.equal(analysis.length,2);
 assert.equal(analysis[0].pointIndex,1);
-assert.ok(analysis[0].radiusMeters>=29);
+assert.ok(Math.abs(analysis[0].radiusMeters-10)<1e-8);
+assert.equal(analysis[0].minimumRadiusMeters,29);
+assert.equal(analysis[0].violatesMinimumRadius,true);
+assert.ok(Math.abs(analysis[0].speedKmh-Math.sqrt(10)*3.6)<1e-8);
 assert.ok(analysis[0].speedKmh>0&&analysis[0].speedKmh<25);
 assert.equal(analysis[0].speedBand,'slow');
+assert.equal(analysis[1].violatesMinimumRadius,true);
 assert.equal(d.getMaxSpeedForSlope(100,4,{low:3.3,medium:4.4,high:5.225}),90);
 assert.equal(d.getMaxSpeedForSlope(100,4.5,{low:3.3,medium:4.4,high:5.225}),75);
 assert.equal(d.getMaxSpeedForSlope(100,6,{low:3.3,medium:4.4,high:5.225}),60);

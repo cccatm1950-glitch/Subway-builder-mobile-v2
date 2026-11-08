@@ -129,6 +129,37 @@
     return matches.length === 1 ? matches[0] : null;
   }
 
+  // Resolve station platform bearings into correctly directed Bezier controls.
+  // The controls make the route tangent flush with each platform axis at its end.
+  function calculateStationTangentControls(start, end, startBearing, endBearing) {
+    if (!start || !end || !Number.isFinite(start.x) || !Number.isFinite(start.y) ||
+        !Number.isFinite(end.x) || !Number.isFinite(end.y)) return null;
+    const dx = end.x - start.x, dy = end.y - start.y;
+    const chord = Math.hypot(dx, dy);
+    if (chord < 1e-6) return { chord, startBearing: null, endBearing: null,
+      firstControl: null, secondControl: null };
+    const routeBearing = (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
+    const alignBearing = value => {
+      if (!Number.isFinite(value)) return null;
+      let bearing = ((value % 360) + 360) % 360;
+      const difference = Math.abs(((bearing - routeBearing + 540) % 360) - 180);
+      if (difference > 90) bearing = (bearing + 180) % 360;
+      return bearing;
+    };
+    const resolvedStart = alignBearing(startBearing);
+    const resolvedEnd = alignBearing(endBearing);
+    const handleLength = chord / 2;
+    const controlPoint = (origin, bearing, direction) => {
+      if (bearing === null) return null;
+      const radians = bearing * Math.PI / 180;
+      return { x: origin.x + Math.sin(radians) * handleLength * direction,
+        y: origin.y - Math.cos(radians) * handleLength * direction };
+    };
+    return { chord, startBearing: resolvedStart, endBearing: resolvedEnd,
+      firstControl: controlPoint(start, resolvedStart, 1),
+      secondControl: controlPoint(end, resolvedEnd, -1) };
+  }
+
   // Build the lateral offset fade along a route. Explicit per-track transition
   // extents survive topology splits; legacy tracks retain the 50 m default.
   function calculateOffsetTransitionProfile(cumulativeDistances, totalLength, startOffset, endOffset, zones, defaultLength = 50) {
@@ -212,5 +243,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls });
 });

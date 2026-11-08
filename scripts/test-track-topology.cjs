@@ -2,6 +2,32 @@ const assert = require('node:assert/strict');
 const topology = require('../app/src/main/assets/track-topology.js');
 
 const route = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }];
+
+// Station platform bearings resolve to route-facing endpoint tangents.
+const eastWestAlignment = topology.calculateStationTangentControls(
+  { x: 0, y: 0 }, { x: 100, y: 0 }, 90, 90
+);
+assert.ok(Math.abs(eastWestAlignment.firstControl.x - 50) < 1e-9);
+assert.ok(Math.abs(eastWestAlignment.firstControl.y) < 1e-9);
+assert.ok(Math.abs(eastWestAlignment.secondControl.x - 50) < 1e-9);
+assert.ok(Math.abs(eastWestAlignment.secondControl.y) < 1e-9);
+assert.equal(eastWestAlignment.startBearing, 90);
+assert.equal(eastWestAlignment.endBearing, 270);
+const reversedAlignment = topology.calculateStationTangentControls(
+  { x: 0, y: 0 }, { x: 100, y: 0 }, 270, 90
+);
+assert.equal(reversedAlignment.startBearing, 90);
+assert.equal(reversedAlignment.endBearing, 270);
+assert.ok(Math.abs(reversedAlignment.firstControl.x - 50) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.firstControl.y) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.secondControl.x - 150) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.secondControl.y) < 1e-9);
+const oneSidedAlignment = topology.calculateStationTangentControls(
+  { x: 0, y: 0 }, { x: 0, y: 100 }, 0, null
+);
+assert.ok(oneSidedAlignment.firstControl);
+assert.equal(oneSidedAlignment.secondControl, null);
+assert.equal(topology.calculateStationTangentControls(null, { x: 1, y: 1 }, 0, 0), null);
 const projection = topology.projectPointToPolyline({ x: 8, y: 2 }, route);
 assert.ok(projection);
 assert.equal(projection.segmentIndex, 0);
@@ -52,6 +78,14 @@ const transitionZones = topology.splitTransitionZones({ start: 30, end: 80 }, 50
 assert.deepEqual(transitionZones, [{ start: 30, end: 30 }, { end: 50 }]);
 assert.deepEqual(topology.splitTransitionZones({ start: 10 }, 20, 30), [{ start: 10 }, undefined]);
 assert.deepEqual(topology.splitTransitionZones(null, 20, 30), [undefined, undefined]);
+const transitionProfile=topology.calculateOffsetTransitionProfile(
+  [0, 15, 30, 50, 70, 85, 100],100,2,-2,{start:30,end:30}
+);
+assert.deepEqual(transitionProfile,[2,1,0,0,0,-1,-2]);
+const legacyTransitionProfile=topology.calculateOffsetTransitionProfile([0,25,50,75,100],100,2,-2,null);
+assert.deepEqual(legacyTransitionProfile,[2,1,0,-1,-2]);
+const noTransitionProfile=topology.calculateOffsetTransitionProfile([0,50,100],100,2,-2,{start:0,end:0});
+assert.deepEqual(noTransitionProfile,[0,0,0]);
 
 const elevationAnchors = [
   { distance: 0, height: -20 },
