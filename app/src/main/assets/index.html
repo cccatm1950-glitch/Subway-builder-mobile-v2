@@ -3165,6 +3165,31 @@ function handleStationClick(index){
    return;
   }
 
+  const groupedPath=findTrackGroupPath(first,second);
+  if(groupedPath){
+   const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
+   if(activeLine){
+    const unassigned=groupedPath.filter(trackIndex=>!(tracks[trackIndex].lineIds||[]).includes(activeLine.id));
+    if(unassigned.length){
+     unassigned.forEach(trackIndex=>{
+      const track=tracks[trackIndex];
+      track.lineIds=[...new Set([...(track.lineIds||[]),activeLine.id])];
+     });
+     saveHistory();
+     renderNetwork();
+     message(activeLine.name+' now shares '+groupedPath.length+' connected track sections.');
+    }else{
+     renderNetwork();
+     message(activeLine.name+' is already assigned to this connected track route.');
+    }
+   }else{
+    renderNetwork();
+    message('These stations are already connected through existing track sections.');
+   }
+   selected=null;
+   return;
+  }
+
   // Match the desktop engine's physical track-length limits before charging
   // for a new connection. map.distance uses metres and follows the live map CRS.
   const proposedTrackLengthMeters=map.distance(
