@@ -12,4 +12,15 @@ assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000})
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20})<100);
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000,stationTrack:true}),50);
 assert.equal(d.getSpeedBand(49),'moderate');assert.equal(d.getSpeedBand(130),'high-speed');
+const analysis=d.analyzeTrack([{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:20,y:10}],{
+ minTurnRadiusMeters:29,maxLateralAcceleration:1,maxSpeedKmh:88.992,
+ curveSpeedMultiplier:.99,slopePercent:0,smoothingRadius:2
+});
+assert.equal(analysis.length,2);
+assert.equal(analysis[0].pointIndex,1);
+assert.ok(analysis[0].radiusMeters>=29);
+assert.ok(analysis[0].speedKmh>0&&analysis[0].speedKmh<25);
+assert.equal(analysis[0].speedBand,'slow');
+assert.equal(d.getMaxSpeedForSlope(100,6,{low:3.3,medium:4.4,high:5.225}),90);
+assert.deepEqual(d.analyzeTrack([{x:0,y:0},{x:10,y:0}],{}),[]);
 console.log('Track dynamics tests passed');
