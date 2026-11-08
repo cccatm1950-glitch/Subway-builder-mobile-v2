@@ -4504,25 +4504,25 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const menuOpen=!!document.getElementById('sb-construction-context-menu');
   const isDelete=currentMode==='delete';
   const isConstruction=['station','track','curve','waypoint'].includes(currentMode);
-  /* Construction is active for a selected build tool or an open tool menu; Delete is exclusive. */
   const isBuildActive=menuOpen||isConstruction;
-  /* The selected mode stays operable so it can be toggled off; only its
-     competing mode is disabled. This prevents simultaneous Build + Delete. */
+  /* Both mode controls must remain operable: disabling the opposite control
+     traps the user in the currently selected mode. setMode() is the single
+     source of truth and clears the competing active state on every switch. */
   if(button){
    button.classList.toggle('active',isBuildActive);
    button.dataset.toggleState=isBuildActive?'active':'inactive';
    button.setAttribute('aria-pressed',String(isBuildActive));
-   button.disabled=!!isDelete;
-   button.setAttribute('aria-disabled',String(!!isDelete));
-   button.title=isDelete?'Construction unavailable while Delete mode is active':'Construction toggle';
+   button.disabled=false;
+   button.setAttribute('aria-disabled','false');
+   button.title='Construction toggle';
   }
   if(del){
    del.classList.toggle('active',isDelete);
    del.dataset.toggleState=isDelete?'active':'inactive';
    del.setAttribute('aria-pressed',String(isDelete));
-   del.disabled=!!isBuildActive&&!isDelete;
-   del.setAttribute('aria-disabled',String(!!del.disabled));
-   del.title=del.disabled?'Delete unavailable while Construction is active':'Delete mode';
+   del.disabled=false;
+   del.setAttribute('aria-disabled','false');
+   del.title='Delete mode';
   }
  }
  window.syncBuildDockSelectedState=syncBuildState;
