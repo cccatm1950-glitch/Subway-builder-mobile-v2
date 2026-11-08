@@ -69,7 +69,10 @@ for (const required of [
   'trackGroupId',
   'centerline:Array.isArray(t.centerline)',
   'const trainLineId=',
-  'const inheritedLayer='
+  'const inheritedLayer=',
+  'offsetTransitionZones:t.offsetTransitionZones',
+  'splitAlongMeters',
+  'totalLengthMeters:totalRouteDistance'
 ]) {
   assert.ok(html.includes(required), 'Expected track topology guard: ' + required);
 }
