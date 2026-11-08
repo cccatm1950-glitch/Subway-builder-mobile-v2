@@ -1932,7 +1932,7 @@ button.sb-flat-close,[data-flat-close="true"]{
 </style>
 
 <style id="sb-platform-size-presets">
-#sb-construction-context-menu .sb-platform-size-heading{margin:12px 2px 7px;color:rgba(220,237,248,.72);font-size:10px;font-weight:800;letter-spacing:1.1px}
+#sb-construction-context-menu .sb-platform-size-heading{flex:0 0 auto!important;margin:12px 2px 7px;color:rgba(220,237,248,.72);font-size:10px;font-weight:800;letter-spacing:1.1px}
 #sb-construction-context-menu .sb-platform-size-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
 #sb-construction-context-menu .sb-platform-size-grid button{min-width:0;min-height:38px;border-radius:999px;border:1px solid rgba(220,240,255,.16);background:rgba(235,245,255,.07);color:#e8f2fa;font-size:12px;font-weight:700}
 #sb-construction-context-menu .sb-platform-size-grid button.active{background:rgba(54,211,190,.22);border-color:rgba(101,255,228,.68);color:#75ffe8;box-shadow:0 0 12px rgba(38,220,196,.22)}
@@ -3854,7 +3854,8 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
     'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
     'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
     'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
-    'toggle-3d':()=>window.toggle3DCityView()
+    'toggle-3d':()=>window.toggle3DCityView(),
+   'line-color':()=>document.getElementById('sb-line-color-trigger')?.click()
    };
    if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
    else if(action==='platform-type')setPlatformType(button.dataset.platformType);
@@ -4402,16 +4403,31 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  }
  function positionConstructionContextMenu(menu,toggle){
   const rect=toggle.getBoundingClientRect();
-  const gap=10,edge=12;
-  const width=Math.min(264,Math.max(220,window.innerWidth-edge*2));
+  const gap=12,edge=12;
+  const width=Math.min(286,Math.max(220,window.innerWidth-edge*2));
   menu.style.width=width+'px';
-  menu.style.maxHeight=Math.max(120,window.innerHeight-edge*2)+'px';
   const left=Math.min(Math.max(edge,rect.left+rect.width/2-width/2),window.innerWidth-width-edge);
+  if(window.matchMedia('(max-width: 700px)').matches){
+   const dock=document.getElementById('sb-action-dock');
+   const dockRect=dock?dock.getBoundingClientRect():null;
+   const bottomLimit=dockRect&&dockRect.top>edge?dockRect.top-gap:window.innerHeight-edge;
+   const available=Math.max(160,bottomLimit-edge);
+   menu.style.left=left+'px';
+   menu.style.top=edge+'px';
+   menu.style.height=available+'px';
+   menu.style.maxHeight=available+'px';
+   menu.style.boxSizing='border-box';
+   menu.style.display='flex';
+   menu.style.flexDirection='column';
+   menu.style.overflow='hidden';
+   return;
+  }
   const availableAbove=Math.max(0,rect.top-edge-gap);
   const desiredHeight=Math.min(menu.scrollHeight,window.innerHeight-edge*2);
   const top=Math.max(edge,Math.min(rect.top-gap-desiredHeight,window.innerHeight-edge-desiredHeight));
   menu.style.left=left+'px';
   menu.style.top=top+'px';
+  menu.style.height='auto';
   menu.style.maxHeight=Math.max(120,Math.min(window.innerHeight-edge*2,availableAbove||window.innerHeight-edge*2))+'px';
  }
  function toggleConstructionContextMenu(toggle){
@@ -8240,13 +8256,18 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
 <!-- PR73 construction tool inventory + SVG icon parity -->
 <style id="sb-pr73-construction-svg-inventory">
 #sb-construction-context-menu{max-width:min(286px,calc(100vw - 20px))!important}
+#sb-construction-context-menu{
+ box-sizing:border-box!important;
+ padding:16px!important;
+}
 #sb-construction-context-menu .sb-construction-context-grid{
- display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
- grid-template-rows:repeat(8,minmax(42px,auto))!important;
+ display:grid!important;flex:1 1 auto!important;min-height:0!important;
+ grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ grid-template-rows:repeat(9,minmax(0,1fr))!important;
  gap:7px!important;align-items:stretch!important
 }
 #sb-construction-context-menu .sb-construction-context-grid button{
- min-width:0!important;min-height:44px!important;padding:6px 5px!important;
+ min-width:0!important;min-height:0!important;height:100%!important;padding:6px 5px!important;
  display:flex!important;flex-direction:row!important;align-items:center!important;
  justify-content:flex-start!important;gap:7px!important;text-align:left!important;
  border:1px solid rgba(195,225,248,.12)!important;border-radius:14px!important;
@@ -8313,7 +8334,8 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   wide:'<path d="M2 12h20M6 8l-4 4 4 4m12-8 4 4-4 4M12 3v18"/>',
   ruler:'<path d="M4 17 17 4l3 3L7 20H4zM9 12l2 2m1-5 2 2m1-5 2 2"/>',
   clear:'<path d="M4 12h16M12 4v16"/><path d="m7 7 10 10m0-10L7 17"/>',
-  city:'<path d="M3 21V9l6-4v16M9 21V3l6 4v14M15 21v-9l6-3v12"/><path d="M6 12h.01M6 16h.01M12 9h.01M12 13h.01M18 14h.01M18 18h.01"/>'
+  city:'<path d="M3 21V9l6-4v16M9 21V3l6 4v14M15 21v-9l6-3v12"/><path d="M6 12h.01M6 16h.01M12 9h.01M12 13h.01M18 14h.01M18 18h.01"/>,
+  palette:'<path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.7 1.7 0 0 1 1.3-2.8H18a3 3 0 0 0 3-3c0-5-4-8.9-9-8.9Z"/><circle cx="7.5" cy="10" r="1"/><circle cx="11" cy="6.8" r="1"/><circle cx="16" cy="8" r="1"/>''
  };
  function svg(name){
   return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(iconPaths[name]||iconPaths.track)+'</svg>';
@@ -8337,7 +8359,8 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   ['width-default','standard','Standard width'],
   ['width-wide','wide','Wide width'],
   ['clear-selection','clear','Clear selection'],
-  ['toggle-3d','city','3D city view']
+  ['toggle-3d','city','3D city view'],
+  ['line-color','palette','Line color']
  ];
  function enhance(menu){
   if(!menu||menu.dataset.sbSvgInventory==='ready')return;
@@ -8385,7 +8408,8 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-default':currentPlatformWidth==='default',
    'width-wide':currentPlatformWidth==='wide',
    'clear-selection':false,
-   'toggle-3d':!!document.getElementById('sb-3d-map')?.classList.contains('active')
+   'toggle-3d':!!document.getElementById('sb-3d-map')?.classList.contains('active'),
+   'line-color':document.getElementById('sb-line-color-options')?.classList.contains('is-open')===true
   };
   menu.querySelectorAll('button[data-sb-action]').forEach(button=>{
    const active=!!states[button.dataset.sbAction];
