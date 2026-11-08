@@ -10,6 +10,7 @@ assert.equal(radii.length,4);assert.ok(radii.some(Number.isFinite));
 assert.equal(d.getMaxSpeedForSlope(100,6),90);assert.equal(d.getMaxSpeedForSlope(100,8),75);assert.equal(d.getMaxSpeedForSlope(100,9.5),60);
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000}),100);
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20})<100);
+assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:100,minTurnRadiusMeters:29})>d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20,minTurnRadiusMeters:29}));
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000,stationTrack:true}),50);
 assert.equal(d.getSpeedBand(49),'moderate');assert.equal(d.getSpeedBand(130),'high-speed');
 const analysis=d.analyzeTrack([{x:0,y:0},{x:10,y:0},{x:10,y:10},{x:20,y:10}],{
