@@ -5374,6 +5374,7 @@ function splitTrackAtCrosshair(trackHit,latlng){
  const normalizedTrack={...track,startElevation,endElevation};
  const splitRecord={...split,first:firstGeometry,second:secondGeometry};
  const junctionIndex=stations.length;
+ const previousSelection=selected;
  const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
  if(!sections)return null;
  const junctionElevation=Number.isFinite(sections.splitElevation)?sections.splitElevation:
@@ -5382,11 +5383,15 @@ function splitTrackAtCrosshair(trackHit,latlng){
  stations.push({lat:snapped.lat,lng:snapped.lng,name:'Junction '+junctionNumber,nodeType:'junction',
   elevation:track.elevation||'at',elevationMeters:junctionElevation});
  tracks.splice(trackHit.index,1,sections.first,sections.second);
- selected=junctionIndex;
+ selected=previousSelection===null?junctionIndex:previousSelection;
  selectedTrackIndex=null;
  saveHistory();
  renderNetwork();
- message('Track split successfully. Junction selected; tap another station or junction to continue the connection.');
+ if(previousSelection!==null){
+  handleStationClick(junctionIndex);
+ }else{
+  message('Track split successfully. Junction selected; tap another station or junction to continue the connection.');
+ }
  return junctionIndex;
 }
 function waypointAtCrosshair(){
