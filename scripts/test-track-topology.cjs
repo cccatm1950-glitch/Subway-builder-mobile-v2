@@ -39,7 +39,7 @@ assert.equal(sections.first.trackGroupId, 'tg-original');
 assert.equal(sections.second.trackGroupId, 'tg-original');
 assert.equal(sections.second.elevation, 'below');
 assert.deepEqual(sections.first.offsetTransitionZones, { start: 30, end: 30 });
-assert.deepEqual(sections.second.offsetTransitionZones, { start: 30, end: 50 });
+assert.deepEqual(sections.second.offsetTransitionZones, { end: 50 });
 assert.deepEqual(sections.first.lineIds, ['line-1', 'line-2']);
 assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
 assert.equal(sections.splitElevation, -16);
@@ -49,7 +49,7 @@ sections.first.lineIds.push('mutated');
 assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
 
 const transitionZones = topology.splitTransitionZones({ start: 30, end: 80 }, 50, 50);
-assert.deepEqual(transitionZones, [{ start: 30, end: 30 }, { start: 30, end: 50 }]);
+assert.deepEqual(transitionZones, [{ start: 30, end: 30 }, { end: 50 }]);
 assert.deepEqual(topology.splitTransitionZones({ start: 10 }, 20, 30), [{ start: 10 }, undefined]);
 assert.deepEqual(topology.splitTransitionZones(null, 20, 30), [undefined, undefined]);
 
