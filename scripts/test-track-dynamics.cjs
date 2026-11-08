@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict');
+const d=require('../app/src/main/assets/track-dynamics.js');
+assert.equal(d.calculateTurnRadius({x:0,y:0},{x:10,y:0},{x:20,y:0}),null);
+const r=d.calculateTurnRadius({x:0,y:0},{x:10,y:0},{x:10,y:10});
+assert.ok(Math.abs(r-10/Math.sin(Math.PI/4)/2)<1e-8);
+assert.ok(d.calculateTurnRadius({x:0,y:0},{x:10,y:0},{x:10,y:10},{cubic:true})>r);
+assert.equal(d.calculateTurnRadius({x:0,y:0},{x:0,y:0},{x:10,y:10}),null);
+const radii=d.calculateSmoothedTrackRadii([{x:0,y:0},{x:10,y:0},{x:20,y:0},{x:25,y:5},{x:25,y:15},{x:25,y:25}]);
+assert.equal(radii.length,4);assert.ok(radii.some(Number.isFinite));
+assert.equal(d.getMaxSpeedForSlope(100,6),90);assert.equal(d.getMaxSpeedForSlope(100,8),75);assert.equal(d.getMaxSpeedForSlope(100,9.5),60);
+assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000}),100);
+assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20})<100);
+assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000,stationTrack:true}),50);
+assert.equal(d.getSpeedBand(49),'moderate');assert.equal(d.getSpeedBand(130),'high-speed');
+console.log('Track dynamics tests passed');
