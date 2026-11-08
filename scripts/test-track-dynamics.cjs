@@ -8,6 +8,7 @@ assert.equal(d.calculateTurnRadius({x:0,y:0},{x:0,y:0},{x:10,y:10}),null);
 const radii=d.calculateSmoothedTrackRadii([{x:0,y:0},{x:10,y:0},{x:20,y:0},{x:25,y:5},{x:25,y:15},{x:25,y:25}]);
 assert.equal(radii.length,4);assert.ok(radii.some(Number.isFinite));
 assert.equal(d.getMaxSpeedForSlope(100,6),90);assert.equal(d.getMaxSpeedForSlope(100,8),75);assert.equal(d.getMaxSpeedForSlope(100,9.5),60);
+assert.equal(d.getMaxSpeedForSlope(100,-9.5),100); // downhill grade does not receive an uphill penalty
 assert.equal(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:1000}),100);
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20})<100);
 assert.ok(d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:100,minTurnRadiusMeters:29})>d.getMaxSpeedForRadiusAndSlope({maxSpeedKmh:100,radiusMeters:20,minTurnRadiusMeters:29}));
