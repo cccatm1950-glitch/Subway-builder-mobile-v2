@@ -8627,6 +8627,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  let modeBeforeDelete='station';
  let syncing=false;
  function byId(id){return document.getElementById(id);}
+ function currentMode(){return typeof mode!=='undefined'?mode:window.mode;}
  function constructionMenuOpen(){
   const menu=byId('sb-construction-context-menu');
   return !!(menu&&menu.isConnected&&getComputedStyle(menu).display!=='none'&&menu.getAttribute('aria-hidden')!=='true');
@@ -8634,7 +8635,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  function sync(){
   if(syncing)return;
   syncing=true;
-  const deleting=window.mode==='delete';
+  const deleting=currentMode()==='delete';
   const trash=byId('trashModeBtn'),build=byId('sb-build-dock-btn');
   if(trash){
    trash.disabled=false;
@@ -8653,7 +8654,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  }
  if(typeof priorSetMode==='function'){
   window.setMode=function(next){
-   if(next==='delete'&&window.mode!=='delete')modeBeforeDelete=window.mode||'station';
+   if(next==='delete'&&currentMode()!=='delete')modeBeforeDelete=currentMode()||'station';
    const result=priorSetMode.apply(this,arguments);
    sync();
    return result;
@@ -8662,11 +8663,11 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
  window.activateDeleteMode=function(){
   if(byId('sb-3d-map')?.classList.contains('active')&&typeof window.toggle3DCityView==='function')window.toggle3DCityView();
   if(typeof window.closeStationMenu==='function')window.closeStationMenu();
-  if(window.mode==='delete'){
+  if(currentMode()==='delete'){
    const restore=['station','track','curve','waypoint','inspect'].includes(modeBeforeDelete)?modeBeforeDelete:'station';
    if(typeof window.setMode==='function')window.setMode(restore);
   }else{
-   modeBeforeDelete=window.mode||'station';
+   modeBeforeDelete=currentMode()||'station';
    if(typeof window.setMode==='function')window.setMode('delete');
   }
   sync();
@@ -8675,7 +8676,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
     its existing menu-opening handler; only leave delete mode before it runs. */
  document.addEventListener('click',function(event){
   const build=event.target&&event.target.closest?event.target.closest('#sb-build-dock-btn'):null;
-  if(build&&!build.disabled&&window.mode==='delete'){
+  if(build&&!build.disabled&&currentMode()==='delete'){
    const restore=['station','track','curve','waypoint','inspect'].includes(modeBeforeDelete)?modeBeforeDelete:'station';
    if(typeof window.setMode==='function')window.setMode(restore);
   }
