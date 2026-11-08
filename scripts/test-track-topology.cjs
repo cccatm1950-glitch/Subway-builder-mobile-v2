@@ -46,6 +46,19 @@ assert.deepEqual(sections.second.waypoints, [{ lat: 3, lng: 4 }]);
 sections.first.lineIds.push('mutated');
 assert.deepEqual(sections.second.lineIds, ['line-1', 'line-2']);
 
+const graphTracks = [
+  { a: 0, b: 1, lineIds: ['L1'] },
+  { a: 1, b: 2, lineIds: ['L1'] },
+  { a: 1, b: 3, lineIds: ['L2'] }
+];
+const sameLine = topology.getConnectedTrackCandidates(graphTracks, 0, 1, ['L1']);
+assert.deepEqual(sameLine.map(item => item.trackIndex), [1]);
+assert.equal(sameLine[0].fromNodeIndex, 1);
+assert.equal(sameLine[0].toNodeIndex, 2);
+const allLines = topology.getConnectedTrackCandidates(graphTracks, 0, 1, []);
+assert.deepEqual(allLines.map(item => item.trackIndex), [1, 2]);
+assert.deepEqual(topology.getConnectedTrackCandidates(graphTracks, 0, 9, []), []);
+
 assert.equal(topology.projectPointToPolyline({ x: 1, y: 1 }, [{ x: 0, y: 0 }]), null);
 assert.equal(topology.splitPolylineAtProjection(route, null), null);
 assert.equal(topology.cloneTrackSections(track, { ...withLatLng, fraction: 0 }, 9, [0.2, 0.8]), null);
