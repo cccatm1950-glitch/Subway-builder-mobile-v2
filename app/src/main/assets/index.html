@@ -2412,26 +2412,7 @@ function legacyTrackElevation(level){return level==='below'?-25:level==='above'?
 // Mobile currently uses the desktop default heavy-metro profile until per-line train types are exposed.
 const MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE=5.5;
 function findTrackGroupPath(startIndex,endIndex){
- const groups=[...new Set(tracks.map(track=>track.trackGroupId).filter(id=>typeof id==='string'&&id.length))];
- const matches=[];
- for(const groupId of groups){
-  const queue=[startIndex],previous=new Map([[startIndex,null]]),previousTrack=new Map();
-  for(let cursor=0;cursor<queue.length&&!previous.has(endIndex);cursor++){
-   const node=queue[cursor];
-   tracks.forEach((track,trackIndex)=>{
-    if(track.trackGroupId!==groupId)return;
-    let next=null;
-    if(track.a===node)next=track.b;else if(track.b===node)next=track.a;
-    if(next===null||previous.has(next))return;
-    previous.set(next,node);previousTrack.set(next,trackIndex);queue.push(next);
-   });
-  }
-  if(!previous.has(endIndex))continue;
-  const path=[];let node=endIndex;
-  while(node!==startIndex){const edge=previousTrack.get(node);if(!Number.isInteger(edge)){path.length=0;break;}path.unshift(edge);node=previous.get(node);}
-  if(path.length)matches.push({groupId,path});
- }
- return matches.length===1?matches[0].path:null;
+ return window.SBTrackTopology.findTrackGroupPath(tracks,startIndex,endIndex);
 }
 
 function resolveStationElevation(stationIndex){
