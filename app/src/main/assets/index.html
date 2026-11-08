@@ -6038,8 +6038,9 @@ function waypointAtCrosshair(){
  document.addEventListener('click',event=>{
   if(event.target.closest('#constructionPanel button[data-panel-action]'))requestAnimationFrame(sync);
  },true);
- const map=window.map;
- if(map&&typeof map.on==='function')map.on('move zoom moveend zoomend',sync);
+ if(typeof map!=='undefined'&&map&&typeof map.on==='function'){
+  map.on('move zoom moveend zoomend click',()=>requestAnimationFrame(sync));
+ }
  window.addEventListener('resize',sync);
  sync();
 })();
