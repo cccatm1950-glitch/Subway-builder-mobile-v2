@@ -5562,12 +5562,15 @@ function waypointAtCrosshair(){
    return;
   }
   if(mode==='inspect'){
+   const junction=junctionAtCrosshair();
    if(target)handleStationClick(target.index);
-   else message('Move the map until a station is under the crosshair to inspect it.');
+   else if(junction)handleStationClick(junction.index);
+   else message('Move the map until a station or junction is under the crosshair to inspect it.');
    return;
   }
   if(mode==='delete'){
-   if(target){handleStationClick(target.index);return;}
+   const junction=junctionAtCrosshair();
+   if(target||junction){handleStationClick(target?target.index:junction.index);return;}
    const waypoint=waypointAtCrosshair();
    if(waypoint){
     tracks[waypoint.trackIndex].waypoints.splice(waypoint.waypointIndex,1);
