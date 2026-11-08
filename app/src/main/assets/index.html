@@ -9300,3 +9300,14 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 }
 #sb-service-lines-content{min-width:0!important;width:100%!important}
 </style>
+
+<style id="sb-global-focus-ring-removal">
+/* Remove keyboard/browser focus rings only; preserve control backgrounds,
+   active-mode styling, disabled states, and all interaction behavior. */
+:focus,:focus-visible{
+ outline:none!important;
+}
+:focus-visible{
+ box-shadow:none!important;
+}
+</style>
