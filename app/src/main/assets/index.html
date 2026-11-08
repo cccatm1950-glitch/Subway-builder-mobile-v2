@@ -2507,6 +2507,12 @@ function getStationTangentCenterline(startStation,endStation){
  return result;
 }
 
+function getTrainRoutePoints(track){
+ if(Array.isArray(track.trainCenterline)&&track.trainCenterline.length>=2)
+  return track.trainCenterline.map(point=>[point[0],point[1]]);
+ return getTrackCenterlinePoints(track);
+}
+
 function getTrackCenterlinePoints(track){
  const a=stations[track.a],b=stations[track.b];
  if(!a||!b)return [];
@@ -2676,20 +2682,22 @@ if(mode==='delete'){
    const fromEnd=endOffset*smoothstep01((distance-(totalTrackMeters-transitionMeters))/transitionMeters);
    return fromStart+fromEnd;
   });
+  const shiftTrackPoints=offset=>points.map((p,i)=>{
+   let prev=points[Math.max(0,i-1)];
+   let next=points[Math.min(points.length-1,i+1)];
+   let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
+   let dy=next[0]-prev[0];
+   let length=Math.sqrt(dx*dx+dy*dy)||1;
+   const lateralOffset=stationOffsets[i]+offset;
+   return [
+    p[0]+(dx/length)*lateralOffset/111320,
+    p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
+   ];
+  });
+  t.trainCenterline=shiftTrackPoints(0);
   function drawLine(offset){
-    let shifted=points.map((p,i)=>{
-      let prev=points[Math.max(0,i-1)];
-      let next=points[Math.min(points.length-1,i+1)];
-      let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
-      let dy=next[0]-prev[0];
-      let length=Math.sqrt(dx*dx+dy*dy)||1;
-      const lateralOffset=stationOffsets[i]+offset;
-      return [
-        p[0]+(dx/length)*lateralOffset/111320,
-        p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
-      ];
-    });
-  if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+   const shifted=shiftTrackPoints(offset);
+    if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive ? 0.3 : 0.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   const segmentTypes=[];
   for(let i=1;i<shifted.length;i++){
@@ -3444,7 +3452,7 @@ function toggleSimulation(){
   const trainLineId=startingLineIds.length?startingLineIds[Math.floor(Math.random()*startingLineIds.length)]:null;
   const from=stations[currentTrack.a],to=stations[currentTrack.b];if(!from||!to)return;
   let currentFromNode=currentTrack.a,currentToNode=currentTrack.b;
-  let route=getTrackCenterlinePoints(currentTrack);
+  let route=getTrainRoutePoints(currentTrack);
   if(Math.random()<.5){
    route=route.slice().reverse();
    [currentFromNode,currentToNode]=[currentToNode,currentFromNode];
@@ -3504,7 +3512,7 @@ function toggleSimulation(){
       currentTrack=next.track;
       currentFromNode=nodeIndex;
       currentToNode=next.toNodeIndex;
-      route=getTrackCenterlinePoints(currentTrack);
+      route=getTrainRoutePoints(currentTrack);
       if(currentTrack.a!==nodeIndex)route=route.slice().reverse();
       lengths=measureRoute(route);
       if(!lengths.length)return;
