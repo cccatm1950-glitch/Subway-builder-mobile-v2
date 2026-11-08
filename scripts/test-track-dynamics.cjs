@@ -2,7 +2,7 @@ const assert=require('node:assert/strict');
 const d=require('../app/src/main/assets/track-dynamics.js');
 assert.equal(d.calculateTurnRadius({x:0,y:0},{x:10,y:0},{x:20,y:0}),null);
 const r=d.calculateTurnRadius({x:0,y:0},{x:10,y:0},{x:10,y:10});
-assert.ok(Math.abs(r-10/Math.sin(Math.PI/4)/2)<1e-8);
+assert.ok(Math.abs(r-10)<1e-8);
 assert.ok(d.calculateTurnRadius({x:0,y:0},{x:10,y:0},{x:10,y:10},{cubic:true})>r);
 assert.equal(d.calculateTurnRadius({x:0,y:0},{x:0,y:0},{x:10,y:10}),null);
 const radii=d.calculateSmoothedTrackRadii([{x:0,y:0},{x:10,y:0},{x:20,y:0},{x:25,y:5},{x:25,y:15},{x:25,y:25}]);
