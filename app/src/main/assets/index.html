@@ -9129,20 +9129,62 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
   palette.style.setProperty('max-width','calc(100vw - 16px)','important');palette.style.setProperty('transform','none','important');
  }
  function positionConstruction(){
-  const menu=byId('sb-construction-context-menu'),dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');
+  const menu=byId('sb-construction-context-menu');
+  const dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');
   if(!menu||!dock)return;
-  const r=dock.getBoundingClientRect(),top=byId('sb-top-dock'),stats=top?.querySelector('.sb-top-panel-stats');
-  const tr=top?.getBoundingClientRect(),sr=stats?.getBoundingClientRect(),edge=8,width=Math.max(1,r.width);
-  const left=Math.max(edge,Math.min(r.right-width,window.innerWidth-width-edge));
-  const topLimit=sr&&sr.bottom>0?sr.bottom+10:(tr?.bottom||edge)+10,bottomLimit=Math.max(topLimit+120,r.top-10);
-  menu.style.boxSizing='border-box';menu.style.width=width+'px';menu.style.maxWidth=width+'px';
-  menu.style.left=left+'px';menu.style.right='auto';menu.style.top=topLimit+'px';menu.style.bottom='auto';
-  menu.style.height=Math.max(120,bottomLimit-topLimit)+'px';menu.style.maxHeight=Math.max(120,bottomLimit-topLimit)+'px';
+  const r=dock.getBoundingClientRect();
+  const topDock=byId('sb-top-dock');
+  const stats=topDock?.querySelector('.sb-top-panel-stats');
+  const sr=stats?.getBoundingClientRect();
+  const vv=window.visualViewport;
+  const viewportTop=vv?Math.max(0,vv.offsetTop):0;
+  const viewportBottom=vv?Math.min(window.innerHeight,vv.offsetTop+vv.height):window.innerHeight;
+  const safeTop=Math.max(viewportTop,parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top'))||0)+8;
+  const safeBottom=Math.max(0,parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom'))||0);
+  const gap=10,edge=8;
+  const right=Math.min(r.right,window.innerWidth-edge-(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-area-right'))||0));
+  const left=Math.max(edge,r.left);
+  const width=Math.max(1,Math.min(r.width,right-left));
+  const bottom=Math.max(safeTop+120,Math.min(r.top-gap,viewportBottom-safeBottom-gap));
+  const topLimit=Math.max(safeTop,sr&&sr.bottom>safeTop?sr.bottom+gap:safeTop);
+  const available=Math.max(120,bottom-topLimit);
+  /* Keep a stable panel height when space allows; shrink only for compact screens. */
+  const height=Math.min(460,available);
+  const top=bottom-height;
+  menu.style.setProperty('position','fixed','important');
+  menu.style.setProperty('box-sizing','border-box','important');
+  menu.style.setProperty('left',left+'px','important');
+  menu.style.setProperty('right','auto','important');
+  menu.style.setProperty('width',width+'px','important');
+  menu.style.setProperty('min-width',width+'px','important');
+  menu.style.setProperty('max-width',width+'px','important');
+  menu.style.setProperty('top',Math.max(topLimit,top)+'px','important');
+  menu.style.setProperty('bottom','auto','important');
+  menu.style.setProperty('height',height+'px','important');
+  menu.style.setProperty('min-height','0','important');
+  menu.style.setProperty('max-height',height+'px','important');
  }
- function refresh(){positionColorPalette();positionConstruction();}
+ let dockFrame=0;
+ function followDockDuringMotion(){
+  if(dockFrame)return;
+  const tick=()=>{
+   dockFrame=0;
+   const dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');
+   const menu=byId('sb-construction-context-menu');
+   if(!menu||!dock)return;
+   positionConstruction();
+   if(dock.matches(':hover')||dock.getAnimations().some(animation=>animation.playState==='running')||
+      menu.getAnimations().some(animation=>animation.playState==='running')){
+    dockFrame=requestAnimationFrame(tick);
+   }
+  };
+  dockFrame=requestAnimationFrame(tick);
+ }
+
+ function refresh(){positionColorPalette();positionConstruction();followDockDuringMotion();}
  document.addEventListener('click',event=>{if(event.target?.closest('#sb-line-color-trigger'))requestAnimationFrame(positionColorPalette);},true);
  const observer=new MutationObserver(records=>{if(records.some(record=>record.target?.id==='sb-line-color-options'||record.type==='childList'))requestAnimationFrame(refresh);});
- const observe=()=>{const palette=byId('sb-line-color-options');if(palette)observer.observe(palette,{attributes:true,attributeFilter:['class','hidden']});if(document.body)observer.observe(document.body,{childList:true,subtree:true});};
+ const observe=()=>{const palette=byId('sb-line-color-options');if(palette)observer.observe(palette,{attributes:true,attributeFilter:['class','hidden']});const dock=byId('sb-action-dock')?.querySelector('.sb-dock-panel-right');if(dock&&window.ResizeObserver){const ro=new ResizeObserver(()=>{positionConstruction();followDockDuringMotion();});ro.observe(dock);window.__sbPr73ConstructionDockResizeObserver=ro;dock.addEventListener('transitionrun',followDockDuringMotion);dock.addEventListener('transitionend',positionConstruction);dock.addEventListener('transitioncancel',positionConstruction);}if(document.body)observer.observe(document.body,{childList:true,subtree:true});};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});else observe();
  window.addEventListener('resize',refresh,{passive:true});window.addEventListener('orientationchange',()=>requestAnimationFrame(refresh),{passive:true});
  if(window.visualViewport){window.visualViewport.addEventListener('resize',refresh,{passive:true});window.visualViewport.addEventListener('scroll',refresh,{passive:true});}
