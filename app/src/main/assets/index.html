@@ -8316,7 +8316,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   city:'<path d="M3 21V9l6-4v16M9 21V3l6 4v14M15 21v-9l6-3v12"/><path d="M6 12h.01M6 16h.01M12 9h.01M12 13h.01M18 14h.01M18 18h.01"/>'
  };
  function svg(name){
-  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="'+(iconPaths[name]||iconPaths.track)+'"/></svg>';
+  return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+(iconPaths[name]||iconPaths.track)+'</svg>';
  }
  function decorate(button,name,label){
   if(!button||button.dataset.sbSvgReady==='true')return;
