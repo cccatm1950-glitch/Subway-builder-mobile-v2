@@ -4439,11 +4439,11 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   menu.setAttribute('role','dialog');
   menu.setAttribute('aria-label','Construction tools');
   menu.innerHTML='<div class="sb-construction-context-heading">CONSTRUCTION</div><div class="sb-construction-context-grid">'+
-   '<button type="button" data-mode="station">Station</button>'+
-   '<button type="button" data-mode="track">Track</button>'+
-   '<button type="button" data-mode="curve">Curve</button>'+
-   '<button type="button" data-mode="waypoint">Waypoint</button>'+
-   '<button type="button" data-mode="inspect">Inspect</button>'+
+   '<button type="button" data-mode="station" aria-label="Station" title="Station"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 21s7-6.1 7-12a7 7 0 1 0-14 0c0 5.9 7 12 7 12Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9" r="2.4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>'+
+   '<button type="button" data-mode="track" aria-label="Track" title="Track"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3 9 21M19 3l-4 18M7 7h10M8 12h8M9 17h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+   '<button type="button" data-mode="curve" aria-label="Curve" title="Curve"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19c5 0 4-14 10-14h6M16 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+   '<button type="button" data-mode="waypoint" aria-label="Waypoint" title="Waypoint"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 18 11 6l8 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="18" r="2" fill="currentColor"/><circle cx="11" cy="6" r="2" fill="currentColor"/><circle cx="19" cy="18" r="2" fill="currentColor"/></svg></button>'+
+   '<button type="button" data-mode="inspect" aria-label="Inspect" title="Inspect"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>'+
    '</div>'+
    '<div class="sb-platform-size-heading">PLATFORM SIZE</div>'+
    '<div class="sb-platform-size-grid">'+
@@ -5892,6 +5892,56 @@ function waypointAtCrosshair(){
 }
 </style>
 
+
+<style id="sb-pr74-run-button-menu-highlight-construction-icons">
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) 46px!important}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ box-sizing:border-box!important;display:flex!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ align-items:center!important;justify-content:center!important;margin:0!important;padding:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;background-image:none!important;
+ box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+ box-sizing:border-box!important;display:inline-flex!important;flex:0 0 46px!important;
+ width:46px!important;height:46px!important;min-width:46px!important;min-height:46px!important;
+ max-width:46px!important;max-height:46px!important;margin:0!important;padding:0!important;
+}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1fr) minmax(0,.88fr) 46px!important}
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot,
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot #runBtn{
+  flex-basis:46px!important;width:46px!important;min-width:46px!important;height:46px!important;min-height:46px!important;
+ }
+}
+@media(max-width:380px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1fr) minmax(0,.8fr) 46px!important}
+}
+#sb-top-dock #sb-game-menu-toggle{transition:none!important;animation:none!important;transform:none!important;-webkit-tap-highlight-color:transparent!important}
+#sb-top-dock #sb-game-menu-toggle[aria-expanded="true"],
+#sb-top-dock #sb-game-menu-toggle.active{
+ color:#fff!important;background:rgba(255,255,255,.16)!important;
+ box-shadow:inset 0 0 0 1px rgba(255,255,255,.72),0 0 8px rgba(255,255,255,.32),0 0 18px rgba(255,255,255,.24)!important;
+}
+#sb-top-dock #sb-game-menu-toggle[aria-expanded="false"]{
+ color:rgba(245,249,255,.88)!important;background:rgba(255,255,255,.08)!important;
+ box-shadow:inset 0 0 0 1px rgba(225,240,255,.10)!important;
+}
+#sb-top-dock #sb-game-menu-toggle:hover,#sb-top-dock #sb-game-menu-toggle:active,
+#sb-top-dock #sb-game-menu-toggle:focus,#sb-top-dock #sb-game-menu-toggle:focus-visible{
+ transition:none!important;animation:none!important;transform:none!important;outline:0!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button{
+ display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;
+ gap:0!important;padding:0!important;font-size:0!important;line-height:0!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button svg{
+ display:block!important;flex:0 0 24px!important;width:24px!important;height:24px!important;
+ max-width:24px!important;max-height:24px!important;margin:0!important;pointer-events:none!important;
+}
+#sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important}
+</style>
 </body>
 <style id="sb-nov06-final-dock-layout">
 /* The 128px construction dock must be a true 2-column x 4-row grid.
@@ -9113,7 +9163,7 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
  #sb-construction-context-menu .sb-construction-context-grid button{display:flex!important;align-items:center!important;justify-content:center!important;gap:0!important;font-size:0!important;padding:0!important}
  #sb-construction-context-menu .sb-construction-context-grid button span{display:none!important}
  #sb-construction-context-menu .sb-construction-context-grid button svg{display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important;margin:0!important}
- #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;white-space:nowrap!important}
+ #sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important;white-space:nowrap!important}
 }
 </style>
 <script id="sb-pr73-dock-panel-alignment-runtime">
@@ -9206,8 +9256,7 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 </script>
 
 <style id="sb-pr73-icon-only-construction-controls">
-#sb-construction-context-menu .sb-construction-context-grid button,
-#sb-construction-context-menu .sb-platform-size-grid button{
+#sb-construction-context-menu .sb-construction-context-grid button{
  box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
  gap:0!important;padding:0!important;font-size:0!important;line-height:0!important;
 }
@@ -9215,8 +9264,5 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 #sb-construction-context-menu .sb-construction-context-grid button svg{
  display:block!important;width:24px!important;height:24px!important;flex:0 0 24px!important;margin:0!important;
 }
-#sb-construction-context-menu .sb-platform-size-grid button svg{
- display:block!important;width:100%!important;height:100%!important;max-width:38px!important;max-height:38px!important;
- flex:1 1 auto!important;margin:0!important;overflow:visible!important;
-}
+#sb-construction-context-menu .sb-platform-size-grid button{font-size:12px!important;line-height:1.2!important;white-space:nowrap!important}
 </style>
