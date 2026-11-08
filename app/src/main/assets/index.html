@@ -5331,7 +5331,62 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   });
   return best;
  }
- function waypointAtCrosshair(){
+ 
+function junctionAtCrosshair(){
+ const center=centerPoint();let best=null,bestDistance=26;
+ stations.forEach((node,index)=>{
+  if(node.nodeType!=='junction')return;
+  const distance=map.latLngToContainerPoint([node.lat,node.lng]).distanceTo(center);
+  if(distance<=bestDistance){best={index,distance};bestDistance=distance;}
+ });
+ return best;
+}
+function splitTrackAtCrosshair(trackHit,latlng){
+ const track=trackHit&&tracks[trackHit.index];
+ if(!track||!window.SBTrackTopology)return null;
+ const route=getTrackCenterlinePoints(track);
+ if(route.length<2)return null;
+ const projected=route.map(ll=>{const p=map.project(L.latLng(ll[0],ll[1]),18);return {x:p.x,y:p.y};});
+ const cursor=map.project(latlng,18);
+ const projection=window.SBTrackTopology.projectPointToPolyline(cursor,projected);
+ if(!projection)return null;
+ const snapped=map.unproject(L.point(projection.x,projection.y),18);
+ if(map.latLngToContainerPoint(snapped).distanceTo(centerPoint())>CENTER_RADIUS)return null;
+ const split=window.SBTrackTopology.splitPolylineAtProjection(projected,projection);
+ if(!split||projection.fraction<=0||projection.fraction>=1)return null;
+ const toLatLng=points=>points.map(p=>{const ll=map.unproject(L.point(p.x,p.y),18);return {lat:ll.lat,lng:ll.lng};});
+ const firstGeometry=toLatLng(split.first),secondGeometry=toLatLng(split.second);
+ const routeLength=points=>points.reduce((sum,p,i)=>i?sum+map.distance([points[i-1].lat,points[i-1].lng],[p.lat,p.lng]):0,0);
+ if(routeLength(firstGeometry)<10||routeLength(secondGeometry)<10){
+  message('A junction must be at least 10 m from either end of the track.');
+  return null;
+ }
+ const waypointFractions=(track.waypoints||[]).map(w=>{
+  const p=map.project(L.latLng(w.lat,w.lng),18);
+  const nearest=window.SBTrackTopology.projectPointToPolyline(p,projected);
+  return nearest?nearest.fraction:null;
+ });
+ const startElevation=Number.isFinite(track.startElevation)?track.startElevation:legacyTrackElevation(track.elevation);
+ const endElevation=Number.isFinite(track.endElevation)?track.endElevation:legacyTrackElevation(track.elevation);
+ const normalizedTrack={...track,startElevation,endElevation};
+ const splitRecord={...split,first:firstGeometry,second:secondGeometry};
+ const junctionIndex=stations.length;
+ const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
+ if(!sections)return null;
+ const junctionElevation=Number.isFinite(sections.splitElevation)?sections.splitElevation:
+  startElevation+(endElevation-startElevation)*projection.fraction;
+ const junctionNumber=stations.filter(node=>node.nodeType==='junction').length+1;
+ stations.push({lat:snapped.lat,lng:snapped.lng,name:'Junction '+junctionNumber,nodeType:'junction',
+  elevation:track.elevation||'at',elevationMeters:junctionElevation});
+ tracks.splice(trackHit.index,1,sections.first,sections.second);
+ selected=junctionIndex;
+ selectedTrackIndex=null;
+ saveHistory();
+ renderNetwork();
+ message('Track split successfully. Junction selected; tap another station or junction to continue the connection.');
+ return junctionIndex;
+}
+function waypointAtCrosshair(){
   const center=centerPoint();let best=null,bestDistance=24;
   tracks.forEach((track,trackIndex)=>(track.waypoints||[]).forEach((waypoint,waypointIndex)=>{
    const distance=map.latLngToContainerPoint([waypoint.lat,waypoint.lng]).distanceTo(center);
@@ -5344,8 +5399,14 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   const center=map.getCenter();
   const target=stationAtCrosshair();
   if(mode==='track'){
+   const junction=junctionAtCrosshair();
    if(target){handleStationClick(target.index);}
-   else message('Move the map until a station is under the crosshair, then tap to select it.');
+   else if(junction){handleStationClick(junction.index);}
+   else{
+    const trackTarget=trackAtCrosshair();
+    if(!trackTarget||splitTrackAtCrosshair(trackTarget,center)===null)
+     message('Move the map crosshair onto a track to create a junction, or onto a station or junction to select it.');
+   }
    return;
   }
   if(mode==='curve'||mode==='waypoint'){
