@@ -2587,7 +2587,9 @@ function renderTrackDynamicsOverlay(track,points,layer){
 }
 
 function renderNetwork(){
- platformCrowdMarkers.forEach(marker=>map.removeLayer(marker));
+ // WebView state can be reset during restore/re-entry; normalize marker storage before iteration.
+ if(!Array.isArray(platformCrowdMarkers))platformCrowdMarkers=[];
+ platformCrowdMarkers.forEach(marker=>{if(marker&&map&&map.hasLayer(marker))map.removeLayer(marker);});
  platformCrowdMarkers=[];
  if(window.refreshSubway3D)window.refreshSubway3D();
  if(window.networkLayer){
