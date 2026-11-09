@@ -2007,7 +2007,7 @@ button.sb-flat-close,[data-flat-close="true"]{
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button><button id="sb-open-maplibre-preview" class="sb-game-menu-action" type="button" onclick="window.location.href='maplibre-3d-spike.html'">3D Map Preview (Test)</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button><button id="sb-open-maplibre-preview" class="sb-game-menu-action" type="button" onclick="openSubway3DPreview()">3D Map Preview (Test)</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -2401,6 +2401,36 @@ window.getSubway3DTracks=function(){
 window.getSubway3DStations=function(){
  return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
   geometry:{type:'Point',coordinates:[s.lng,s.lat]}}));
+};
+window.getSubway3DPlatforms=function(){
+ const features=[];
+ stations.forEach((s,i)=>{
+  if(!s||s.nodeType==='junction')return;
+  const bearing=(Number.isFinite(s.platformBearing)?s.platformBearing:90)*Math.PI/180;
+  const dx=Math.sin(bearing),dy=Math.cos(bearing),length=Math.hypot(dx,dy)||1;
+  const px=-dy/length,py=dx/length,cos=Math.cos(s.lat*Math.PI/180);
+  const dimensions=getPlatformDimensions(s.platformSize||platformSize);
+  const halfWidth=dimensions.width/2;
+  const halfLength=(Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
+  const offsets=(s.platformType||'side')==='side'?[-(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS),halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS]:[0];
+  offsets.forEach((acrossOffset,platformIndex)=>{
+   const corners=[];
+   for(const along of [-1,1])for(const across of [-1,1]){
+    const east=px*acrossOffset+(dx/length)*halfLength*along+px*halfWidth*across;
+    const north=py*acrossOffset+(dy/length)*halfLength*along+py*halfWidth*across;
+    corners.push([s.lng+east/(111320*cos),s.lat+north/111320]);
+   }
+   features.push({type:'Feature',properties:{kind:'platform',stationIndex:i,name:s.name||('Station '+(i+1)),platformIndex,platformType:s.platformType||'side'},geometry:{type:'Polygon',coordinates:[[corners[0],corners[1],corners[3],corners[2],corners[0]]]}});
+  });
+ });
+ return features;
+};
+window.openSubway3DPreview=function(){
+ try{
+  const payload={version:1,createdAt:Date.now(),tracks:window.getSubway3DTracks(),stations:window.getSubway3DStations(),platforms:window.getSubway3DPlatforms()};
+  localStorage.setItem('sb-maplibre-live-network',JSON.stringify(payload));
+  window.location.href='maplibre-3d-spike.html';
+ }catch(error){message('Could not transfer the live network to 3D preview: '+(error&&error.message?error.message:String(error))); }
 };
 
 function getPrimaryStationConnection(stationIndex){
