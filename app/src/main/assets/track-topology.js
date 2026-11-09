@@ -165,6 +165,27 @@
       secondControl: controlPoint(end, endControlBearing, endControlDirection) };
   }
 
+  // Resolve an endpoint normal from the saved station bearing rather than
+  // the last sampled curve segment. This gives connected parallel sections
+  // the same physical rail endpoints even when approach directions reverse.
+  function calculateEndpointAlignedNormal(routeEast, routeNorth, stationBearing) {
+    if (!Number.isFinite(routeEast) || !Number.isFinite(routeNorth)) return null;
+    const magnitude = Math.hypot(routeEast, routeNorth);
+    if (magnitude < 1e-12) return null;
+    let east = routeEast / magnitude, north = routeNorth / magnitude;
+    if (Number.isFinite(stationBearing)) {
+      const radians = stationBearing * Math.PI / 180;
+      let bearingEast = Math.sin(radians), bearingNorth = Math.cos(radians);
+      if (bearingEast * east + bearingNorth * north < 0) {
+        bearingEast = -bearingEast;
+        bearingNorth = -bearingNorth;
+      }
+      east = bearingEast;
+      north = bearingNorth;
+    }
+    return { east: -north, north: east };
+  }
+
   // Project a rectangular platform onto the route-normal axis. The returned
   // clearance is the exact lateral distance needed to keep a parallel rail
   // outside the platform footprint, independent of route direction.
@@ -327,5 +348,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });
