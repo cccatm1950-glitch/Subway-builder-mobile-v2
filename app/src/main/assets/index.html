@@ -2637,6 +2637,28 @@ function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
  return side*(support+MOBILE_PLATFORM_CLEARANCE_METERS);
 }
 
+// Island platforms sit between parallel tracks. Each rail needs its own
+// outward clearance flare at station ends, then returns to standard gauge
+// spacing over the same transition distance used by the desktop engine.
+function getIslandPlatformTrackClearance(stationIndex,fromPoint,toPoint){
+ const station=stations[stationIndex];
+ if(!station||station.nodeType==='junction'||(station.platformType||platformType)!=='island')return 0;
+ const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
+ const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
+ const magnitude=Math.hypot(east,north);
+ if(magnitude<1e-12)return 0;
+ const routeEast=east/magnitude,routeNorth=north/magnitude;
+ const routeNormalEast=-routeNorth,routeNormalNorth=routeEast;
+ const bearing=(Number.isFinite(station.platformBearing)?station.platformBearing:90)*Math.PI/180;
+ const axisEast=Math.sin(bearing),axisNorth=Math.cos(bearing);
+ const alignment=(-axisNorth)*routeNormalEast+axisEast*routeNormalNorth;
+ const dimensions=getPlatformDimensions(station.platformSize||platformSize);
+ const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
+ const halfWidth=dimensions.width/2;
+ const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+halfWidth*Math.abs(alignment);
+ return support+MOBILE_PLATFORM_CLEARANCE_METERS;
+}
+
 tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
   let b=stations[t.b];
@@ -2739,21 +2761,32 @@ if(mode==='delete'){
     const fromEnd=endOffset*(xEnd*xEnd*(3-2*xEnd));
     return fromStart+fromEnd;
    });
-  const shiftTrackPoints=offset=>points.map((p,i)=>{
+  const parallelStartClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.a,points[0],points[1]):0;
+  const parallelEndClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]):0;
+  const parallelPlatformFlare=cumulativeTrackMeters.map(distance=>{
+   const transitionMeters=Math.min(OFFSET_TRANSITION_LENGTH_METERS,totalTrackMeters/2);
+   if(transitionMeters<=0)return 0;
+   const startRatio=Math.max(0,Math.min(1,distance/transitionMeters));
+   const endRatio=Math.max(0,Math.min(1,(distance-(totalTrackMeters-transitionMeters))/transitionMeters));
+   const fromStart=parallelStartClearance*(1-startRatio*startRatio*(3-2*startRatio));
+   const fromEnd=parallelEndClearance*(endRatio*endRatio*(3-2*endRatio));
+   return fromStart+fromEnd;
+  });
+  const shiftTrackPoints=(offset,parallelSide=0)=>points.map((p,i)=>{
    let prev=points[Math.max(0,i-1)];
    let next=points[Math.min(points.length-1,i+1)];
    let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
    let dy=next[0]-prev[0];
    let length=Math.sqrt(dx*dx+dy*dy)||1;
-   const lateralOffset=stationOffsets[i]+offset;
+   const lateralOffset=stationOffsets[i]+offset+parallelSide*parallelPlatformFlare[i];
    return [
     p[0]+(dx/length)*lateralOffset/111320,
     p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
    ];
   });
   t.trainCenterline=shiftTrackPoints(0);
-  function drawLine(offset){
-   const shifted=shiftTrackPoints(offset);
+  function drawLine(offset,parallelSide=0){
+   const shifted=shiftTrackPoints(offset,parallelSide);
     if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive ? 0.3 : 0.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   const segmentTypes=[];
@@ -2778,8 +2811,8 @@ if(mode==='delete'){
 
   // Desktop standard gauge spacing: 3.81 m between parallel track centerlines.
   if(t.style==='parallel'){
-    drawLine(-1.905);
-    drawLine(1.905);
+    drawLine(-1.905,-1);
+    drawLine(1.905,1);
   }else{
     drawLine(0);
   }
@@ -5584,6 +5617,19 @@ function splitTrackAtCrosshair(trackHit,latlng){
  const shouldConnect=previousSelection!==null&&previousSelection!==track.a&&previousSelection!==track.b;
  const sections=window.SBTrackTopology.cloneTrackSections(normalizedTrack,splitRecord,junctionIndex,waypointFractions);
  if(!sections)return null;
+ // A saved centerline takes precedence over the live spline renderer, so
+ // split curved tracks would bypass station/junction tangent alignment.
+ // Keep the exact split location as a waypoint on both halves, then let the
+ // tangent-aware Catmull-Rom path rebuild each section from its endpoints.
+ if(track.curve){
+  const splitWaypoint={lat:snapped.lat,lng:snapped.lng,elevation:'at'};
+  sections.first.waypoints.push({...splitWaypoint});
+  sections.second.waypoints.unshift({...splitWaypoint});
+  delete sections.first.centerline;
+  delete sections.second.centerline;
+  sections.first.curve=true;
+  sections.second.curve=true;
+ }
  const junctionElevation=getTrackElevationAtFraction(track,route,projection.fraction);
  sections.first.endElevation=junctionElevation;
  sections.second.startElevation=junctionElevation;
