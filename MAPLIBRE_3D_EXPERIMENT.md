@@ -7,9 +7,9 @@ Open `maplibre-3d-spike.html` from the app's Android assets in the WebView. The 
 
 ## Stack
 - MapLibre GL JS 6.9.0 for WebGL vector rendering, camera pitch and bearing.
-- Maptoolkit Community `street.json` style and Scene3D control for 3D buildings/trees.
-- No API key or sign-up is required for the community basemap/3D building source.
-- Required Maptoolkit and OpenStreetMap attribution is retained by the style and logo control.
+- OpenFreeMap Liberty vector style and its public building vector tiles; MapLibre renders building footprints as 3D extrusions.
+- No API key or sign-up is required for the OpenFreeMap basemap/building source.
+- OpenFreeMap and OpenStreetMap attribution is retained in the preview.
 
 ## Why this is separate
 The game currently relies on Leaflet's map object, panes, layers, bounds, projection helpers and input events throughout the 614 KB game page. A renderer migration must port those interactions deliberately. The spike is intentionally isolated so it cannot destabilize station placement, track editing, simulation, saves or undo/redo.
@@ -17,8 +17,8 @@ The game currently relies on Leaflet's map object, panes, layers, bounds, projec
 ## Constraints to validate
 - Community tile service is shared/best-effort; not suitable as a guaranteed offline source.
 - Community service does not allow bulk extraction, offline tile generation or mirroring.
-- WebView must support WebGL2/ES modules/import maps and external CDN requests.
-- Detailed roof-shape buildings and trees load at close zoom; coverage/detail depends on OSM tagging and city-model availability.
+- WebView must support WebGL2/ES modules and external CDN/tile requests.
+- 3D building height/detail depends on OSM building tags and available vector tile coverage; the preview does not provide photorealistic 3D city meshes.
 
 ## Next migration gate
 Only proceed beyond the spike after verifying Android WebView rendering/performance, SF building coverage, map touch/gesture behavior, track/platform overlays, camera coordinate conversions, and attribution. Keep Leaflet as fallback until those checks pass.
