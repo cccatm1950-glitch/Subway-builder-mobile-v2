@@ -32,9 +32,10 @@ button:active{background:#24505b}
  </div>
 </div>
 <div id="status" class="panel" role="status">Loading OpenFreeMap vector map…</div>
-<script type="importmap">{"imports":{"maplibre-gl":"https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs"}}</script>
-<script type="module">
-import * as maplibregl from 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs';
+<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.js" onerror="document.getElementById('status').textContent='MapLibre library download failed. Check CDN access in Android WebView.'"></script>
+<script>
+if(!window.maplibregl){document.getElementById('status').textContent='MapLibre library did not initialize. Check Android WebView script access.';throw new Error('MapLibre global unavailable');}
+const maplibregl=window.maplibregl;
 
 const center=[-122.4194,37.7749];
 const status=document.getElementById('status');
@@ -45,7 +46,7 @@ if(!maplibregl.supported({failIfMajorPerformanceCaveat:false})){
  report('WebGL2 is unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
  throw new Error('MapLibre reports WebGL2 unsupported');
 }
-report('WebGL2 available. Checking OpenFreeMap style connection…');
+report('MapLibre script loaded. WebGL2 available. Checking OpenFreeMap style connection…');
 const styleProbe=new AbortController();
 const styleProbeTimer=setTimeout(()=>styleProbe.abort(),10000);
 fetch(styleUrl,{mode:'cors',cache:'no-store',signal:styleProbe.signal}).then(response=>{
