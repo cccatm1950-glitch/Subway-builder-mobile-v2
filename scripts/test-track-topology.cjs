@@ -218,3 +218,17 @@ const alignedAtEnd = blendEndpointNormal(0, -1, null, 180, 0, 1);
 assert.deepEqual(alignedAtEnd, { east: 1, north: 0 });
 const invalidBlend = blendEndpointNormal(0, 0, 90, 90, 1, 1);
 assert.equal(invalidBlend, null);
+
+const stationEndpoint = topology.calculateStationEndpoint;
+const eastEnd = stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-121.999}, 100);
+const westEnd = stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-122.001}, 100);
+assert.ok(eastEnd.lng > -122);
+assert.ok(westEnd.lng < -122);
+assert.ok(Math.abs(eastEnd.lat - 37) < 1e-9);
+assert.ok(Math.abs(eastEnd.lng - (-122 + 100 / (111320 * Math.cos(37 * Math.PI / 180)))) < 1e-9);
+const northEnd = stationEndpoint({lat:37,lng:-122}, 0, {lat:37.001,lng:-122}, 75);
+const southEnd = stationEndpoint({lat:37,lng:-122}, 0, {lat:36.999,lng:-122}, 75);
+assert.ok(northEnd.lat > 37);
+assert.ok(southEnd.lat < 37);
+assert.equal(stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-122}, 50), null);
+assert.equal(stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-121.9}, -1), null);
