@@ -35,28 +35,40 @@ button:active{background:#24505b}
 <script>
 (function(){
  const status=document.getElementById('status');
- let settled=false;
- status.textContent='Connecting to MapLibre library…';
- const script=document.createElement('script');
- script.src='https://cdn.jsdelivr.net/npm/maplibre-gl@5.18.0/dist/maplibre-gl.js';
- script.async=true;
- const timeout=setTimeout(()=>{
-  if(settled)return;
-  settled=true;
-  status.textContent='MapLibre download timed out. Android WebView cannot reach the CDN.';
- },12000);
- script.onload=()=>{
-  if(settled)return;
-  settled=true;clearTimeout(timeout);
-  if(!window.maplibregl){status.textContent='MapLibre script loaded but did not expose its browser API.';return;}
-  startMapLibreExperiment();
- };
- script.onerror=()=>{
-  if(settled)return;
-  settled=true;clearTimeout(timeout);
-  status.textContent='MapLibre download failed. Android WebView cannot access the CDN.';
- };
- document.head.appendChild(script);
+ const scriptSources=[
+  'https://cdn.jsdelivr.net/npm/maplibre-gl@5.18.0/dist/maplibre-gl.js',
+  'https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.js',
+  'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.18.0/maplibre-gl.min.js'
+ ];
+ let sourceIndex=0,activeScript=null,sourceTimer=null,started=false;
+ function loadNextSource(reason){
+  if(started)return;
+  if(activeScript){activeScript.onload=null;activeScript.onerror=null;activeScript.remove();activeScript=null;}
+  if(sourceTimer){clearTimeout(sourceTimer);sourceTimer=null;}
+  if(sourceIndex>=scriptSources.length){
+   status.textContent='MapLibre library could not be downloaded from any of 3 CDN mirrors. The Android WebView network is blocking external JavaScript; the map cannot start until MapLibre is bundled locally.';
+   return;
+  }
+  const source=scriptSources[sourceIndex++];
+  status.textContent='Loading MapLibre library ('+sourceIndex+'/3)…';
+  const script=document.createElement('script');
+  activeScript=script;
+  script.src=source;
+  script.async=true;
+  script.crossOrigin='anonymous';
+  script.onload=()=>{
+   if(started)return;
+   if(!window.maplibregl){loadNextSource('library API missing');return;}
+   started=true;
+   if(sourceTimer)clearTimeout(sourceTimer);
+   status.textContent='MapLibre library loaded. Checking WebGL2 and map connection…';
+   startMapLibreExperiment();
+  };
+  script.onerror=()=>loadNextSource('script request failed');
+  sourceTimer=setTimeout(()=>loadNextSource('script request timed out'),8000);
+  document.head.appendChild(script);
+ }
+ loadNextSource('initial');
  function startMapLibreExperiment(){
   const maplibregl=window.maplibregl;
   
