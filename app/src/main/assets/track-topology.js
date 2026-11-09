@@ -183,7 +183,7 @@
       east = bearingEast;
       north = bearingNorth;
     }
-    return { east: -north, north: east };
+    return { east: Object.is(-north, -0) ? 0 : -north, north: Object.is(east, -0) ? 0 : east };
   }
 
   // Project a rectangular platform onto the route-normal axis. The returned
