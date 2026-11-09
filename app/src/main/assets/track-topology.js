@@ -221,8 +221,8 @@
     blendedEast /= blendedLength;
     blendedNorth /= blendedLength;
     return {
-      east: blendedEast === 0 ? 0 : blendedEast,
-      north: blendedNorth === 0 ? 0 : blendedNorth
+      east: Math.abs(blendedEast) < 1e-12 ? 0 : blendedEast,
+      north: Math.abs(blendedNorth) < 1e-12 ? 0 : blendedNorth
     };
   }
 
