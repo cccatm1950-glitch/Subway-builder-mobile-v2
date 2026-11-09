@@ -134,6 +134,18 @@ button:active{background:#24505b}
     map.addLayer({id:'sb-demo-rails-casing',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}});
     map.addLayer({id:'sb-demo-rails',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#b8d3dc','line-width':3.2,'line-dasharray':[1.4,1.2]}});
     map.addLayer({id:'sb-demo-stations',type:'circle',source:'sb-demo-geometry',filter:['==',['get','kind'],'station'],paint:{'circle-radius':6,'circle-color':'#f5fbff','circle-stroke-color':'#173847','circle-stroke-width':2}});
+    // Center the preview on the user's saved network rather than the SF demo camera.
+    const liveFeatures=route.features.filter(feature=>feature.properties&&feature.properties.kind!=='rail' ? true : !!(feature.properties&&feature.properties.trackNumber));
+    if(liveFeatures.length){
+     const bounds=new maplibregl.LngLatBounds();
+     const extendCoordinates=coordinates=>{
+      if(!Array.isArray(coordinates))return;
+      if(coordinates.length>=2&&Number.isFinite(coordinates[0])&&Number.isFinite(coordinates[1])){bounds.extend(coordinates);return;}
+      coordinates.forEach(extendCoordinates);
+     };
+     liveFeatures.forEach(feature=>extendCoordinates(feature.geometry&&feature.geometry.coordinates));
+     if(!bounds.isEmpty())map.fitBounds(bounds,{padding:{top:105,right:35,bottom:85,left:35},maxZoom:17,duration:0});
+    }
     report(route.features.some(feature=>feature.properties&&feature.properties.kind==='station')?'OpenFreeMap loaded. Live game tracks, platforms and stations are active.':'OpenFreeMap loaded. Showing sample rail/platform overlays.');
    });
    map.on('error',e=>{
