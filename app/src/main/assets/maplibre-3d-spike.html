@@ -32,79 +32,107 @@ button:active{background:#24505b}
  </div>
 </div>
 <div id="status" class="panel" role="status">Loading OpenFreeMap vector map…</div>
-<script src="https://cdn.jsdelivr.net/npm/maplibre-gl@5.18.0/dist/maplibre-gl.js" onerror="document.getElementById('status').textContent='MapLibre v5 script download failed. Check CDN access in Android WebView.'"></script>
 <script>
-if(!window.maplibregl){document.getElementById('status').textContent='MapLibre v5 library did not initialize. The CDN script may be blocked or unavailable.';throw new Error('MapLibre global unavailable');}
-const maplibregl=window.maplibregl;
-
-const center=[-122.4194,37.7749];
-const status=document.getElementById('status');
-const styleUrl='https://tiles.openfreemap.org/styles/liberty';
-let pitch=65,bearing=-18,overlayVisible=true,map,styleFetchState='not checked';
-function report(message){status.textContent=message;}
-if(!maplibregl.supported({failIfMajorPerformanceCaveat:false})){
- report('WebGL2 is unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
- throw new Error('MapLibre reports WebGL2 unsupported');
-}
-report('MapLibre v5 script loaded. WebGL2 available. Checking OpenFreeMap style connection…');
-const styleProbe=new AbortController();
-const styleProbeTimer=setTimeout(()=>styleProbe.abort(),10000);
-fetch(styleUrl,{mode:'cors',cache:'no-store',signal:styleProbe.signal}).then(response=>{
- clearTimeout(styleProbeTimer);
- if(!response.ok)throw new Error('Style HTTP '+response.status);
- return response.json();
-}).then(style=>{
- styleFetchState='HTTP OK';
- report('Style connection works. Initializing map renderer…');
- console.info('OpenFreeMap style probe succeeded',style.version,style.sources);
-}).catch(error=>{
- clearTimeout(styleProbeTimer);
- styleFetchState=error.name==='AbortError'?'timed out':error.message;
- report('OpenFreeMap style request failed: '+styleFetchState+'. Check Android WebView network access/CORS.');
- console.error('OpenFreeMap style probe failed',error);
-});
-try{
- map=new maplibregl.Map({
-  container:'map',
-  style:styleUrl,
-  center,zoom:15.5,pitch,bearing,maxPitch:85,
-  attributionControl:{customAttribution:'',compact:false},
-  canvasContextAttributes:{antialias:true},
-  failIfMajorPerformanceCaveat:false
- });
- map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
- map.on('load',()=>{
-  report('Map style and tiles loaded. Adding 3D buildings and track overlays…');
-  map.addSource('sb-demo-geometry',{type:'geojson',data:route});
-  map.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-  const firstSymbolLayer=map.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
-  map.addLayer({id:'sb-demo-buildings-3d',type:'fill-extrusion',source:'sb-openfreemap-buildings','source-layer':'building',minzoom:14,filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],paint:{'fill-extrusion-color':'#aebbc4','fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.86}},firstSymbolLayer);
-  map.addLayer({id:'sb-demo-platforms',type:'fill',source:'sb-demo-geometry',filter:['==',['get','kind'],'platform'],paint:{'fill-color':'#56d7c5','fill-opacity':0.24}});
-  map.addLayer({id:'sb-demo-platform-outlines',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'platform'],paint:{'line-color':'#62e5d2','line-width':2.5}});
-  map.addLayer({id:'sb-demo-rails-casing',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}});
-  map.addLayer({id:'sb-demo-rails',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#b8d3dc','line-width':3.2,'line-dasharray':[1.4,1.2]}});
-  report('OpenFreeMap loaded. 3D buildings and sample rail/platform overlays are active.');
- });
- map.on('error',e=>{
-  const message=e?.error?.message||e?.message||'Unknown map resource error';
-  report('Map resource error: '+message);
-  console.error('MapLibre error',e);
- });
- map.on('style.load',()=>console.info('MapLibre style loaded',map.getStyle().name||'street'));
-}catch(error){
- report('Map initialization failed: '+(error?.message||String(error)));
- console.error('MapLibre initialization failed',error);
-}
-const route={type:'FeatureCollection',features:[
- {type:'Feature',properties:{kind:'rail'},geometry:{type:'LineString',coordinates:[[-122.4231,37.7728],[-122.4219,37.7737],[-122.4205,37.7745],[-122.4191,37.7753],[-122.4177,37.7761],[-122.4164,37.7769]]}},
- {type:'Feature',properties:{kind:'rail'},geometry:{type:'LineString',coordinates:[[-122.4230,37.77265],[-122.4218,37.77355],[-122.4204,37.77435],[-122.4190,37.77515],[-122.4176,37.77595],[-122.4163,37.77675]]}},
- {type:'Feature',properties:{kind:'platform'},geometry:{type:'Polygon',coordinates:[[[-122.42035,37.77462],[-122.41995,37.77490],[-122.41982,37.77477],[-122.42022,37.77449],[-122.42035,37.77462]]]}},
- {type:'Feature',properties:{kind:'platform'},geometry:{type:'Polygon',coordinates:[[[-122.41895,37.77542],[-122.41855,37.77570],[-122.41842,37.77557],[-122.41882,37.77529],[-122.41895,37.77542]]]}}
-]};
-document.getElementById('pitch').addEventListener('click',()=>{if(!map)return;pitch=pitch>=80?35:Math.min(85,pitch+10);map.easeTo({pitch,duration:450});document.getElementById('pitch').textContent='Tilt: '+pitch+'°';});
-document.getElementById('bearing').addEventListener('click',()=>{if(!map)return;bearing+=45;map.easeTo({bearing,duration:550});});
-document.getElementById('overlay').addEventListener('click',()=>{if(!map)return;overlayVisible=!overlayVisible;for(const id of ['sb-demo-platforms','sb-demo-platform-outlines','sb-demo-rails-casing','sb-demo-rails'])if(map.getLayer(id))map.setLayoutProperty(id,'visibility',overlayVisible?'visible':'none');document.getElementById('overlay').textContent='Track overlay: '+(overlayVisible?'on':'off');document.getElementById('overlay').setAttribute('aria-pressed',String(overlayVisible));});
-setTimeout(()=>{if(!map||!map.isStyleLoaded())report('MapLibre did not finish loading. Style probe: '+styleFetchState+'. WebGL2: '+(maplibregl.supported({failIfMajorPerformanceCaveat:false})?'available':'unavailable')+'.');},20000);
+(function(){
+ const status=document.getElementById('status');
+ let settled=false;
+ status.textContent='Connecting to MapLibre library…';
+ const script=document.createElement('script');
+ script.src='https://cdn.jsdelivr.net/npm/maplibre-gl@5.18.0/dist/maplibre-gl.js';
+ script.async=true;
+ const timeout=setTimeout(()=>{
+  if(settled)return;
+  settled=true;
+  status.textContent='MapLibre download timed out. Android WebView cannot reach the CDN.';
+ },12000);
+ script.onload=()=>{
+  if(settled)return;
+  settled=true;clearTimeout(timeout);
+  if(!window.maplibregl){status.textContent='MapLibre script loaded but did not expose its browser API.';return;}
+  startMapLibreExperiment();
+ };
+ script.onerror=()=>{
+  if(settled)return;
+  settled=true;clearTimeout(timeout);
+  status.textContent='MapLibre download failed. Android WebView cannot access the CDN.';
+ };
+ document.head.appendChild(script);
+ function startMapLibreExperiment(){
+  const maplibregl=window.maplibregl;
+  
+  const maplibregl=window.maplibregl;
+  
+  const center=[-122.4194,37.7749];
+  const status=document.getElementById('status');
+  const styleUrl='https://tiles.openfreemap.org/styles/liberty';
+  let pitch=65,bearing=-18,overlayVisible=true,map,styleFetchState='not checked';
+  function report(message){status.textContent=message;}
+  if(!maplibregl.supported({failIfMajorPerformanceCaveat:false})){
+   report('WebGL2 is unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
+   throw new Error('MapLibre reports WebGL2 unsupported');
+  }
+  report('MapLibre v5 script loaded. WebGL2 available. Checking OpenFreeMap style connection…');
+  const styleProbe=new AbortController();
+  const styleProbeTimer=setTimeout(()=>styleProbe.abort(),10000);
+  fetch(styleUrl,{mode:'cors',cache:'no-store',signal:styleProbe.signal}).then(response=>{
+   clearTimeout(styleProbeTimer);
+   if(!response.ok)throw new Error('Style HTTP '+response.status);
+   return response.json();
+  }).then(style=>{
+   styleFetchState='HTTP OK';
+   report('Style connection works. Initializing map renderer…');
+   console.info('OpenFreeMap style probe succeeded',style.version,style.sources);
+  }).catch(error=>{
+   clearTimeout(styleProbeTimer);
+   styleFetchState=error.name==='AbortError'?'timed out':error.message;
+   report('OpenFreeMap style request failed: '+styleFetchState+'. Check Android WebView network access/CORS.');
+   console.error('OpenFreeMap style probe failed',error);
+  });
+  try{
+   map=new maplibregl.Map({
+    container:'map',
+    style:styleUrl,
+    center,zoom:15.5,pitch,bearing,maxPitch:85,
+    attributionControl:{customAttribution:'',compact:false},
+    canvasContextAttributes:{antialias:true},
+    failIfMajorPerformanceCaveat:false
+   });
+   map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
+   map.on('load',()=>{
+    report('Map style and tiles loaded. Adding 3D buildings and track overlays…');
+    map.addSource('sb-demo-geometry',{type:'geojson',data:route});
+    map.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+    const firstSymbolLayer=map.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
+    map.addLayer({id:'sb-demo-buildings-3d',type:'fill-extrusion',source:'sb-openfreemap-buildings','source-layer':'building',minzoom:14,filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],paint:{'fill-extrusion-color':'#aebbc4','fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.86}},firstSymbolLayer);
+    map.addLayer({id:'sb-demo-platforms',type:'fill',source:'sb-demo-geometry',filter:['==',['get','kind'],'platform'],paint:{'fill-color':'#56d7c5','fill-opacity':0.24}});
+    map.addLayer({id:'sb-demo-platform-outlines',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'platform'],paint:{'line-color':'#62e5d2','line-width':2.5}});
+    map.addLayer({id:'sb-demo-rails-casing',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}});
+    map.addLayer({id:'sb-demo-rails',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#b8d3dc','line-width':3.2,'line-dasharray':[1.4,1.2]}});
+    report('OpenFreeMap loaded. 3D buildings and sample rail/platform overlays are active.');
+   });
+   map.on('error',e=>{
+    const message=e?.error?.message||e?.message||'Unknown map resource error';
+    report('Map resource error: '+message);
+    console.error('MapLibre error',e);
+   });
+   map.on('style.load',()=>console.info('MapLibre style loaded',map.getStyle().name||'street'));
+  }catch(error){
+   report('Map initialization failed: '+(error?.message||String(error)));
+   console.error('MapLibre initialization failed',error);
+  }
+  const route={type:'FeatureCollection',features:[
+   {type:'Feature',properties:{kind:'rail'},geometry:{type:'LineString',coordinates:[[-122.4231,37.7728],[-122.4219,37.7737],[-122.4205,37.7745],[-122.4191,37.7753],[-122.4177,37.7761],[-122.4164,37.7769]]}},
+   {type:'Feature',properties:{kind:'rail'},geometry:{type:'LineString',coordinates:[[-122.4230,37.77265],[-122.4218,37.77355],[-122.4204,37.77435],[-122.4190,37.77515],[-122.4176,37.77595],[-122.4163,37.77675]]}},
+   {type:'Feature',properties:{kind:'platform'},geometry:{type:'Polygon',coordinates:[[[-122.42035,37.77462],[-122.41995,37.77490],[-122.41982,37.77477],[-122.42022,37.77449],[-122.42035,37.77462]]]}},
+   {type:'Feature',properties:{kind:'platform'},geometry:{type:'Polygon',coordinates:[[[-122.41895,37.77542],[-122.41855,37.77570],[-122.41842,37.77557],[-122.41882,37.77529],[-122.41895,37.77542]]]}}
+  ]};
+  document.getElementById('pitch').addEventListener('click',()=>{if(!map)return;pitch=pitch>=80?35:Math.min(85,pitch+10);map.easeTo({pitch,duration:450});document.getElementById('pitch').textContent='Tilt: '+pitch+'°';});
+  document.getElementById('bearing').addEventListener('click',()=>{if(!map)return;bearing+=45;map.easeTo({bearing,duration:550});});
+  document.getElementById('overlay').addEventListener('click',()=>{if(!map)return;overlayVisible=!overlayVisible;for(const id of ['sb-demo-platforms','sb-demo-platform-outlines','sb-demo-rails-casing','sb-demo-rails'])if(map.getLayer(id))map.setLayoutProperty(id,'visibility',overlayVisible?'visible':'none');document.getElementById('overlay').textContent='Track overlay: '+(overlayVisible?'on':'off');document.getElementById('overlay').setAttribute('aria-pressed',String(overlayVisible));});
+  setTimeout(()=>{if(!map||!map.isStyleLoaded())report('MapLibre did not finish loading. Style probe: '+styleFetchState+'. WebGL2: '+(maplibregl.supported({failIfMajorPerformanceCaveat:false})?'available':'unavailable')+'.');},20000);
+  
+ }
+})();
 </script>
 </body>
 </html>
