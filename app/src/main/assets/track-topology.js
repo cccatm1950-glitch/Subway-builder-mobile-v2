@@ -239,13 +239,16 @@
 
   // Build the lateral offset fade along a route. Explicit per-track transition
   // extents survive topology splits; legacy tracks retain the 50 m default.
-  function calculateOffsetTransitionProfile(cumulativeDistances, totalLength, startOffset, endOffset, zones, defaultLength = 50) {
+  function calculateOffsetTransitionProfile(cumulativeDistances, totalLength, startOffset, endOffset, zones, defaultLength = 50, startHoldDistance = 0, endHoldDistance = 0) {
     if (!Array.isArray(cumulativeDistances)) return [];
     if (!Number.isFinite(totalLength) || totalLength <= 0) return cumulativeDistances.map(() => 0);
+    if (![startHoldDistance, endHoldDistance].every(Number.isFinite) ||
+        startHoldDistance < 0 || endHoldDistance < 0) return cumulativeDistances.map(() => 0);
     const hasExplicitZones = !!zones && typeof zones === 'object';
+    const available = Math.max(0, totalLength - startHoldDistance - endHoldDistance);
     const extent = key => {
       const value = hasExplicitZones ? zones[key] : defaultLength;
-      return Number.isFinite(value) && value > 0 ? Math.min(value, totalLength / 2) : 0;
+      return Number.isFinite(value) && value > 0 ? Math.min(value, available / 2) : 0;
     };
     const startLength = extent('start'), endLength = extent('end');
     const smoothstep = value => {
@@ -253,8 +256,12 @@
       return x * x * (3 - 2 * x);
     };
     return cumulativeDistances.map(distance => {
-      const fromStart = startLength > 0 ? startOffset * (1 - smoothstep(distance / startLength)) : 0;
-      const fromEnd = endLength > 0 ? endOffset * smoothstep((distance - (totalLength - endLength)) / endLength) : 0;
+      const fromStart = startLength > 0
+        ? startOffset * (1 - smoothstep((distance - startHoldDistance) / startLength))
+        : (distance <= startHoldDistance ? startOffset : 0);
+      const fromEnd = endLength > 0
+        ? endOffset * smoothstep((distance - (totalLength - endHoldDistance - endLength)) / endLength)
+        : (distance >= totalLength - endHoldDistance ? endOffset : 0);
       return fromStart + fromEnd;
     });
   }
