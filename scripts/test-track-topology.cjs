@@ -188,3 +188,19 @@ const heldReverseSingleTrackOffset = topology.calculateOffsetTransitionProfile(
   [0, 50, 75, 100, 120, 145], 145, 0, -20, null, 50, 0, 45
 );
 assert.deepEqual(heldReverseSingleTrackOffset, [0, 0, -10, -20, -20, -20]);
+
+const endpointNormal = topology.calculateEndpointAlignedNormal;
+const northboundNormal = endpointNormal(0, 1, 0);
+const southboundNormal = endpointNormal(0, -1, 0);
+assert.deepEqual(northboundNormal, { east: -1, north: 0 });
+assert.deepEqual(southboundNormal, { east: 1, north: 0 });
+const northboundRails = [-1.905, 1.905].map(offset => [
+  northboundNormal.east * offset, northboundNormal.north * offset
+]).sort((a, b) => a[0] - b[0]);
+const southboundRails = [-1.905, 1.905].map(offset => [
+  southboundNormal.east * offset, southboundNormal.north * offset
+]).sort((a, b) => a[0] - b[0]);
+assert.deepEqual(northboundRails, southboundRails);
+const diagonalNormal = endpointNormal(1, 1, 45);
+assert.ok(Math.abs(Math.hypot(diagonalNormal.east, diagonalNormal.north) - 1) < 1e-9);
+assert.equal(endpointNormal(0, 0, 90), null);
