@@ -185,6 +185,6 @@ const heldSingleTrackOffset = topology.calculateOffsetTransitionProfile(
 );
 assert.deepEqual(heldSingleTrackOffset, [20, 20, 20, 10, 0, 0, 0]);
 const heldReverseSingleTrackOffset = topology.calculateOffsetTransitionProfile(
-  [0, 25, 45, 70, 95, 120, 145], 145, 0, -20, null, 50, 0, 45
+  [0, 50, 75, 100, 120, 145], 145, 0, -20, null, 50, 0, 45
 );
-assert.deepEqual(heldReverseSingleTrackOffset, [0, 0, 0, -10, -20, -20, -20]);
+assert.deepEqual(heldReverseSingleTrackOffset, [0, 0, -10, -20, -20, -20]);
