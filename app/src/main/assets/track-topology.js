@@ -165,6 +165,50 @@
       secondControl: controlPoint(end, endControlBearing, endControlDirection) };
   }
 
+  // Project a rectangular platform onto the route-normal axis. The returned
+  // clearance is the exact lateral distance needed to keep a parallel rail
+  // outside the platform footprint, independent of route direction.
+  function calculatePlatformNormalClearance(fromPoint, toPoint, bearing, halfLength, halfWidth, clearance = 0) {
+    if (!Array.isArray(fromPoint) || !Array.isArray(toPoint) ||
+        fromPoint.length < 2 || toPoint.length < 2 ||
+        !fromPoint.every(Number.isFinite) || !toPoint.every(Number.isFinite) ||
+        !Number.isFinite(bearing) || !Number.isFinite(halfLength) ||
+        !Number.isFinite(halfWidth) || !Number.isFinite(clearance) ||
+        halfLength < 0 || halfWidth < 0 || clearance < 0) return null;
+    const latitude = (fromPoint[0] + toPoint[0]) / 2 * Math.PI / 180;
+    const east = (toPoint[1] - fromPoint[1]) * Math.cos(latitude);
+    const north = toPoint[0] - fromPoint[0];
+    const magnitude = Math.hypot(east, north);
+    if (magnitude < 1e-12) return null;
+    const routeEast = east / magnitude, routeNorth = north / magnitude;
+    const normalEast = -routeNorth, normalNorth = routeEast;
+    const radians = bearing * Math.PI / 180;
+    const axisEast = Math.sin(radians), axisNorth = Math.cos(radians);
+    const normalAlignment = -axisNorth * normalEast + axisEast * normalNorth;
+    const axisAlignment = axisEast * normalEast + axisNorth * normalNorth;
+    const projectedHalfExtent = halfLength * Math.abs(axisAlignment) +
+      halfWidth * Math.abs(normalAlignment);
+    return projectedHalfExtent + clearance;
+  }
+
+  // Smoothly flare island-platform rails away from each station, returning to
+  // normal gauge offsets before the two endpoint transitions can overlap.
+  function calculatePlatformClearanceTransitionProfile(cumulativeDistances, totalLength, startClearance, endClearance, transitionLength = 50) {
+    if (!Array.isArray(cumulativeDistances)) return [];
+    if (![totalLength, startClearance, endClearance, transitionLength].every(Number.isFinite) ||
+        totalLength <= 0 || startClearance < 0 || endClearance < 0 || transitionLength <= 0) {
+      return cumulativeDistances.map(() => 0);
+    }
+    const extent = Math.min(transitionLength, totalLength / 2);
+    const smoothstep = value => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x); };
+    return cumulativeDistances.map(distance => {
+      if (!Number.isFinite(distance)) return 0;
+      const fromStart = startClearance * (1 - smoothstep(distance / extent));
+      const fromEnd = endClearance * smoothstep((distance - (totalLength - extent)) / extent);
+      return fromStart + fromEnd;
+    });
+  }
+
   // Build the lateral offset fade along a route. Explicit per-track transition
   // extents survive topology splits; legacy tracks retain the 50 m default.
   function calculateOffsetTransitionProfile(cumulativeDistances, totalLength, startOffset, endOffset, zones, defaultLength = 50) {
@@ -248,5 +292,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculatePlatformNormalClearance, calculatePlatformClearanceTransitionProfile });
 });
