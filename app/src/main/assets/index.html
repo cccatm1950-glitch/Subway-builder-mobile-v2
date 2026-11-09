@@ -2651,6 +2651,17 @@ function getIslandPlatformTrackClearance(stationIndex,fromPoint,toPoint){
  );
  return Number.isFinite(clearance)?clearance:0;
 }
+function getIslandPlatformTrackExtent(stationIndex,fromPoint,toPoint){
+ const station=stations[stationIndex];
+ if(!station||station.nodeType==='junction'||(station.platformType||platformType)!=='island')return 0;
+ const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
+ const dimensions=getPlatformDimensions(station.platformSize||platformSize);
+ const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
+ const extent=window.SBTrackTopology?.calculatePlatformAlongTrackExtent?.(
+  fromPoint,toPoint,bearing,halfLength,dimensions.width/2
+ );
+ return Number.isFinite(extent)?extent:0;
+}
 
 tracks.forEach((t,trackIndex)=>{
   let a=stations[t.a];
@@ -2756,8 +2767,10 @@ if(mode==='delete'){
    });
   const parallelStartClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.a,points[0],points[1]):0;
   const parallelEndClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]):0;
+  const parallelStartPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.a,points[0],points[1]):0;
+  const parallelEndPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]):0;
   const parallelPlatformFlare=window.SBTrackTopology?.calculatePlatformClearanceTransitionProfile
-   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS)
+   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,parallelStartPlatformExtent,parallelEndPlatformExtent)
    :cumulativeTrackMeters.map(()=>0);
   const shiftTrackPoints=(offset,parallelSide=0)=>points.map((p,i)=>{
    let prev=points[Math.max(0,i-1)];
