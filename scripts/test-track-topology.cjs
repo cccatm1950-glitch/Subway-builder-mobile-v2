@@ -194,11 +194,12 @@ const northboundNormal = endpointNormal(0, 1, 0);
 const southboundNormal = endpointNormal(0, -1, 0);
 assert.deepEqual(northboundNormal, { east: -1, north: 0 });
 assert.deepEqual(southboundNormal, { east: 1, north: 0 });
+const normalizeZero = value => value === 0 ? 0 : value;
 const northboundRails = [-1.905, 1.905].map(offset => [
-  northboundNormal.east * offset, northboundNormal.north * offset
+  normalizeZero(northboundNormal.east * offset), normalizeZero(northboundNormal.north * offset)
 ]).sort((a, b) => a[0] - b[0]);
 const southboundRails = [-1.905, 1.905].map(offset => [
-  southboundNormal.east * offset, southboundNormal.north * offset
+  normalizeZero(southboundNormal.east * offset), normalizeZero(southboundNormal.north * offset)
 ]).sort((a, b) => a[0] - b[0]);
 assert.deepEqual(northboundRails, southboundRails);
 const diagonalNormal = endpointNormal(1, 1, 45);
