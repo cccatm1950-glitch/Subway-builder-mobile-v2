@@ -2510,6 +2510,7 @@ function getTrainRoutePoints(track){
 }
 
 function getTrackCenterlinePoints(track,endpointStations=null){
+ endpointStations=endpointStations||getTrackStationEndpointStations(track);
  const a=endpointStations?.a||stations[track.a],b=endpointStations?.b||stations[track.b];
  if(!a||!b)return [];
  if(Array.isArray(track.centerline)&&track.centerline.length>=2){
