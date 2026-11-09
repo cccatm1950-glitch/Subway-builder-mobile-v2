@@ -2163,7 +2163,7 @@ var mode='none';
 let trackStyle='single';
 let platformWidth='default';
 let platformSize='standard';
-let platformType='island';
+let platformType='side';
 const PLATFORM_SIZE_PRESETS={compact:{width:6,label:'Compact'},standard:{width:8,label:'Standard'},long:{width:10,label:'Long'}};
 const DEFAULT_PLATFORM_LENGTH_METERS=90;
 // Match the Windows heavy-metro platform clearance and standard track geometry.
@@ -2250,7 +2250,7 @@ function snapshot(){
   stations:stations.map(s=>({
    lat:s.lat,lng:s.lng,name:s.name,nodeType:s.nodeType==='junction'?'junction':'station',elevation:s.elevation||'at',
    elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
-   platformType:s.platformType||'island',
+   platformType:s.platformType||'side',
    platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
    platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:DEFAULT_PLATFORM_LENGTH_METERS,
    platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
@@ -2296,7 +2296,7 @@ function restoreSnapshot(data){
   nodeType:s.nodeType==='junction'?'junction':'station',
   elevation:s.elevation||'at',
   elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
-  platformType:s.platformType||'island',
+  platformType:s.platformType||'side',
   platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS,
   platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
@@ -2643,20 +2643,24 @@ function getStationTrackSideOffset(stationIndex,fromPoint,toPoint,style){
 function getIslandPlatformTrackClearance(stationIndex,fromPoint,toPoint){
  const station=stations[stationIndex];
  if(!station||station.nodeType==='junction'||(station.platformType||platformType)!=='island')return 0;
- const lat=(fromPoint[0]+toPoint[0])/2*Math.PI/180;
- const east=(toPoint[1]-fromPoint[1])*Math.cos(lat),north=toPoint[0]-fromPoint[0];
- const magnitude=Math.hypot(east,north);
- if(magnitude<1e-12)return 0;
- const routeEast=east/magnitude,routeNorth=north/magnitude;
- const routeNormalEast=-routeNorth,routeNormalNorth=routeEast;
- const bearing=(Number.isFinite(station.platformBearing)?station.platformBearing:90)*Math.PI/180;
- const axisEast=Math.sin(bearing),axisNorth=Math.cos(bearing);
- const alignment=(-axisNorth)*routeNormalEast+axisEast*routeNormalNorth;
+ const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
  const dimensions=getPlatformDimensions(station.platformSize||platformSize);
  const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
- const halfWidth=dimensions.width/2;
- const support=halfLength*Math.abs(axisEast*routeNormalEast+axisNorth*routeNormalNorth)+halfWidth*Math.abs(alignment);
- return support+MOBILE_PLATFORM_CLEARANCE_METERS;
+ const clearance=window.SBTrackTopology?.calculatePlatformNormalClearance?.(
+  fromPoint,toPoint,bearing,halfLength,dimensions.width/2,MOBILE_PLATFORM_CLEARANCE_METERS
+ );
+ return Number.isFinite(clearance)?clearance:0;
+}
+function getIslandPlatformTrackExtent(stationIndex,fromPoint,toPoint){
+ const station=stations[stationIndex];
+ if(!station||station.nodeType==='junction'||(station.platformType||platformType)!=='island')return 0;
+ const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
+ const dimensions=getPlatformDimensions(station.platformSize||platformSize);
+ const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
+ const extent=window.SBTrackTopology?.calculatePlatformAlongTrackExtent?.(
+  fromPoint,toPoint,bearing,halfLength,dimensions.width/2
+ );
+ return Number.isFinite(extent)?extent:0;
 }
 
 tracks.forEach((t,trackIndex)=>{
@@ -2750,8 +2754,10 @@ if(mode==='delete'){
    const ratio=span>0?Math.max(0,Math.min(1,(distance-left.distance)/span)):0;
    return left.height+(next.height-left.height)*ratio;
   }
+  const startPlatformHold=t.style==='parallel'?0:getIslandPlatformTrackExtent(t.a,points[0],points[1]);
+  const endPlatformHold=t.style==='parallel'?0:getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]);
   const stationOffsets=window.SBTrackTopology?.calculateOffsetTransitionProfile
-   ?window.SBTrackTopology.calculateOffsetTransitionProfile(cumulativeTrackMeters,totalTrackMeters,startOffset,endOffset,t.offsetTransitionZones,OFFSET_TRANSITION_LENGTH_METERS)
+   ?window.SBTrackTopology.calculateOffsetTransitionProfile(cumulativeTrackMeters,totalTrackMeters,startOffset,endOffset,t.offsetTransitionZones,OFFSET_TRANSITION_LENGTH_METERS,startPlatformHold,endPlatformHold)
    :cumulativeTrackMeters.map(distance=>{
     const transitionMeters=Math.min(OFFSET_TRANSITION_LENGTH_METERS,totalTrackMeters/2);
     if(transitionMeters<=0)return 0;
@@ -2763,15 +2769,11 @@ if(mode==='delete'){
    });
   const parallelStartClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.a,points[0],points[1]):0;
   const parallelEndClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]):0;
-  const parallelPlatformFlare=cumulativeTrackMeters.map(distance=>{
-   const transitionMeters=Math.min(OFFSET_TRANSITION_LENGTH_METERS,totalTrackMeters/2);
-   if(transitionMeters<=0)return 0;
-   const startRatio=Math.max(0,Math.min(1,distance/transitionMeters));
-   const endRatio=Math.max(0,Math.min(1,(distance-(totalTrackMeters-transitionMeters))/transitionMeters));
-   const fromStart=parallelStartClearance*(1-startRatio*startRatio*(3-2*startRatio));
-   const fromEnd=parallelEndClearance*(endRatio*endRatio*(3-2*endRatio));
-   return fromStart+fromEnd;
-  });
+  const parallelStartPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.a,points[0],points[1]):0;
+  const parallelEndPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]):0;
+  const parallelPlatformFlare=window.SBTrackTopology?.calculatePlatformClearanceTransitionProfile
+   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,parallelStartPlatformExtent,parallelEndPlatformExtent)
+   :cumulativeTrackMeters.map(()=>0);
   const shiftTrackPoints=(offset,parallelSide=0)=>points.map((p,i)=>{
    let prev=points[Math.max(0,i-1)];
    let next=points[Math.min(points.length-1,i+1)];
@@ -2885,7 +2887,7 @@ if(mode==='delete'){
     platform.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(holdTimer);if(mode==='delete')return;holdTriggered=true;showStationMenu(i);});
     platform.on('click',function(e){L.DomEvent.stopPropagation(e);if(holdTriggered||stationMenuIndex===i){holdTriggered=false;return;}handleStationClick(i);});
   }
-  if((s.platformType||'island')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
+  if((s.platformType||'side')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
 
  });
  syncStationEndpointVisibility();
