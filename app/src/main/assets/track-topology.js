@@ -233,7 +233,7 @@
       const fromEnd = endClearance * (extent > 0
         ? smoothstep((distance - (totalLength - endHoldDistance - extent)) / extent)
         : (distance >= totalLength - endHoldDistance ? 1 : 0));
-      return fromStart + fromEnd;
+      return Math.max(fromStart, fromEnd);
     });
   }
 
