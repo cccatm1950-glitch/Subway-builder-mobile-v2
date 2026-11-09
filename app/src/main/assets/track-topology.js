@@ -186,6 +186,46 @@
     return { east: Object.is(-north, -0) ? 0 : -north, north: Object.is(east, -0) ? 0 : east };
   }
 
+  // Blend the route normal into each station's saved platform normal over
+  // the approach transition. This avoids a one-sample kink at curved station
+  // entries while keeping both parallel rails aligned to the same platform face.
+  function calculateBlendedEndpointNormal(routeEast, routeNorth, startBearing, endBearing, startWeight = 0, endWeight = 0) {
+    if (![routeEast, routeNorth, startWeight, endWeight].every(Number.isFinite) ||
+        startWeight < 0 || endWeight < 0) return null;
+    const magnitude = Math.hypot(routeEast, routeNorth);
+    if (magnitude < 1e-12) return null;
+    const east = routeEast / magnitude, north = routeNorth / magnitude;
+    const routeNormal = { east: -north, north: east };
+    const stationNormal = bearing => {
+      if (!Number.isFinite(bearing)) return null;
+      const radians = bearing * Math.PI / 180;
+      let tangentEast = Math.sin(radians), tangentNorth = Math.cos(radians);
+      if (tangentEast * east + tangentNorth * north < 0) {
+        tangentEast = -tangentEast;
+        tangentNorth = -tangentNorth;
+      }
+      return { east: -tangentNorth, north: tangentEast };
+    };
+    const startNormal = stationNormal(startBearing);
+    const endNormal = stationNormal(endBearing);
+    const start = startNormal ? Math.min(1, startWeight) : 0;
+    const end = endNormal ? Math.min(1, endWeight) : 0;
+    const base = Math.max(0, 1 - start - end);
+    const total = base + start + end;
+    let blendedEast = routeNormal.east * base +
+      (startNormal?.east || 0) * start + (endNormal?.east || 0) * end;
+    let blendedNorth = routeNormal.north * base +
+      (startNormal?.north || 0) * start + (endNormal?.north || 0) * end;
+    const blendedLength = Math.hypot(blendedEast, blendedNorth);
+    if (blendedLength < 1e-12 || total <= 0) return routeNormal;
+    blendedEast /= blendedLength;
+    blendedNorth /= blendedLength;
+    return {
+      east: blendedEast === 0 ? 0 : blendedEast,
+      north: blendedNorth === 0 ? 0 : blendedNorth
+    };
+  }
+
   // Project a rectangular platform onto the route-normal axis. The returned
   // clearance is the exact lateral distance needed to keep a parallel rail
   // outside the platform footprint, independent of route direction.
@@ -348,5 +388,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });
