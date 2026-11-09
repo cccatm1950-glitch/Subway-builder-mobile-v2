@@ -165,3 +165,17 @@ assert.deepEqual(clearanceProfile, [20, 10, 0, 10, 20]);
 const shortClearanceProfile = topology.calculatePlatformClearanceTransitionProfile([0, 25, 50, 75, 100], 100, 20, 10, 80);
 assert.deepEqual(shortClearanceProfile, [20, 10, 0, 5, 10]);
 assert.deepEqual(topology.calculatePlatformClearanceTransitionProfile([0, 50, 100], 0, 20, 20), [0, 0, 0]);
+
+const alongExtent = topology.calculatePlatformAlongTrackExtent;
+assert.ok(Math.abs(alongExtent([0, 0], [0, 1], 90, 45, 4) - 45) < 1e-9);
+assert.ok(Math.abs(alongExtent([0, 0], [1, 0], 90, 45, 4) - 4) < 1e-9);
+assert.ok(Math.abs(alongExtent([1, 1], [0, 0], 270, 45, 4) - 45) < 1e-9);
+assert.equal(alongExtent([0, 0], [0, 0], 90, 45, 4), null);
+const heldClearanceProfile = topology.calculatePlatformClearanceTransitionProfile(
+  [0, 25, 45, 70, 95, 120, 145], 145, 20, 0, 50, 45, 0
+);
+assert.deepEqual(heldClearanceProfile, [20, 20, 20, 17.5, 10, 2.5, 0]);
+const heldAtBothEnds = topology.calculatePlatformClearanceTransitionProfile(
+  [0, 20, 40, 60, 80, 100], 100, 12, 12, 50, 45, 45
+);
+assert.deepEqual(heldAtBothEnds, [12, 12, 24, 12, 12, 12]);
