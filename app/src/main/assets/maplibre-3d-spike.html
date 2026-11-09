@@ -195,7 +195,7 @@ button:active{background:#24505b}
   const route=buildPreviewFeatures();
   document.getElementById('pitch').addEventListener('click',()=>{if(!map)return;pitch=pitch>=80?35:Math.min(85,pitch+10);map.easeTo({pitch,duration:450});document.getElementById('pitch').textContent='Tilt: '+pitch+'°';});
   document.getElementById('bearing').addEventListener('click',()=>{if(!map)return;bearing+=45;map.easeTo({bearing,duration:550});});
-  document.getElementById('overlay').addEventListener('click',()=>{if(!map)return;overlayVisible=!overlayVisible;for(const id of ['sb-demo-platforms','sb-demo-platform-outlines','sb-demo-rails-casing','sb-demo-rails'])if(map.getLayer(id))map.setLayoutProperty(id,'visibility',overlayVisible?'visible':'none');document.getElementById('overlay').textContent='Track overlay: '+(overlayVisible?'on':'off');document.getElementById('overlay').setAttribute('aria-pressed',String(overlayVisible));});
+  document.getElementById('overlay').addEventListener('click',()=>{if(!map)return;overlayVisible=!overlayVisible;for(const id of ['sb-demo-platforms','sb-demo-platform-outlines','sb-demo-rails-casing','sb-demo-rails','sb-demo-stations'])if(map.getLayer(id))map.setLayoutProperty(id,'visibility',overlayVisible?'visible':'none');document.getElementById('overlay').textContent='Track overlay: '+(overlayVisible?'on':'off');document.getElementById('overlay').setAttribute('aria-pressed',String(overlayVisible));});
   setTimeout(()=>{if(!map||!map.isStyleLoaded())report('MapLibre did not finish loading. Style probe: '+styleFetchState+'. WebGL2: '+(maplibregl.supported({failIfMajorPerformanceCaveat:false})?'available':'unavailable')+'.');},20000);
   
  }
