@@ -237,6 +237,7 @@
     const latitudeRadians = center.lat * Math.PI / 180;
     const east = (reference.lng - center.lng) * Math.cos(latitudeRadians);
     const north = reference.lat - center.lat;
+    if (Math.hypot(east, north) < 1e-12) return null;
     const radians = bearing * Math.PI / 180;
     const axisEast = Math.sin(radians), axisNorth = Math.cos(radians);
     const sign = east * axisEast + north * axisNorth >= 0 ? 1 : -1;
