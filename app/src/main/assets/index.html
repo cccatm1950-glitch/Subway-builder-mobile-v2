@@ -2781,9 +2781,16 @@ if(mode==='delete'){
    let dy=next[0]-prev[0];
    let length=Math.sqrt(dx*dx+dy*dy)||1;
    const lateralOffset=stationOffsets[i]+offset+parallelSide*parallelPlatformFlare[i];
+   const endpointBearing=i===0?stations[t.a]?.platformBearing:
+    (i===points.length-1?stations[t.b]?.platformBearing:null);
+   const endpointNormal=parallelSide!==0&&(i===0||i===points.length-1)
+    ?window.SBTrackTopology?.calculateEndpointAlignedNormal?.(dx/length,dy/length,endpointBearing)
+    :null;
+   const normalEast=endpointNormal?.east??(-dy/length);
+   const normalNorth=endpointNormal?.north??(dx/length);
    return [
-    p[0]+(dx/length)*lateralOffset/111320,
-    p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
+    p[0]+normalNorth*lateralOffset/111320,
+    p[1]+normalEast*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
    ];
   });
   t.trainCenterline=shiftTrackPoints(0);
