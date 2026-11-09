@@ -77,11 +77,20 @@ button:active{background:#24505b}
   const styleUrl='https://tiles.openfreemap.org/styles/liberty';
   let pitch=65,bearing=-18,overlayVisible=true,map,styleFetchState='not checked';
   function report(message){status.textContent=message;}
-  if(!maplibregl.supported({failIfMajorPerformanceCaveat:false})){
-   report('WebGL2 is unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
-   throw new Error('MapLibre reports WebGL2 unsupported');
+  report('MapLibre loaded. Testing WebGL2 support…');
+  let webglSupported=false;
+  try{
+   webglSupported=maplibregl.supported({failIfMajorPerformanceCaveat:false});
+  }catch(error){
+   report('WebGL2 support check threw an error: '+(error?.message||String(error)));
+   console.error('MapLibre WebGL support check failed',error);
+   return;
   }
-  report('MapLibre v5 script loaded. WebGL2 available. Checking OpenFreeMap style connection…');
+  if(!webglSupported){
+   report('WebGL2 is unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
+   return;
+  }
+  report('WebGL2 is available. Checking OpenFreeMap style connection…');
   const styleProbe=new AbortController();
   const styleProbeTimer=setTimeout(()=>styleProbe.abort(),10000);
   fetch(styleUrl,{mode:'cors',cache:'no-store',signal:styleProbe.signal}).then(response=>{
