@@ -174,8 +174,8 @@ assert.equal(alongExtent([0, 0], [0, 0], 90, 45, 4), null);
 const heldClearanceProfile = topology.calculatePlatformClearanceTransitionProfile(
   [0, 25, 45, 70, 95, 120, 145], 145, 20, 0, 50, 45, 0
 );
-assert.deepEqual(heldClearanceProfile, [20, 20, 20, 17.5, 10, 2.5, 0]);
+assert.deepEqual(heldClearanceProfile, [20, 20, 20, 10, 0, 0, 0]);
 const heldAtBothEnds = topology.calculatePlatformClearanceTransitionProfile(
   [0, 20, 40, 60, 80, 100], 100, 12, 12, 50, 45, 45
 );
-assert.deepEqual(heldAtBothEnds, [12, 12, 24, 12, 12, 12]);
+assert.deepEqual(heldAtBothEnds, [12, 12, 12, 12, 12, 12]);
