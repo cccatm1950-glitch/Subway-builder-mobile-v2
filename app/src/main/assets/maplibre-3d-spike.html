@@ -80,14 +80,20 @@ button:active{background:#24505b}
   report('MapLibre loaded. Testing WebGL2 support…');
   let webglSupported=false;
   try{
-   webglSupported=maplibregl.supported({failIfMajorPerformanceCaveat:false});
+   const probeCanvas=document.createElement('canvas');
+   const probeContext=probeCanvas.getContext('webgl2',{failIfMajorPerformanceCaveat:false});
+   webglSupported=!!probeContext;
+   if(probeContext){
+    const loseContext=probeContext.getExtension('WEBGL_lose_context');
+    if(loseContext)loseContext.loseContext();
+   }
   }catch(error){
-   report('WebGL2 support check threw an error: '+(error?.message||String(error)));
-   console.error('MapLibre WebGL support check failed',error);
+   report('WebGL2 canvas test failed: '+(error?.message||String(error)));
+   console.error('WebGL2 canvas test failed',error);
    return;
   }
   if(!webglSupported){
-   report('WebGL2 is unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
+   report('WebGL2 context unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
    return;
   }
   report('WebGL2 is available. Checking OpenFreeMap style connection…');
