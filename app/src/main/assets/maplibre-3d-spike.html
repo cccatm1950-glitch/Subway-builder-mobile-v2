@@ -32,7 +32,8 @@ button:active{background:#24505b}
  </div>
 </div>
 <div id="status" class="panel" role="status">Loading keyless vector map…</div>
-<div id="attribution" style="position:absolute;z-index:19;right:8px;bottom:6px;background:rgba(255,255,255,.88);color:#333;padding:4px 7px;border-radius:5px;font:11px system-ui">© Maptoolkit · © OpenStreetMap</div>
+<div id="attribution" style="position:absolute;z-index:19;right:8px;bottom:6px;background:rgba(255,255,255,.9);color:#333;padding:4px 7px;border-radius:5px;font:11px system-ui"><a href="https://www.maptoolkit.org/" target="_blank" rel="noopener" style="color:inherit">Maptoolkit</a> · © OpenStreetMap</div>
+<script type="importmap">{"imports":{"maplibre-gl":"https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs"}}</script>
 <script type="module">
 import * as maplibregl from 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs';
 
@@ -56,7 +57,14 @@ try{
   map.addLayer({id:'sb-demo-platform-outlines',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'platform'],paint:{'line-color':'#62e5d2','line-width':2.5}});
   map.addLayer({id:'sb-demo-rails-casing',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}});
   map.addLayer({id:'sb-demo-rails',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#b8d3dc','line-width':3.2,'line-dasharray':[1.4,1.2]}});
-  report('Keyless vector map loaded. Tilt and rotate the city; sample rails/platforms are illustrative only.');
+  report('Keyless vector map loaded. Loading optional 3D scene…');
+  import('https://cdn.jsdelivr.net/npm/@maptoolkit/maplibre-scene3d-control@0.3.3/dist/maplibre-scene3d-control.standalone.js').then(({Scene3dControl})=>{
+   map.addControl(new Scene3dControl());
+   report('Keyless vector map loaded. Basic 3D buildings/trees depend on available style data; premium roof-detail tiles are not enabled. Sample rails/platforms are illustrative only.');
+  }).catch(error=>{
+   console.warn('Optional 3D scene control unavailable; keeping keyless vector map active.',error);
+   report('Keyless vector map loaded. Optional 3D detail unavailable; sample rails/platforms are illustrative only.');
+  });
  });
  map.on('error',e=>{
   const message=e?.error?.message||e?.message||'Unknown map resource error';
