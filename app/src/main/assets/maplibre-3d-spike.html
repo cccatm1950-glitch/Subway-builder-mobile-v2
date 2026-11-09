@@ -31,8 +31,8 @@ button:active{background:#24505b}
   <button id="back"><a href="index.html" style="color:inherit;text-decoration:none">Back to game</a></button>
  </div>
 </div>
-<div id="status" class="panel" role="status">Loading keyless vector map…</div>
-<div id="attribution" style="position:absolute;z-index:19;right:8px;bottom:6px;background:rgba(255,255,255,.9);color:#333;padding:4px 7px;border-radius:5px;font:11px system-ui"><a href="https://www.maptoolkit.org/" target="_blank" rel="noopener" style="color:inherit">Maptoolkit</a> · © OpenStreetMap</div>
+<div id="status" class="panel" role="status">Loading OpenFreeMap vector map…</div>
+<div id="attribution" style="position:absolute;z-index:19;right:8px;bottom:6px;background:rgba(255,255,255,.9);color:#333;padding:4px 7px;border-radius:5px;font:11px system-ui"><a href="https://openfreemap.org/" target="_blank" rel="noopener" style="color:inherit">OpenFreeMap</a> · © OpenStreetMap</div>
 <script type="importmap">{"imports":{"maplibre-gl":"https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs"}}</script>
 <script type="module">
 import * as maplibregl from 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs';
@@ -44,7 +44,7 @@ function report(message){status.textContent=message;}
 try{
  map=new maplibregl.Map({
   container:'map',
-  style:'https://styles.maptoolkit.org/street.json',
+  style:'https://tiles.openfreemap.org/styles/liberty',
   center,zoom:15.5,pitch,bearing,maxPitch:85,
   attributionControl:{customAttribution:'',compact:false},
   canvasContextAttributes:{antialias:true},
@@ -53,22 +53,18 @@ try{
  map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
  map.on('load',()=>{
   map.addSource('sb-demo-geometry',{type:'geojson',data:route});
+  map.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+  const firstSymbolLayer=map.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
+  map.addLayer({id:'sb-demo-buildings-3d',type:'fill-extrusion',source:'sb-openfreemap-buildings','source-layer':'building',minzoom:14,filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],paint:{'fill-extrusion-color':'#aebbc4','fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.86}},firstSymbolLayer);
   map.addLayer({id:'sb-demo-platforms',type:'fill',source:'sb-demo-geometry',filter:['==',['get','kind'],'platform'],paint:{'fill-color':'#56d7c5','fill-opacity':0.24}});
   map.addLayer({id:'sb-demo-platform-outlines',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'platform'],paint:{'line-color':'#62e5d2','line-width':2.5}});
   map.addLayer({id:'sb-demo-rails-casing',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}});
   map.addLayer({id:'sb-demo-rails',type:'line',source:'sb-demo-geometry',filter:['==',['get','kind'],'rail'],paint:{'line-color':'#b8d3dc','line-width':3.2,'line-dasharray':[1.4,1.2]}});
-  report('Keyless vector map loaded. Loading optional 3D scene…');
-  import('https://cdn.jsdelivr.net/npm/@maptoolkit/maplibre-scene3d-control@0.3.3/dist/maplibre-scene3d-control.standalone.js').then(({Scene3dControl})=>{
-   map.addControl(new Scene3dControl());
-   report('Keyless vector map loaded. Basic 3D buildings/trees depend on available style data; premium roof-detail tiles are not enabled. Sample rails/platforms are illustrative only.');
-  }).catch(error=>{
-   console.warn('Optional 3D scene control unavailable; keeping keyless vector map active.',error);
-   report('Keyless vector map loaded. Optional 3D detail unavailable; sample rails/platforms are illustrative only.');
-  });
+  report('OpenFreeMap loaded. 3D buildings and sample rail/platform overlays are active.');
  });
  map.on('error',e=>{
   const message=e?.error?.message||e?.message||'Unknown map resource error';
-  report('Map error: '+message);
+  report('Map resource error: '+message);
   console.error('MapLibre error',e);
  });
  map.on('style.load',()=>console.info('MapLibre style loaded',map.getStyle().name||'street'));
@@ -85,7 +81,7 @@ const route={type:'FeatureCollection',features:[
 document.getElementById('pitch').addEventListener('click',()=>{if(!map)return;pitch=pitch>=80?35:Math.min(85,pitch+10);map.easeTo({pitch,duration:450});document.getElementById('pitch').textContent='Tilt: '+pitch+'°';});
 document.getElementById('bearing').addEventListener('click',()=>{if(!map)return;bearing+=45;map.easeTo({bearing,duration:550});});
 document.getElementById('overlay').addEventListener('click',()=>{if(!map)return;overlayVisible=!overlayVisible;for(const id of ['sb-demo-platforms','sb-demo-platform-outlines','sb-demo-rails-casing','sb-demo-rails'])if(map.getLayer(id))map.setLayoutProperty(id,'visibility',overlayVisible?'visible':'none');document.getElementById('overlay').textContent='Track overlay: '+(overlayVisible?'on':'off');document.getElementById('overlay').setAttribute('aria-pressed',String(overlayVisible));});
-setTimeout(()=>{if(status.textContent.startsWith('Loading'))report('Map has not responded yet. Check connection/WebView console; the renderer is still waiting for its style or tiles.');},12000);
+setTimeout(()=>{if(status.textContent.startsWith('Loading'))report('Map style did not finish loading. Check internet access, WebView network restrictions, and WebGL support.');},15000);
 </script>
 </body>
 </html>
