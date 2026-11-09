@@ -137,3 +137,31 @@ assert.equal(topology.projectPointToPolyline({ x: 1, y: 1 }, [{ x: 0, y: 0 }]), 
 assert.equal(topology.splitPolylineAtProjection(route, null), null);
 assert.equal(topology.cloneTrackSections(track, { ...withLatLng, fraction: 0 }, 9, [0.2, 0.8]), null);
 console.log('Track topology tests passed.');
+
+// Island-platform clearance is the rectangle's support distance along the
+// route normal, so both rails stay outside the footprint for every approach.
+const platformClearance = topology.calculatePlatformNormalClearance;
+const clearance = 3;
+const halfLength = 60, halfWidth = 5;
+const cardinalCases = [
+  { from: [0, 0], to: [0, 1], bearing: 90, expected: halfWidth + clearance },
+  { from: [0, 0], to: [1, 0], bearing: 0, expected: halfWidth + clearance },
+  { from: [0, 0], to: [0, -1], bearing: 270, expected: halfWidth + clearance },
+  { from: [0, 0], to: [-1, 0], bearing: 180, expected: halfWidth + clearance }
+];
+cardinalCases.forEach(({ from, to, bearing, expected }) => {
+  assert.ok(Math.abs(platformClearance(from, to, bearing, halfLength, halfWidth, clearance) - expected) < 1e-9);
+});
+// Reversing route direction or platform bearing must not change the footprint.
+const diagonalClearance = platformClearance([0, 0], [1, 1], 45, halfLength, halfWidth, clearance);
+assert.ok(Math.abs(diagonalClearance - (halfWidth + clearance)) < 1e-9);
+assert.ok(Math.abs(platformClearance([1, 1], [0, 0], 225, halfLength, halfWidth, clearance) - diagonalClearance) < 1e-9);
+assert.ok(Math.abs(platformClearance([0, 0], [1, 1], 225, halfLength, halfWidth, clearance) - diagonalClearance) < 1e-9);
+assert.equal(platformClearance([0, 0], [0, 0], 90, halfLength, halfWidth, clearance), null);
+assert.equal(platformClearance([0, 0], [0, 1], 90, -1, halfWidth, clearance), null);
+
+const clearanceProfile = topology.calculatePlatformClearanceTransitionProfile([0, 25, 50, 75, 100], 100, 20, 20, 50);
+assert.deepEqual(clearanceProfile, [20, 10, 0, 10, 20]);
+const shortClearanceProfile = topology.calculatePlatformClearanceTransitionProfile([0, 25, 50, 75, 100], 100, 20, 10, 80);
+assert.deepEqual(shortClearanceProfile, [20, 15, 15, 12.5, 10]);
+assert.deepEqual(topology.calculatePlatformClearanceTransitionProfile([0, 50, 100], 0, 20, 20), [0, 0, 0]);
