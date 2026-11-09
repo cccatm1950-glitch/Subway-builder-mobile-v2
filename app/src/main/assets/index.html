@@ -2781,10 +2781,13 @@ if(mode==='delete'){
    let dy=next[0]-prev[0];
    let length=Math.sqrt(dx*dx+dy*dy)||1;
    const lateralOffset=stationOffsets[i]+offset+parallelSide*parallelPlatformFlare[i];
-   const endpointBearing=i===0?stations[t.a]?.platformBearing:
-    (i===points.length-1?stations[t.b]?.platformBearing:null);
-   const endpointNormal=parallelSide!==0&&(i===0||i===points.length-1)
-    ?window.SBTrackTopology?.calculateEndpointAlignedNormal?.(dx/length,dy/length,endpointBearing)
+   const startBearing=Number.isFinite(stations[t.a]?.platformBearing)?stations[t.a].platformBearing:90;
+   const endBearing=Number.isFinite(stations[t.b]?.platformBearing)?stations[t.b].platformBearing:90;
+   const smoothstep=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
+   const startNormalWeight=parallelSide!==0?1-smoothstep(cumulativeTrackMeters[i]/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const endNormalWeight=parallelSide!==0?1-smoothstep((totalTrackMeters-cumulativeTrackMeters[i])/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const endpointNormal=parallelSide!==0
+    ?window.SBTrackTopology?.calculateBlendedEndpointNormal?.(dx/length,dy/length,startBearing,endBearing,startNormalWeight,endNormalWeight)
     :null;
    const normalEast=endpointNormal?.east??(-dy/length);
    const normalNorth=endpointNormal?.north??(dx/length);
