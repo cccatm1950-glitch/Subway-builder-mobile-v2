@@ -226,6 +226,26 @@
     };
   }
 
+  // Return the physical station end nearest the route's departure/arrival
+  // direction. Coordinates are [latitude, longitude]; bearing is clockwise
+  // from north and halfLength is measured in metres.
+  function calculateStationEndpoint(center, bearing, reference, halfLength) {
+    if (!center || !reference ||
+        !Number.isFinite(center.lat) || !Number.isFinite(center.lng) ||
+        !Number.isFinite(reference.lat) || !Number.isFinite(reference.lng) ||
+        !Number.isFinite(bearing) || !Number.isFinite(halfLength) || halfLength < 0) return null;
+    const latitudeRadians = center.lat * Math.PI / 180;
+    const east = (reference.lng - center.lng) * Math.cos(latitudeRadians);
+    const north = reference.lat - center.lat;
+    const radians = bearing * Math.PI / 180;
+    const axisEast = Math.sin(radians), axisNorth = Math.cos(radians);
+    const sign = east * axisEast + north * axisNorth >= 0 ? 1 : -1;
+    const distance = halfLength * sign;
+    const lat = center.lat + axisNorth * distance / 111320;
+    const lng = center.lng + axisEast * distance / (111320 * Math.max(1e-8, Math.cos(latitudeRadians)));
+    return { lat, lng, sign };
+  }
+
   // Project a rectangular platform onto the route-normal axis. The returned
   // clearance is the exact lateral distance needed to keep a parallel rail
   // outside the platform footprint, independent of route direction.
@@ -388,5 +408,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });
