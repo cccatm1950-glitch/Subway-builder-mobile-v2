@@ -258,10 +258,10 @@
     return cumulativeDistances.map(distance => {
       const fromStart = startLength > 0
         ? startOffset * (1 - smoothstep((distance - startHoldDistance) / startLength))
-        : (distance <= startHoldDistance ? startOffset : 0);
+        : (startHoldDistance > 0 && distance <= startHoldDistance ? startOffset : 0);
       const fromEnd = endLength > 0
         ? endOffset * smoothstep((distance - (totalLength - endHoldDistance - endLength)) / endLength)
-        : (distance >= totalLength - endHoldDistance ? endOffset : 0);
+        : (endHoldDistance > 0 && distance >= totalLength - endHoldDistance ? endOffset : 0);
       return fromStart + fromEnd;
     });
   }
