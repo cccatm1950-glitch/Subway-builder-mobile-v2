@@ -2163,7 +2163,7 @@ var mode='none';
 let trackStyle='single';
 let platformWidth='default';
 let platformSize='standard';
-let platformType='island';
+let platformType='side';
 const PLATFORM_SIZE_PRESETS={compact:{width:6,label:'Compact'},standard:{width:8,label:'Standard'},long:{width:10,label:'Long'}};
 const DEFAULT_PLATFORM_LENGTH_METERS=90;
 // Match the Windows heavy-metro platform clearance and standard track geometry.
@@ -2250,7 +2250,7 @@ function snapshot(){
   stations:stations.map(s=>({
    lat:s.lat,lng:s.lng,name:s.name,nodeType:s.nodeType==='junction'?'junction':'station',elevation:s.elevation||'at',
    elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
-   platformType:s.platformType||'island',
+   platformType:s.platformType||'side',
    platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
    platformLengthMeters:Number.isFinite(s.platformLengthMeters)?s.platformLengthMeters:DEFAULT_PLATFORM_LENGTH_METERS,
    platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
@@ -2296,7 +2296,7 @@ function restoreSnapshot(data){
   nodeType:s.nodeType==='junction'?'junction':'station',
   elevation:s.elevation||'at',
   elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
-  platformType:s.platformType||'island',
+  platformType:s.platformType||'side',
   platformSize:PLATFORM_SIZE_PRESETS[s.platformSize]?s.platformSize:platformSize,
   platformLengthMeters:Number.isFinite(s.platformLengthMeters)?Math.max(30,Math.min(300,s.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS,
   platformBearing:Number.isFinite(s.platformBearing)?s.platformBearing:null,
@@ -2887,7 +2887,7 @@ if(mode==='delete'){
     platform.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(holdTimer);if(mode==='delete')return;holdTriggered=true;showStationMenu(i);});
     platform.on('click',function(e){L.DomEvent.stopPropagation(e);if(holdTriggered||stationMenuIndex===i){holdTriggered=false;return;}handleStationClick(i);});
   }
-  if((s.platformType||'island')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
+  if((s.platformType||'side')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
 
  });
  syncStationEndpointVisibility();
