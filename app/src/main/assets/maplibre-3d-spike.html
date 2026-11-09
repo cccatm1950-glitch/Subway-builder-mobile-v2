@@ -32,19 +32,40 @@ button:active{background:#24505b}
  </div>
 </div>
 <div id="status" class="panel" role="status">Loading OpenFreeMap vector map…</div>
-<div id="attribution" style="position:absolute;z-index:19;right:8px;bottom:6px;background:rgba(255,255,255,.9);color:#333;padding:4px 7px;border-radius:5px;font:11px system-ui"><a href="https://openfreemap.org/" target="_blank" rel="noopener" style="color:inherit">OpenFreeMap</a> · © OpenStreetMap</div>
 <script type="importmap">{"imports":{"maplibre-gl":"https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs"}}</script>
 <script type="module">
 import * as maplibregl from 'https://cdn.jsdelivr.net/npm/maplibre-gl@6.9.0/dist/maplibre-gl.mjs';
 
 const center=[-122.4194,37.7749];
 const status=document.getElementById('status');
-let pitch=65,bearing=-18,overlayVisible=true,map;
+const styleUrl='https://tiles.openfreemap.org/styles/liberty';
+let pitch=65,bearing=-18,overlayVisible=true,map,styleFetchState='not checked';
 function report(message){status.textContent=message;}
+if(!maplibregl.supported({failIfMajorPerformanceCaveat:false})){
+ report('WebGL2 is unavailable in this Android WebView. Check hardware acceleration and Android System WebView updates.');
+ throw new Error('MapLibre reports WebGL2 unsupported');
+}
+report('WebGL2 available. Checking OpenFreeMap style connection…');
+const styleProbe=new AbortController();
+const styleProbeTimer=setTimeout(()=>styleProbe.abort(),10000);
+fetch(styleUrl,{mode:'cors',cache:'no-store',signal:styleProbe.signal}).then(response=>{
+ clearTimeout(styleProbeTimer);
+ if(!response.ok)throw new Error('Style HTTP '+response.status);
+ return response.json();
+}).then(style=>{
+ styleFetchState='HTTP OK';
+ report('Style connection works. Initializing map renderer…');
+ console.info('OpenFreeMap style probe succeeded',style.version,style.sources);
+}).catch(error=>{
+ clearTimeout(styleProbeTimer);
+ styleFetchState=error.name==='AbortError'?'timed out':error.message;
+ report('OpenFreeMap style request failed: '+styleFetchState+'. Check Android WebView network access/CORS.');
+ console.error('OpenFreeMap style probe failed',error);
+});
 try{
  map=new maplibregl.Map({
   container:'map',
-  style:'https://tiles.openfreemap.org/styles/liberty',
+  style:styleUrl,
   center,zoom:15.5,pitch,bearing,maxPitch:85,
   attributionControl:{customAttribution:'',compact:false},
   canvasContextAttributes:{antialias:true},
@@ -52,6 +73,7 @@ try{
  });
  map.addControl(new maplibregl.NavigationControl({visualizePitch:true}),'bottom-right');
  map.on('load',()=>{
+  report('Map style and tiles loaded. Adding 3D buildings and track overlays…');
   map.addSource('sb-demo-geometry',{type:'geojson',data:route});
   map.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
   const firstSymbolLayer=map.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
@@ -81,7 +103,7 @@ const route={type:'FeatureCollection',features:[
 document.getElementById('pitch').addEventListener('click',()=>{if(!map)return;pitch=pitch>=80?35:Math.min(85,pitch+10);map.easeTo({pitch,duration:450});document.getElementById('pitch').textContent='Tilt: '+pitch+'°';});
 document.getElementById('bearing').addEventListener('click',()=>{if(!map)return;bearing+=45;map.easeTo({bearing,duration:550});});
 document.getElementById('overlay').addEventListener('click',()=>{if(!map)return;overlayVisible=!overlayVisible;for(const id of ['sb-demo-platforms','sb-demo-platform-outlines','sb-demo-rails-casing','sb-demo-rails'])if(map.getLayer(id))map.setLayoutProperty(id,'visibility',overlayVisible?'visible':'none');document.getElementById('overlay').textContent='Track overlay: '+(overlayVisible?'on':'off');document.getElementById('overlay').setAttribute('aria-pressed',String(overlayVisible));});
-setTimeout(()=>{if(status.textContent.startsWith('Loading'))report('Map style did not finish loading. Check internet access, WebView network restrictions, and WebGL support.');},15000);
+setTimeout(()=>{if(!map||!map.isStyleLoaded())report('MapLibre did not finish loading. Style probe: '+styleFetchState+'. WebGL2: '+(maplibregl.supported({failIfMajorPerformanceCaveat:false})?'available':'unavailable')+'.');},20000);
 </script>
 </body>
 </html>
