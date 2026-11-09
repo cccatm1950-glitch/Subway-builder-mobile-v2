@@ -205,3 +205,16 @@ assert.deepEqual(northboundRails, southboundRails);
 const diagonalNormal = endpointNormal(1, 1, 45);
 assert.ok(Math.abs(Math.hypot(diagonalNormal.east, diagonalNormal.north) - 1) < 1e-9);
 assert.equal(endpointNormal(0, 0, 90), null);
+
+const blendEndpointNormal = topology.calculateBlendedEndpointNormal;
+const routeNormal = blendEndpointNormal(0, 1, 0, null, 0, 0);
+assert.deepEqual(routeNormal, { east: -1, north: 0 });
+const alignedAtStart = blendEndpointNormal(0, 1, 0, null, 1, 0);
+assert.deepEqual(alignedAtStart, { east: -1, north: 0 });
+const halfAligned = blendEndpointNormal(0, 1, 90, null, 0.5, 0);
+assert.ok(Math.abs(Math.hypot(halfAligned.east, halfAligned.north) - 1) < 1e-9);
+assert.ok(halfAligned.east < 0 && halfAligned.north > 0);
+const alignedAtEnd = blendEndpointNormal(0, -1, null, 180, 0, 1);
+assert.deepEqual(alignedAtEnd, { east: 1, north: 0 });
+const invalidBlend = blendEndpointNormal(0, 0, 90, 90, 1, 1);
+assert.equal(invalidBlend, null);
