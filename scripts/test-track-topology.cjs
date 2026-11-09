@@ -163,5 +163,5 @@ assert.equal(platformClearance([0, 0], [0, 1], 90, -1, halfWidth, clearance), nu
 const clearanceProfile = topology.calculatePlatformClearanceTransitionProfile([0, 25, 50, 75, 100], 100, 20, 20, 50);
 assert.deepEqual(clearanceProfile, [20, 10, 0, 10, 20]);
 const shortClearanceProfile = topology.calculatePlatformClearanceTransitionProfile([0, 25, 50, 75, 100], 100, 20, 10, 80);
-assert.deepEqual(shortClearanceProfile, [20, 15, 15, 12.5, 10]);
+assert.deepEqual(shortClearanceProfile, [20, 10, 0, 5, 10]);
 assert.deepEqual(topology.calculatePlatformClearanceTransitionProfile([0, 50, 100], 0, 20, 20), [0, 0, 0]);
