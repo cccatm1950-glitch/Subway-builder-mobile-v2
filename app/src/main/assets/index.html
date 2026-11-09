@@ -2735,7 +2735,8 @@ if(mode==='delete'){
  });
 }
 
-  const endpointStations=getTrackStationEndpointStations(t);\n  points=getTrackCenterlinePoints(t,endpointStations);
+  const endpointStations=getTrackStationEndpointStations(t);
+  points=getTrackCenterlinePoints(t,endpointStations);
 
    // Transparent edit hitbox follows the sampled route, not the station chord.
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
