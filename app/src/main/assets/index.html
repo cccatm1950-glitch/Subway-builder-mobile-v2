@@ -1414,7 +1414,7 @@ button,.start-card button,#constructionPanel button,#stationContextMenu button,#
 #map.sb-track-drawing{cursor:crosshair;touch-action:none}/* PR #54 — balanced two-row tool bay and prevent accidental UI text selection. */
 #constructionPanel .tool-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(58px,auto))!important;justify-items:center!important;align-items:center!important;justify-content:stretch!important;gap:10px 8px!important;padding:10px 8px 12px!important}#constructionPanel .tool-grid button{width:48px!important;height:48px!important;min-width:48px!important;min-height:48px!important;margin:0!important;justify-self:center!important;align-self:center!important;display:grid!important;place-items:center!important}#constructionPanel .tool-grid .sb-tool-slot-empty{display:block;width:48px;height:48px;justify-self:center;align-self:center;border:1px dashed rgba(205,229,250,.16);border-radius:50%;background:rgba(255,255,255,.018);pointer-events:none}#constructionPanel .tool-grid button svg{width:28px!important;height:28px!important}
 @media(max-width:560px){#constructionPanel .tool-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-rows:repeat(2,minmax(54px,auto))!important;gap:8px 5px!important;padding:9px 5px 10px!important}#constructionPanel .tool-grid button,#constructionPanel .tool-grid .sb-tool-slot-empty{width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important}#constructionPanel .tool-grid button svg{width:26px!important;height:26px!important}}/* Disable text selection/copy highlighting on game UI, while keeping editable fields selectable. */
-html,body,#map,#sb-3d-map,#constructionPanel,#constructionPanel *,#sb-top-dock,#sb-top-dock *,#sb-action-dock,#sb-action-dock *,#message,#stationContextMenu,#stationContextMenu *,#sb-game-menu,#sb-game-menu *,#startMenu,#startMenu *,#sb-terms-overlay,#sb-terms-overlay *,button,summary,.leaflet-container,.leaflet-container *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
+html,body,#map,#constructionPanel,#constructionPanel *,#sb-top-dock,#sb-top-dock *,#sb-action-dock,#sb-action-dock *,#message,#stationContextMenu,#stationContextMenu *,#sb-game-menu,#sb-game-menu *,#startMenu,#startMenu *,#sb-terms-overlay,#sb-terms-overlay *,button,summary,.leaflet-container,.leaflet-container *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important}
 input,textarea,[contenteditable="true"],[contenteditable="true"] *{-webkit-user-select:text!important;user-select:text!important;-webkit-touch-callout:default!important}
 ::selection,::-moz-selection{background:transparent!important;color:inherit!important}/* PR #56 — eight evenly spaced columns across two horizontal rows. */
 #constructionPanel .tool-grid{
@@ -1999,7 +1999,6 @@ button.sb-flat-close,[data-flat-close="true"]{
 </div>
 
 <div id="map"></div>
-<div id="sb-3d-map" aria-label="3D OpenStreetMap city preview"></div>
 <div id="startMenu" aria-label="Start Subway Builder">
  <div class="play-launch">
   <div class="play-brand">SUBWAY BUILDER</div>
@@ -2686,7 +2685,6 @@ function renderNetwork(){
  if(!Array.isArray(platformCrowdMarkers))platformCrowdMarkers=[];
  platformCrowdMarkers.forEach(marker=>{if(marker&&map&&map.hasLayer(marker))map.removeLayer(marker);});
  platformCrowdMarkers=[];
- if(window.refreshSubway3D)window.refreshSubway3D();
  if(window.networkLayer){
   map.removeLayer(window.networkLayer);
  }
@@ -3551,7 +3549,7 @@ function stationPlatformGeometry(anchor,edge){
  return {corners,lengthMeters,bearing,center:map.unproject(centerPoint,18),back:map.unproject(back,18),front:map.unproject(front,18),widthMeters:dimensions.width};
 }
 function updateStationPlacementPreview(){
- if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){clearStationPlacementPreview();return;}
+ if(mode!=='station'){clearStationPlacementPreview();return;}
  const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
  const geometry=pendingStationPlacement?stationPlatformGeometry(pendingStationPlacement,crosshair):stationPlatformGeometry(crosshair,crosshair);
  if(!stationPlatformPreview)stationPlatformPreview=L.polygon(geometry.corners,{color:'#65ffe4',weight:2,opacity:.95,fillColor:'#35d9c0',fillOpacity:.22,dashArray:'6 5',interactive:false,className:'sb-station-platform-preview'}).addTo(map);
@@ -3791,7 +3789,7 @@ function startStartMenuMapPan(){
  if(sbStartupDismissed)return;
  document.body.classList.add('sb-start-menu-open');
  document.getElementById('map')?.classList.add('sb-start-blur');
- document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
+ 
 }
 function dismissStartupOverlays(){
  sbStartupDismissed=true;
@@ -3839,114 +3837,7 @@ window.addEventListener('load',function(){
 });
 </script>
 
-<script>
-let sb3dMap=null;
-let sb3dReady=false;
-let sb3dLibraryPromise=null;
-function sb3dData(){
- const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
- const stations=window.getSubway3DStations?window.getSubway3DStations():[];
- return {lines:{type:'FeatureCollection',features:lines},stations:{type:'FeatureCollection',features:stations}};
-}
-function sb3dRefresh(){
- if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
- const data=sb3dData();
- sb3dMap.getSource('sb-lines')?.setData(data.lines);
- sb3dMap.getSource('sb-stations')?.setData(data.stations);
-}
-function loadMapLibre(){
- if(!sb3dLibraryPromise)sb3dLibraryPromise=import('https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs').then(mod=>mod).catch(error=>{sb3dLibraryPromise=null;throw error;});
- return sb3dLibraryPromise;
-}
-async function ensure3DMap(){
- if(sb3dMap)return sb3dMap;
- const maplibregl=await loadMapLibre();
- const center=map.getCenter();
- sb3dMap=new maplibregl.Map({
-  container:'sb-3d-map',style:'https://tiles.openfreemap.org/styles/liberty',
-  center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
-  pitch:58,bearing:-18,maxPitch:78,minPitch:0,antialias:true,attributionControl:false,
-  interactive:true,dragRotate:true,touchPitch:true,touchZoomRotate:true,
-  pitchWithRotate:true,cooperativeGestures:false
- });
- sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}), 'top-right');
- sb3dMap.on('load',()=>{
-  try{
-   sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-   const layers=sb3dMap.getStyle().layers||[];
-   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
-   sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
-    filter:['!=',['get','hide_3d'],true],
-    paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
-     'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
-     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
-   const data=sb3dData();
-   sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
-   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
-   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
-   sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
-   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
-   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-   // Buildings, stations and routes are now directly inspectable in the 3D city.
-   sb3dMap.on('mouseenter','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
-   sb3dMap.on('mouseleave','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='';});
-   sb3dMap.on('click','sb-3d-buildings',event=>{
-    const feature=event.features&&event.features[0];if(!feature)return;
-    const props=feature.properties||{};
-    const name=props.name||props.name_en||'City building';
-    const height=Number(props.render_height||props.height);
-    const detail=Number.isFinite(height)&&height>0?Math.round(height)+' m tall':'Building footprint';
-    new maplibregl.Popup({closeButton:true,closeOnClick:true,offset:12})
-     .setLngLat(event.lngLat).setText(name+' · '+detail).addTo(sb3dMap);
-   });
-   sb3dMap.on('click','sb-station-dots',event=>{
-    const feature=event.features&&event.features[0];if(!feature)return;
-    const name=feature.properties?.name||'Subway station';
-    new maplibregl.Popup({closeButton:true,offset:14})
-     .setLngLat(event.lngLat).setText(name+' · Subway Builder station').addTo(sb3dMap);
-   });
-   sb3dMap.on('click','sb-route-lines',event=>{
-    const feature=event.features&&event.features[0];if(!feature)return;
-    const p=feature.properties||{};
-    new maplibregl.Popup({closeButton:true,offset:12})
-     .setLngLat(event.lngLat).setText((p.from||'Station')+' ↔ '+(p.to||'Station')+' · Track '+(p.trackNumber||'')).addTo(sb3dMap);
-   });
-   sb3dMap.on('mouseenter','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
-   sb3dMap.on('mouseleave','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='';});
-   sb3dMap.on('mouseenter','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
-   sb3dMap.on('mouseleave','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='';});
-   sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
-  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded. Switch back to 2D Build.');}
- });
- sb3dMap.on('error',event=>console.warn('3D city map:',event.error||event));
- return sb3dMap;
-}
-window.toggle3DCityView=async function(){
- const host=document.getElementById('sb-3d-map');
- const toggle=document.querySelector('#sb-construction-context-menu [data-sb-action="toggle-3d"]')||document.getElementById('sb-3d-toggle');
- const enable=!host.classList.contains('active');
- if(!enable){
-  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  if(toggle){toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';toggle.setAttribute('aria-pressed','false');}
-  map.invalidateSize();message('2D construction view restored.');return;
- }
- host.classList.add('active');document.getElementById('map').style.visibility='hidden';
- if(toggle){toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';toggle.setAttribute('aria-pressed','true');}
- try{
-  await ensure3DMap();
-  const center=map.getCenter();
-  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dRefresh();sb3dMap.triggerRepaint();}}));
-  message('3D city preview — switch to 2D Build to edit your network.');
- }catch(error){
-  console.error('Unable to initialize 3D city map:',error);
-  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  if(toggle){toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';toggle.setAttribute('aria-pressed','false');}
-  map.invalidateSize();message('3D map could not load. Check your connection and try again.');
- }
-};
-window.refreshSubway3D=sb3dRefresh;
-</script>
+
 
 
 
@@ -4012,7 +3903,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
 <script>
 /* Touch feedback for construction controls; delete uses persistent mode state only. */
 (function(){
- const selector='#constructionPanel button,.tool-group button,.bottom button:not(#trashModeBtn),#sb-3d-toggle,#sb-zoom-controls button,#stationContextMenu button';
+ const selector='#constructionPanel button,.tool-group button,.bottom button:not(#trashModeBtn),#sb-zoom-controls button,#stationContextMenu button';
  let holdTimer=null,activeButton=null,shell=null,releaseTimer=null;
  function clearShell(){if(shell){shell.remove();shell=null;}}
  function release(){
@@ -4081,7 +3972,6 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
     'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
     'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
     'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
-    'toggle-3d':()=>window.toggle3DCityView(),
    'line-color':()=>document.getElementById('sb-line-color-trigger')?.click()
    };
    if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
@@ -4348,7 +4238,6 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  let modeBeforeDelete='station';
  const priorActivateDelete=window.activateDeleteMode;
  window.activateDeleteMode=function(){
-  if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
   if(typeof window.closeStationMenu==='function')window.closeStationMenu();
   if(mode==='delete'){
    const restore=['station','track','curve','waypoint','inspect'].includes(modeBeforeDelete)?modeBeforeDelete:'station';
@@ -5343,13 +5232,13 @@ body,#map,#sb-3d-map{touch-action:none!important}
   const insidePanel=event.target.closest&&event.target.closest('#constructionPanel');
   if(insidePanel)return;
   // Leaflet owns map gestures; elsewhere, prevent the Android WebView from rubber-banding.
-  if(!event.target.closest||!event.target.closest('#map,#sb-3d-map'))event.preventDefault();
+  if(!event.target.closest||!event.target.closest('#map'))event.preventDefault();
  },{passive:false});
  document.addEventListener('gesturestart',function(event){event.preventDefault();},{passive:false});
  document.addEventListener('gesturechange',function(event){event.preventDefault();},{passive:false});
  document.addEventListener('wheel',function(event){
   if(event.target.closest&&event.target.closest('#constructionPanel'))return;
-  if(!event.target.closest||!event.target.closest('#map,#sb-3d-map'))event.preventDefault();
+  if(!event.target.closest||!event.target.closest('#map'))event.preventDefault();
  },{passive:false});
 })();
 </script>
