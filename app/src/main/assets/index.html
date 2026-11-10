@@ -3757,7 +3757,7 @@ async function ensure3DMap(){
  const maplibregl=await loadMapLibre();
  const center=map.getCenter();
  sb3dMap=new maplibregl.Map({
-  container:'sb-3d-map',style:'https://tiles.openfreemap.org/styles/liberty',
+  container:'sb-3d-map',style:currentTheme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty',
   center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
   pitch:58,bearing:-18,maxPitch:78,minPitch:0,antialias:true,attributionControl:false,
   interactive:true,dragRotate:true,touchPitch:true,touchZoomRotate:true,
@@ -9680,3 +9680,212 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
   filter:none!important;
 }
 </style>
+
+
+<style id="sb-service-dock-close-animation-fix">
+/* Keep the service content mounted while the dock contracts. Hiding it with
+   display:none on the collapsed state was cutting off the closing transition. */
+#sb-action-dock .sb-dock-panel-service{
+ box-sizing:border-box!important;
+ flex:0 1 54px!important;
+ min-width:54px!important;
+ width:auto!important;
+ max-width:none!important;
+ overflow:hidden!important;
+ transition:flex .42s cubic-bezier(.22,.75,.25,1),
+            flex-basis .42s cubic-bezier(.22,.75,.25,1),
+            width .42s cubic-bezier(.22,.75,.25,1),
+            max-width .42s cubic-bezier(.22,.75,.25,1),
+            padding .42s cubic-bezier(.22,.75,.25,1)!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded{
+ flex:1 1 0!important;
+ min-width:0!important;
+ max-width:none!important;
+}
+#sb-action-dock .sb-dock-panel-service #sb-service-lines,
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 46px!important;
+ box-sizing:border-box!important;
+ flex:1 1 0!important;
+ width:0!important;
+ min-width:0!important;
+ max-width:none!important;
+ height:100%!important;
+ min-height:0!important;
+ overflow:hidden!important;
+ opacity:0!important;
+ visibility:hidden!important;
+ pointer-events:none!important;
+ transform:translateX(-10px)!important;
+ transition:opacity .22s ease,
+            transform .34s cubic-bezier(.22,.75,.25,1),
+            visibility 0s linear .42s!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+ opacity:1!important;
+ visibility:visible!important;
+ pointer-events:auto!important;
+ transform:translateX(0)!important;
+ transition-delay:0s,0s,0s!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content,
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ min-width:0!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-action-dock .sb-dock-panel-service,
+ #sb-action-dock .sb-dock-panel-service #sb-service-lines{
+  transition:none!important;
+ }
+}
+</style>
+
+
+<style id="sb-crosshair-theme-aware-precision-reticle">
+:root{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#071321;--sb-crosshair-accent:#35d9c5}
+html[data-sb-theme="light"]{--sb-crosshair-core:#102236;--sb-crosshair-outline:#fff;--sb-crosshair-accent:#176bc1}
+html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#071321;--sb-crosshair-accent:#35d9c5}
+#map .sb-map-crosshair{
+ box-sizing:border-box!important;width:36px!important;height:36px!important;
+ border:1.5px solid var(--sb-crosshair-core)!important;border-radius:50%!important;
+ background:linear-gradient(var(--sb-crosshair-core),var(--sb-crosshair-core)) center/100% 1px no-repeat!important;
+ box-shadow:0 0 0 2px var(--sb-crosshair-outline),0 0 0 4px var(--sb-crosshair-accent),
+  0 0 10px color-mix(in srgb,var(--sb-crosshair-accent) 58%,transparent)!important;
+ opacity:1!important;visibility:visible!important;
+}
+#map .sb-map-crosshair:before{
+ content:""!important;position:absolute!important;left:50%!important;top:50%!important;
+ box-sizing:border-box!important;width:8px!important;height:8px!important;
+ transform:translate(-50%,-50%)!important;border-radius:50%!important;
+ background:var(--sb-crosshair-accent)!important;border:1.5px solid var(--sb-crosshair-core)!important;
+ box-shadow:0 0 0 2px var(--sb-crosshair-outline),0 0 7px var(--sb-crosshair-accent)!important;
+}
+#map .sb-map-crosshair:after{
+ content:""!important;position:absolute!important;left:50%!important;top:50%!important;
+ width:1px!important;height:52px!important;transform:translate(-50%,-50%)!important;
+ background:linear-gradient(to bottom,transparent,var(--sb-crosshair-core) 22%,var(--sb-crosshair-core) 78%,transparent)!important;
+ box-shadow:0 0 0 1px color-mix(in srgb,var(--sb-crosshair-outline) 72%,transparent)!important;
+}
+@media(prefers-reduced-motion:reduce){#map .sb-map-crosshair{transition:none!important}}
+</style>
+
+<style id="sb-construction-menu-categorized-groups">
+#sb-construction-context-menu .sb-construction-context-grid{
+ display:flex!important;flex-direction:column!important;gap:9px!important;
+ min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+}
+#sb-construction-context-menu .sb-construction-category{
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+ gap:6px!important;min-width:0!important;
+}
+#sb-construction-context-menu .sb-construction-category-heading{
+ margin:0!important;padding:7px 5px 2px!important;
+ color:rgba(208,229,247,.78)!important;font-size:9px!important;font-weight:800!important;
+ letter-spacing:1.35px!important;line-height:1.2!important;text-transform:uppercase!important;
+ border-top:1px solid rgba(205,230,248,.12)!important;
+}
+#sb-construction-context-menu .sb-construction-category:first-child .sb-construction-category-heading{
+ border-top:0!important;padding-top:2px!important;
+}
+#sb-construction-context-menu .sb-construction-category-grid{
+ display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ gap:7px!important;min-width:0!important;
+}
+#sb-construction-context-menu .sb-construction-context-grid button{
+ width:100%!important;min-width:0!important;aspect-ratio:1/1!important;
+}
+#sb-construction-context-menu .sb-platform-size-heading{
+ color:rgba(208,229,247,.78)!important;font-size:9px!important;
+ font-weight:800!important;letter-spacing:1.35px!important;text-transform:uppercase!important;
+}
+</style>
+
+<script id="sb-construction-menu-category-runtime">
+(function(){
+ if(window.__sbConstructionCategories)return;
+ window.__sbConstructionCategories=true;
+ const groups=[
+  {title:'Build & edit',match:b=>b.hasAttribute('data-mode')},
+  {title:'Track geometry',actions:['track-single','track-parallel','curve-mode','tunnel-mode']},
+  {title:'Platforms',actions:['platform-island','platform-side']},
+  {title:'Map & utilities',actions:['clear-selection','toggle-3d','line-color']}
+ ];
+ function organize(menu){
+  const grid=menu?.querySelector('.sb-construction-context-grid');
+  if(!grid||grid.dataset.categoriesReady==='true')return;
+  const buttons=Array.from(grid.querySelectorAll(':scope > button'));
+  if(!buttons.length)return;
+  const sections=[];
+  groups.forEach(group=>{
+   const selected=buttons.filter(button=>group.match?group.match(button):group.actions.includes(button.dataset.sbAction));
+   if(!selected.length)return;
+   const section=document.createElement('section');section.className='sb-construction-category';
+   const heading=document.createElement('h4');heading.className='sb-construction-category-heading';heading.textContent=group.title;
+   const buttonGrid=document.createElement('div');buttonGrid.className='sb-construction-category-grid';
+   section.append(heading,buttonGrid);selected.forEach(button=>buttonGrid.appendChild(button));sections.push(section);
+  });
+  if(!sections.length)return;
+  grid.replaceChildren(...sections);grid.dataset.categoriesReady='true';
+  const platformHeading=menu.querySelector('.sb-platform-size-heading');
+  if(platformHeading)platformHeading.textContent='Platform dimensions';
+ }
+ function scan(){
+  const menu=document.getElementById('sb-construction-context-menu');
+  if(menu?.dataset.sbSvgInventory==='ready')organize(menu);
+ }
+ const observer=new MutationObserver(scan);
+ observer.observe(document.documentElement,{childList:true,subtree:true});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scan,{once:true});
+ scan();
+})();
+</script>
+
+<script id="sb-3d-map-theme-synchronization">
+(function(){
+ if(window.__sb3DThemeSync)return;
+ window.__sb3DThemeSync=true;
+ let appliedTheme=null;
+ function installNetworkLayers(){
+  if(!sb3dMap||!sb3dMap.isStyleLoaded())return;
+  try{
+   if(!sb3dMap.getSource('sb-openfreemap'))sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const layers=sb3dMap.getStyle().layers||[];
+   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
+   if(!sb3dMap.getLayer('sb-3d-buildings')){
+    sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
+     filter:['!=',['get','hide_3d'],true],
+     paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
+      'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
+      'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
+   }
+   const data=sb3dData();
+   if(!sb3dMap.getSource('sb-lines'))sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
+   if(!sb3dMap.getLayer('sb-route-casing'))sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
+   if(!sb3dMap.getLayer('sb-route-lines'))sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
+   if(!sb3dMap.getSource('sb-stations'))sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
+   if(!sb3dMap.getLayer('sb-station-halo'))sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
+   if(!sb3dMap.getLayer('sb-station-dots'))sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
+   sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
+  }catch(error){console.error('3D theme layer restoration failed:',error);}
+ }
+ function syncTheme(){
+  const host=document.getElementById('sb-3d-map');
+  if(!host?.classList.contains('active')||!sb3dMap||!sb3dReady)return;
+  const theme=document.documentElement.getAttribute('data-sb-theme')||'light';
+  if(theme===appliedTheme)return;
+  appliedTheme=theme;sb3dReady=false;
+  const styleUrl=theme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty';
+  sb3dMap.once('style.load',installNetworkLayers);
+  sb3dMap.setStyle(styleUrl);
+ }
+ function observe(){
+  const observer=new MutationObserver(syncTheme);
+  observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-sb-theme']});
+  window.sbSync3DMapTheme=syncTheme;
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observe,{once:true});
+ else observe();
+})();
+</script>
