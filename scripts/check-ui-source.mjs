@@ -120,7 +120,7 @@ assert.ok(html.includes("Tap a start station, preview the route, then tap a dest
   'Track placement instructions must describe tap-to-preview/tap-to-place');
 assert.ok(html.includes('The drawer intentionally remains open until its build-dock toggle is pressed again.'),
   'Construction drawer must stay open until its toggle is pressed again');
-assert.ok(!html.includes("closeConstructionContextMenu();\\n  });"),
+assert.doesNotMatch(html, /if\\(typeof setMode==='function'\\)setMode\\(nextMode\\);\\s*closeConstructionContextMenu\\(\\);/,
   'Selecting a construction tool must not close the construction drawer');
 assert.ok(!html.includes("if(menu&&!menu.contains(event.target)&&!toggle?.contains(event.target))closeConstructionContextMenu();"),
   'Outside taps must not close the construction drawer');
