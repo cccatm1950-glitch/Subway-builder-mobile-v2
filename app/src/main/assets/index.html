@@ -4851,6 +4851,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   menu.style.webkitOverflowScrolling='touch';menu.style.touchAction='pan-y';
   menu.style.overscrollBehaviorY='contain';
  }
+ window.sbPositionConstructionContextMenu=positionConstructionContextMenu;
  function toggleConstructionContextMenu(toggle){
   const existing=document.getElementById('sb-construction-context-menu');
   if(existing){closeConstructionContextMenu();return;}
@@ -10486,8 +10487,8 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
   frame=0;
   const menu=document.getElementById('sb-construction-context-menu');
   const toggle=document.getElementById('sb-build-dock-btn');
-  if(menu&&toggle&&typeof positionConstructionContextMenu==='function')
-   positionConstructionContextMenu(menu,toggle);
+  if(menu&&toggle&&typeof window.sbPositionConstructionContextMenu==='function')
+   window.sbPositionConstructionContextMenu(menu,toggle);
  }
  function schedule(){if(!frame)frame=requestAnimationFrame(reposition);}
  function bind(){
