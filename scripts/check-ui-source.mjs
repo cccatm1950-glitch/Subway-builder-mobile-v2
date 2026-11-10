@@ -44,7 +44,7 @@ for (const required of [
   'handleMapPlacement',
   'handleStationClick',
   'toggleSimulation',
-  'toggle3DCityView'
+  'openSubway3DPreview'
 ]) {
   const declarations = [
     'function ' + required + '(',
@@ -56,6 +56,10 @@ for (const required of [
   assert.ok(declarations.some(declaration => html.includes(declaration)),
     'Expected core interaction ' + required + ' to be present');
 }
+
+assert.ok(html.includes('id="sb-open-maplibre-preview"'), '3D preview must be available from the game menu');
+assert.ok(html.includes('maplibre-3d-spike.html'), '3D preview must open the isolated renderer');
+assert.ok(!html.includes('toggle3DCityView') && !html.includes('toggle-3d'), 'Legacy construction 3D toggle must be removed');
 
 for (const required of [
   'function splitTrackAtCrosshair',
