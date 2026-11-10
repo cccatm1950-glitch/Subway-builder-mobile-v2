@@ -189,6 +189,12 @@ const heldReverseSingleTrackOffset = topology.calculateOffsetTransitionProfile(
 );
 assert.deepEqual(heldReverseSingleTrackOffset, [0, 0, -10, -20, -20, -20]);
 
+const resolveEndpointBearing = topology.resolveEndpointPlatformBearing;
+assert.equal(resolveEndpointBearing('junction', 90), null);
+assert.equal(resolveEndpointBearing('station', 90), 90);
+assert.equal(resolveEndpointBearing('station', null), 90);
+assert.equal(resolveEndpointBearing(undefined, 135), 135);
+
 const endpointNormal = topology.calculateEndpointAlignedNormal;
 const northboundNormal = endpointNormal(0, 1, 0);
 const southboundNormal = endpointNormal(0, -1, 0);
