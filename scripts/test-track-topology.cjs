@@ -249,3 +249,13 @@ const endpointFlare = topology.calculatePlatformClearanceTransitionProfile(
   [0, 25, 50, 75, 100], 100, 3.72, 0, 50, 0, 0
 );
 assert.deepEqual(endpointFlare, [3.72, 1.86, 0, 0, 0]);
+
+
+// Parallel rails converge to a single track at either junction endpoint.
+const junctionMerge = topology.calculateParallelJunctionMergeProfile;
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, true, false, 50), [1, 0.5, 0, 0, 0]);
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, false, true, 50), [0, 0, 0, 0.5, 1]);
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, false, false, 50), [0, 0, 0, 0, 0]);
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, true, true, 50), [1, 0.5, 0, 0.5, 1]);
+assert.deepEqual(junctionMerge([0, 10, 20], 20, true, true, 50), [1, 0, 1]);
+assert.deepEqual(junctionMerge([0, 10, 20], 20, true, false, 0), [0, 0, 0]);
