@@ -232,3 +232,20 @@ assert.ok(northEnd.lat > 37);
 assert.ok(southEnd.lat < 37);
 assert.equal(stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-122}, 50), null);
 assert.equal(stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-121.9}, -1), null);
+
+
+// Parallel platform flare adds only the clearance beyond the normal half-spacing.
+const extraParallelClearance = topology.calculateParallelTrackExtraClearance;
+const platformEdgeClearance = 4 + (3.05 / 2 + 0.1);
+assert.ok(Math.abs(extraParallelClearance(platformEdgeClearance, 3.81) - (platformEdgeClearance - 1.905)) < 1e-9);
+assert.equal(extraParallelClearance(1.5, 3.81), 0);
+assert.equal(extraParallelClearance(5.625, 3.81), 3.72);
+assert.equal(extraParallelClearance(-1, 3.81), null);
+assert.equal(extraParallelClearance(5, 0), null);
+
+// Since route endpoints are now the physical platform ends, flare begins there;
+// no second platform-length hold is applied beyond the station endpoint.
+const endpointFlare = topology.calculatePlatformClearanceTransitionProfile(
+  [0, 25, 50, 75, 100], 100, 3.72, 0, 50, 0, 0
+);
+assert.deepEqual(endpointFlare, [3.72, 1.86, 0, 0, 0]);
