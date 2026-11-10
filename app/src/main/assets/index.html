@@ -2943,7 +2943,8 @@ if(mode==='delete'){
    const side=east*axisEast+north*axisNorth>=0?1:-1;
    return {track,side};
   }).filter(Boolean);
-  if(!incident.some(item=>item.side<0)||!incident.some(item=>item.side>0))return;
+  // Even a terminal station needs its rail span through the full platform.
+  if(!incident.length)return;
   const parallel=incident.some(item=>item.track.style==='parallel');
   const isIsland=(station.platformType||platformType)==='island';
   const platformClearance=isIsland
