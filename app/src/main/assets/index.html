@@ -2819,12 +2819,20 @@ if(mode==='delete'){
     const fromEnd=endOffset*(xEnd*xEnd*(3-2*xEnd));
     return fromStart+fromEnd;
    });
-  const parallelStartClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.a,points[0],points[1]):0;
-  const parallelEndClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]):0;
-  const parallelStartPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.a,points[0],points[1]):0;
-  const parallelEndPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]):0;
+  // The base +/-1.905 m offsets already provide 3.81 m track spacing.
+  // Add only the clearance beyond that baseline, not the full platform clearance.
+  const parallelStartClearance=t.style==='parallel'
+   ?(window.SBTrackTopology?.calculateParallelTrackExtraClearance?.(
+     getIslandPlatformTrackClearance(t.a,points[0],points[1]),MOBILE_PARALLEL_TRACK_SPACING_METERS
+    )??0):0;
+  const parallelEndClearance=t.style==='parallel'
+   ?(window.SBTrackTopology?.calculateParallelTrackExtraClearance?.(
+     getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]),MOBILE_PARALLEL_TRACK_SPACING_METERS
+    )??0):0;
+  // Track endpoints are already anchored at the physical platform ends.
+  // Do not hold the platform footprint a second time beyond those endpoints.
   const parallelPlatformFlare=window.SBTrackTopology?.calculatePlatformClearanceTransitionProfile
-   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,parallelStartPlatformExtent,parallelEndPlatformExtent)
+   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,0,0)
    :cumulativeTrackMeters.map(()=>0);
   const shiftTrackPoints=(offset,parallelSide=0)=>points.map((p,i)=>{
    let prev=points[Math.max(0,i-1)];
