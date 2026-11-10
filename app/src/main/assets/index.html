@@ -2448,17 +2448,38 @@ function redo(){
 
 /* Export the live network to the optional 3D city preview. */
 window.getSubway3DTracks=function(){
+ if(Array.isArray(window.sb3dTrackFeatures)&&window.sb3dTrackFeatures.length)return window.sb3dTrackFeatures;
  return tracks.map((t,i)=>{
   const a=stations[t.a],b=stations[t.b];if(!a||!b)return null;
   const coords=getTrackCenterlinePoints(t).map(point=>[point[1],point[0]]);
-  return {type:'Feature',properties:{
-   color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],
-   from:a.name||('Station '+(t.a+1)),to:b.name||('Station '+(t.b+1)),
-   trackNumber:i+1,elevation:t.elevation||'at',
-   startElevation:Number.isFinite(t.startElevation)?t.startElevation:legacyTrackElevation(t.elevation),
-   endElevation:Number.isFinite(t.endElevation)?t.endElevation:legacyTrackElevation(t.elevation),style:t.style||'single'
-  },geometry:{type:'LineString',coordinates:coords}};
+  return {type:'Feature',properties:{color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],trackNumber:i+1,style:t.style||'single'},geometry:{type:'LineString',coordinates:coords}};
  }).filter(Boolean);
+};
+window.getSubway3DPlatforms=function(){
+ const features=[];
+ stations.forEach((station,index)=>{
+  if(!station||station.nodeType==='junction')return;
+  const dimensions=getPlatformDimensions(station.platformSize||platformSize);
+  const halfWidth=dimensions.width/2;
+  const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
+  const bearing=(Number.isFinite(station.platformBearing)?station.platformBearing:90)*Math.PI/180;
+  const axisEast=Math.sin(bearing),axisNorth=Math.cos(bearing);
+  const normalEast=-axisNorth,normalNorth=axisEast;
+  const cosLatitude=Math.cos(station.lat*Math.PI/180);
+  const offsets=(station.platformType||platformType)==='side'
+   ?[-1,1].map(side=>side*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)):[0];
+  offsets.forEach((offset,platformIndex)=>{
+   const corners=[];
+   for(const along of [-1,1])for(const across of [-1,1]){
+    const east=axisEast*halfLength*along+normalEast*(offset+halfWidth*across);
+    const north=axisNorth*halfLength*along+normalNorth*(offset+halfWidth*across);
+    corners.push([station.lng+east/(111320*cosLatitude),station.lat+north/111320]);
+   }
+   const ring=[corners[0],corners[1],corners[3],corners[2],corners[0]];
+   features.push({type:'Feature',properties:{stationIndex:index,platformIndex,platformType:station.platformType||platformType},geometry:{type:'Polygon',coordinates:[ring]}});
+  });
+ });
+ return features;
 };
 window.getSubway3DStations=function(){
  return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
@@ -2571,12 +2592,34 @@ function getTrainRoutePoints(track){
  return getTrackCenterlinePoints(track);
 }
 
-function getTrackCenterlinePoints(track){
+function getTrackStationEndpointStations(track){
  const a=stations[track.a],b=stations[track.b];
+ if(!a||!b)return null;
+ const firstReference=Array.isArray(track.centerline)&&track.centerline.length>1
+  ?track.centerline[1]
+  :(track.waypoints?.[0]||b);
+ const lastReference=Array.isArray(track.centerline)&&track.centerline.length>1
+  ?track.centerline[track.centerline.length-2]
+  :(track.waypoints?.[track.waypoints.length-1]||a);
+ const endpointFor=(station,reference)=>{
+  if(station.nodeType==='junction')return {lat:station.lat,lng:station.lng};
+  const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
+  const length=Number.isFinite(station.platformLengthMeters)
+   ?Math.max(30,Math.min(300,station.platformLengthMeters))
+   :DEFAULT_PLATFORM_LENGTH_METERS;
+  const endpoint=window.SBTrackTopology?.calculateStationEndpoint?.(
+   {lat:station.lat,lng:station.lng},bearing,
+   {lat:reference.lat,lng:reference.lng},length/2
+  );
+  return endpoint?{...station,lat:endpoint.lat,lng:endpoint.lng}:station;
+ };
+ return {a:endpointFor(a,firstReference),b:endpointFor(b,lastReference)};
+}
+
+function getTrackCenterlinePoints(track,endpointStations=null){
+ endpointStations=endpointStations||getTrackStationEndpointStations(track);
+ const a=endpointStations?.a||stations[track.a],b=endpointStations?.b||stations[track.b];
  if(!a||!b)return [];
- if(Array.isArray(track.centerline)&&track.centerline.length>=2){
-  return track.centerline.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)).map(p=>[p.lat,p.lng]);
- }
  if(track.curve&&(track.waypoints||[]).length){
   const route=[[a.lat,a.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[b.lat,b.lng]]
    .map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
@@ -2614,6 +2657,30 @@ function getTrackCenterlinePoints(track){
    }
   }
   return points;
+ }
+ if(Array.isArray(track.centerline)&&track.centerline.length>=2){
+  const saved=track.centerline.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)).map(p=>[p.lat,p.lng]);
+  if(saved.length>=2&&endpointStations){
+   // Move saved endpoints to the physical platform ends without creating a
+   // one-segment kink. The endpoint correction fades out over 50 m of route.
+   const originalStart=saved[0].slice(),originalEnd=saved[saved.length-1].slice();
+   const startDelta=[a.lat-originalStart[0],a.lng-originalStart[1]];
+   const endDelta=[b.lat-originalEnd[0],b.lng-originalEnd[1]];
+   const distances=[0];
+   for(let i=1;i<saved.length;i++){
+    distances[i]=distances[i-1]+map.distance(saved[i-1],saved[i]);
+   }
+   const total=distances[distances.length-1]||0;
+   const fade=distance=>{const x=Math.max(0,Math.min(1,distance/50));return 1-x*x*(3-2*x);};
+   for(let i=0;i<saved.length;i++){
+    const fromStart=fade(distances[i]);
+    const fromEnd=fade(total-distances[i]);
+    saved[i][0]+=startDelta[0]*fromStart+endDelta[0]*fromEnd;
+    saved[i][1]+=startDelta[1]*fromStart+endDelta[1]*fromEnd;
+   }
+   saved[0]=[a.lat,a.lng];saved[saved.length-1]=[b.lat,b.lng];
+  }
+  return saved;
  }
  return getStationTangentCenterline(a,b);
 }
@@ -2663,10 +2730,10 @@ function renderTrackDynamicsOverlay(track,points,layer){
 
 function renderNetwork(){
  // WebView state can be reset during restore/re-entry; normalize marker storage before iteration.
+ window.sb3dTrackFeatures=[];
  if(!Array.isArray(platformCrowdMarkers))platformCrowdMarkers=[];
  platformCrowdMarkers.forEach(marker=>{if(marker&&map&&map.hasLayer(marker))map.removeLayer(marker);});
  platformCrowdMarkers=[];
- if(window.refreshSubway3D)window.refreshSubway3D();
  if(window.networkLayer){
   map.removeLayer(window.networkLayer);
  }
@@ -2766,7 +2833,8 @@ if(mode==='delete'){
  });
 }
 
-  points=getTrackCenterlinePoints(t);
+  const endpointStations=getTrackStationEndpointStations(t);
+  points=getTrackCenterlinePoints(t,endpointStations);
 
    // Transparent edit hitbox follows the sampled route, not the station chord.
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
@@ -2782,8 +2850,11 @@ if(mode==='delete'){
   const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
-  const startOffset=getStationTrackSideOffset(t.a,points[0],points[1],t.style);
-  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
+  // Endpoint anchoring places the route at the physical platform end.
+  // Do not add a second station-side offset to single tracks; parallel track
+  // platform clearance remains handled by the dedicated flare profile below.
+  const startOffset=0;
+  const endOffset=0;
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
   // Parallel track centerlines use the desktop 3.81 m standard gauge spacing.
@@ -2829,12 +2900,27 @@ if(mode==='delete'){
     const fromEnd=endOffset*(xEnd*xEnd*(3-2*xEnd));
     return fromStart+fromEnd;
    });
-  const parallelStartClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.a,points[0],points[1]):0;
-  const parallelEndClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]):0;
-  const parallelStartPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.a,points[0],points[1]):0;
-  const parallelEndPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]):0;
+  // The base +/-1.905 m offsets already provide 3.81 m track spacing.
+  // Add only the clearance beyond that baseline, not the full platform clearance.
+  const parallelStartClearance=t.style==='parallel'
+   ?(window.SBTrackTopology?.calculateParallelTrackExtraClearance?.(
+     getIslandPlatformTrackClearance(t.a,points[0],points[1]),MOBILE_PARALLEL_TRACK_SPACING_METERS
+    )??0):0;
+  const parallelEndClearance=t.style==='parallel'
+   ?(window.SBTrackTopology?.calculateParallelTrackExtraClearance?.(
+     getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]),MOBILE_PARALLEL_TRACK_SPACING_METERS
+    )??0):0;
+  // Track endpoints are already anchored at the physical platform ends.
+  // Do not hold the platform footprint a second time beyond those endpoints.
   const parallelPlatformFlare=window.SBTrackTopology?.calculatePlatformClearanceTransitionProfile
-   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,parallelStartPlatformExtent,parallelEndPlatformExtent)
+   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,0,0)
+   :cumulativeTrackMeters.map(()=>0);
+  const parallelJunctionMerge=window.SBTrackTopology?.calculateParallelJunctionMergeProfile
+   ?window.SBTrackTopology.calculateParallelJunctionMergeProfile(
+     cumulativeTrackMeters,totalTrackMeters,
+     stations[t.a]?.nodeType==='junction',stations[t.b]?.nodeType==='junction',
+     OFFSET_TRANSITION_LENGTH_METERS
+    )
    :cumulativeTrackMeters.map(()=>0);
   const shiftTrackPoints=(offset,parallelSide=0)=>points.map((p,i)=>{
    let prev=points[Math.max(0,i-1)];
@@ -2842,15 +2928,37 @@ if(mode==='delete'){
    let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
    let dy=next[0]-prev[0];
    let length=Math.sqrt(dx*dx+dy*dy)||1;
-   const lateralOffset=stationOffsets[i]+offset+parallelSide*parallelPlatformFlare[i];
+   const parallelOffsetScale=1-(parallelJunctionMerge[i]||0);
+   const lateralOffset=stationOffsets[i]+(offset+parallelSide*parallelPlatformFlare[i])*parallelOffsetScale;
+   // Platform-bearing alignment applies only at physical stations. Junctions
+   // have no platform axis, so their parallel pair must follow the local route
+   // tangent and meet the single rail without an arbitrary east-west rotation.
+   const startBearing=window.SBTrackTopology?.resolveEndpointPlatformBearing?.(
+    stations[t.a]?.nodeType,stations[t.a]?.platformBearing,90
+   )??(stations[t.a]?.nodeType==='junction'?null:90);
+   const endBearing=window.SBTrackTopology?.resolveEndpointPlatformBearing?.(
+    stations[t.b]?.nodeType,stations[t.b]?.platformBearing,90
+   )??(stations[t.b]?.nodeType==='junction'?null:90);
+   const smoothstep=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
+   const startNormalWeight=parallelSide!==0&&stations[t.a]?.nodeType!=='junction'?1-smoothstep(cumulativeTrackMeters[i]/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const endNormalWeight=parallelSide!==0&&stations[t.b]?.nodeType!=='junction'?1-smoothstep((totalTrackMeters-cumulativeTrackMeters[i])/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const endpointNormal=parallelSide!==0
+    ?window.SBTrackTopology?.calculateBlendedEndpointNormal?.(dx/length,dy/length,startBearing,endBearing,startNormalWeight,endNormalWeight)
+    :null;
+   const normalEast=endpointNormal?.east??(-dy/length);
+   const normalNorth=endpointNormal?.north??(dx/length);
    return [
-    p[0]+(dx/length)*lateralOffset/111320,
-    p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
+    p[0]+normalNorth*lateralOffset/111320,
+    p[1]+normalEast*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
    ];
   });
   t.trainCenterline=shiftTrackPoints(0);
   function drawLine(offset,parallelSide=0){
    const shifted=shiftTrackPoints(offset,parallelSide);
+   window.sb3dTrackFeatures.push({type:'Feature',properties:{
+    color:routeColor,centerlineIndex:parallelSide<0?0:parallelSide>0?1:0,
+    trackNumber:trackIndex+1,style:t.style||'single'
+   },geometry:{type:'LineString',coordinates:shifted.map(point=>[point[1],point[0]])}});
     if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive ? 0.3 : 0.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   const segmentTypes=[];
@@ -2898,6 +3006,55 @@ if(mode==='delete'){
    renderTrackDynamicsOverlay(t,points,window.networkLayer);
   }
 });
+
+
+ // Restore the physical rail span through stations. Route sections terminate at
+ // opposite platform ends, so this connector joins those ends without drawing
+ // a rail through an island-platform footprint.
+ stations.forEach((station,stationIndex)=>{
+  if(station.nodeType==='junction')return;
+  const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
+  const radians=bearing*Math.PI/180;
+  const axisEast=Math.sin(radians),axisNorth=Math.cos(radians);
+  const cosLatitude=Math.cos(station.lat*Math.PI/180);
+  const halfLength=(Number.isFinite(station.platformLengthMeters)
+   ?Math.max(30,Math.min(300,station.platformLengthMeters))
+   :DEFAULT_PLATFORM_LENGTH_METERS)/2;
+  const endpoint=(sign,offset=0)=>{
+   const normalEast=-axisNorth,normalNorth=axisEast;
+   const east=axisEast*halfLength*sign+normalEast*offset;
+   const north=axisNorth*halfLength*sign+normalNorth*offset;
+   return [station.lat+north/111320,station.lng+east/(111320*cosLatitude)];
+  };
+  const incident=tracks.filter(track=>track.a===stationIndex||track.b===stationIndex).map(track=>{
+   const endpoints=getTrackStationEndpointStations(track);
+   const point=track.a===stationIndex?endpoints?.a:endpoints?.b;
+   if(!point)return null;
+   const east=(point.lng-station.lng)*cosLatitude;
+   const north=point.lat-station.lat;
+   const side=east*axisEast+north*axisNorth>=0?1:-1;
+   return {track,side};
+  }).filter(Boolean);
+  // Even a terminal station needs its rail span through the full platform.
+  if(!incident.length)return;
+  const parallel=incident.some(item=>item.track.style==='parallel');
+  const isIsland=(station.platformType||platformType)==='island';
+  const platformClearance=isIsland
+   ?getIslandPlatformTrackClearance(stationIndex,endpoint(-1),endpoint(1)):0;
+  const railOffset=parallel
+   ?(isIsland?Math.max(1.905,platformClearance):MOBILE_PARALLEL_TRACK_SPACING_METERS/2):0;
+  const source=incident.find(item=>item.track.style===(parallel?'parallel':'single'))?.track||incident[0].track;
+  const assigned=lines.filter(line=>(source.lineIds||[]).includes(line.id));
+  const active=assigned.length>0;
+  const color=active?(assigned[0]?.color||'#55a7ff'):'#82909d';
+  const opacity=active?1:.62;
+  const offsets=parallel?[-railOffset,railOffset]:[0];
+  offsets.forEach(offset=>{
+   const span=[endpoint(-1,offset),endpoint(1,offset)];
+   L.polyline(span,{pane:'sbTrackPane',color:'#17212b',weight:9,opacity:.9,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+   L.polyline(span,{pane:'sbTrackPane',color,weight:4,opacity,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  });
+ });
 
  stations.forEach((s,i)=>{
   if(s.nodeType==='junction'){
@@ -2953,6 +3110,7 @@ if(mode==='delete'){
 
  });
  syncStationEndpointVisibility();
+ if(window.refreshSubway3D)window.refreshSubway3D();
 }
  /* =========================================================
    SECTION 14 — UI AND CONSTRUCTION MODES
