@@ -239,7 +239,7 @@ const extraParallelClearance = topology.calculateParallelTrackExtraClearance;
 const platformEdgeClearance = 4 + (3.05 / 2 + 0.1);
 assert.ok(Math.abs(extraParallelClearance(platformEdgeClearance, 3.81) - (platformEdgeClearance - 1.905)) < 1e-9);
 assert.equal(extraParallelClearance(1.5, 3.81), 0);
-assert.equal(extraParallelClearance(5.625, 3.81), 3.72);
+assert.ok(Math.abs(extraParallelClearance(5.625, 3.81) - 3.72) < 1e-9);
 assert.equal(extraParallelClearance(-1, 3.81), null);
 assert.equal(extraParallelClearance(5, 0), null);
 
