@@ -3907,7 +3907,7 @@ window.toggle3DCityView=async function(){
  }catch(error){
   console.error('Unable to initialize 3D city map:',error);
   host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  if(toggle){toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';toggle.setAttribute('aria-pressed','false');}
   map.invalidateSize();message('3D map could not load. Check your connection and try again.');
  }
 };
