@@ -10734,3 +10734,102 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  }
 }
 </style>
+
+<style id="sb-service-dock-expansion-runtime-override">
+/* Final authoritative layout: the expanded capsule must claim real width,
+   not merely grow its flex-basis inside the old 54px collapsed constraint. */
+#sb-action-dock{
+ display:flex!important;flex-direction:row!important;align-items:center!important;
+ justify-content:center!important;flex-wrap:nowrap!important;width:max-content!important;
+ max-width:calc(100vw - var(--sb-safe-left,0px) - var(--sb-safe-right,0px) - 24px)!important;
+}
+#sb-action-dock #sb-service-dock{
+ box-sizing:border-box!important;position:relative!important;display:flex!important;
+ flex:0 0 58px!important;width:58px!important;min-width:58px!important;max-width:58px!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ margin:0!important;padding:6px!important;overflow:hidden!important;
+ align-items:center!important;justify-content:flex-start!important;
+ transition:flex-basis .38s cubic-bezier(.2,.8,.2,1),width .38s cubic-bezier(.2,.8,.2,1),max-width .38s cubic-bezier(.2,.8,.2,1)!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded{
+ flex:0 1 min(440px,calc(100vw - 300px))!important;
+ width:min(440px,calc(100vw - 300px))!important;
+ min-width:min(300px,calc(100vw - 24px))!important;
+ max-width:min(440px,calc(100vw - 24px))!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ padding:6px!important;overflow:hidden!important;
+}
+#sb-action-dock #sb-service-dock #sb-service-dock-toggle{
+ box-sizing:border-box!important;position:relative!important;display:flex!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;align-items:center!important;justify-content:center!important;
+}
+#sb-action-dock #sb-service-dock #sb-service-lines{
+ box-sizing:border-box!important;display:flex!important;flex:1 1 auto!important;
+ width:auto!important;min-width:0!important;max-width:none!important;height:46px!important;
+ min-height:46px!important;max-height:46px!important;margin:0!important;padding:0 0 0 8px!important;
+ opacity:0!important;visibility:hidden!important;pointer-events:none!important;
+ transform:translateX(-8px)!important;transition:opacity .2s ease,transform .3s ease,visibility 0s linear .3s!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{
+ opacity:1!important;visibility:visible!important;pointer-events:auto!important;
+ transform:none!important;transition-delay:0s!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>.sb-service-lines-heading{display:none!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines-content{
+ display:flex!important;flex:1 1 0!important;min-width:0!important;width:0!important;
+ height:42px!important;overflow-x:auto!important;align-items:center!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{
+ display:flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+ flex:0 0 42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+ height:42px!important;min-height:42px!important;max-height:42px!important;
+ align-items:center!important;justify-content:center!important;margin:0!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{position:relative!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot #runBtn{
+ display:flex!important;flex:0 0 42px!important;width:42px!important;height:42px!important;
+ min-width:42px!important;min-height:42px!important;max-width:42px!important;max-height:42px!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle:after{
+ content:""!important;position:absolute!important;right:-6px!important;top:9px!important;
+ display:block!important;width:1px!important;height:28px!important;
+ background:rgba(220,238,252,.24)!important;pointer-events:none!important;
+}
+@media(max-width:700px){
+ #sb-action-dock{width:calc(100vw - var(--sb-safe-left,0px) - var(--sb-safe-right,0px) - 20px)!important;max-width:none!important}
+ #sb-action-dock #sb-service-dock.is-expanded{
+  flex:1 1 0!important;width:auto!important;min-width:0!important;max-width:none!important;
+ }
+}
+</style>
+<script id="sb-service-dock-delegated-toggle-repair">
+(function(){
+ if(window.__sbServiceDockDelegatedToggleRepair)return;
+ window.__sbServiceDockDelegatedToggleRepair=true;
+ document.addEventListener('click',function(event){
+  const button=event.target&&event.target.closest?event.target.closest('#sb-service-dock-toggle'):null;
+  if(!button)return;
+  const dock=document.getElementById('sb-service-dock');
+  if(!dock)return;
+  const expanded=!dock.classList.contains('is-expanded');
+  dock.classList.toggle('is-expanded',expanded);
+  button.setAttribute('aria-expanded',String(expanded));
+  button.setAttribute('aria-pressed',String(expanded));
+  button.classList.toggle('active',expanded);
+  button.setAttribute('aria-label',expanded?'Close service lines':'Open service lines');
+  button.title=expanded?'Close service lines':'Service lines';
+  if(expanded){
+   const scroller=document.getElementById('sb-service-lines-content');
+   if(scroller)scroller.scrollLeft=0;
+  }else{
+   const palette=document.getElementById('sb-line-color-options');
+   const trigger=document.getElementById('sb-line-color-trigger');
+   if(palette)palette.hidden=true;
+   if(trigger)trigger.setAttribute('aria-expanded','false');
+  }
+ },true);
+})();
+</script>
