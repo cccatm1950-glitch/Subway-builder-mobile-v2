@@ -87,7 +87,13 @@ for (const required of [
   'const inheritedLayer=',
   'offsetTransitionZones:t.offsetTransitionZones',
   'splitAlongMeters',
-  'totalLengthMeters:totalRouteDistance'
+  'totalLengthMeters:totalRouteDistance',
+  'function getTrackStationEndpointStations',
+  'getTrackCenterlinePoints(t,endpointStations)',
+  'window.sb3dTrackFeatures.push',
+  'window.getSubway3DPlatforms=function',
+  'calculateStationEndpoint',
+  'calculateParallelJunctionMergeProfile'
 ]) {
   assert.ok(html.includes(required), 'Expected track topology guard: ' + required);
 }
