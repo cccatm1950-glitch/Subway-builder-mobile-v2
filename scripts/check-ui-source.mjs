@@ -49,7 +49,7 @@ assert.ok(html.includes('sb-pr92-service-lines-expanded-3d-slot'),
   'Service Lines must reserve a dedicated expanded-panel slot for the 3D test switch');
 assert.ok(html.includes('grid-template-columns:minmax(0,1fr) 46px 46px!important'),
   'Expanded Service Lines layout must reserve separate Run and 3D button columns');
-assert.ok(html.includes('#sb-service-dock:not(.is-expanded) #sb-service-lines #sb-3d-toggle'),
+assert.ok(html.includes('#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines #sb-3d-toggle'),
   '3D test switch must be hidden while Service Lines is collapsed');
 
 for (const required of [
