@@ -2847,7 +2847,8 @@ if(mode==='delete'){
    let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
    let dy=next[0]-prev[0];
    let length=Math.sqrt(dx*dx+dy*dy)||1;
-   const parallelOffsetScale=1-(parallelJunctionMerge[i]||0);\n   const lateralOffset=stationOffsets[i]+(offset+parallelSide*parallelPlatformFlare[i])*parallelOffsetScale;
+   const parallelOffsetScale=1-(parallelJunctionMerge[i]||0);
+   const lateralOffset=stationOffsets[i]+(offset+parallelSide*parallelPlatformFlare[i])*parallelOffsetScale;
    const startBearing=Number.isFinite(stations[t.a]?.platformBearing)?stations[t.a].platformBearing:90;
    const endBearing=Number.isFinite(stations[t.b]?.platformBearing)?stations[t.b].platformBearing:90;
    const smoothstep=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
