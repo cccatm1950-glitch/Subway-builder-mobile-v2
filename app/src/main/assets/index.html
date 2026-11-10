@@ -2066,6 +2066,44 @@ html,body{
 }
 </style>
 
+<style id="sb-pr92-service-lines-expanded-3d-slot">
+/* The Service Lines panel has three live grid children: line list, Run, and 3D.
+   Keep the 3D test switch in its own final slot whenever the panel is expanded. */
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 46px 46px!important;
+ grid-template-rows:minmax(0,1fr)!important;
+ align-items:center!important;align-content:center!important;
+ gap:clamp(4px,1vw,8px)!important;
+ min-width:0!important;width:100%!important;height:100%!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot,
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines #sb-3d-toggle{
+ grid-row:1!important;align-self:center!important;justify-self:center!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines #sb-3d-toggle{
+ display:inline-flex!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;grid-column:3!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{grid-column:2!important}
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines #sb-3d-toggle{
+ visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+  grid-template-columns:minmax(0,1fr) 42px 42px!important;gap:4px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines #sb-3d-toggle,
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+  flex-basis:42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+ }
+}
+</style>
+
 </head>
 <body class="sb-start-menu-open">
 
