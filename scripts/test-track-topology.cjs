@@ -188,3 +188,80 @@ const heldReverseSingleTrackOffset = topology.calculateOffsetTransitionProfile(
   [0, 50, 75, 100, 120, 145], 145, 0, -20, null, 50, 0, 45
 );
 assert.deepEqual(heldReverseSingleTrackOffset, [0, 0, -10, -20, -20, -20]);
+
+const resolveEndpointBearing = topology.resolveEndpointPlatformBearing;
+assert.equal(resolveEndpointBearing('junction', 90), null);
+assert.equal(resolveEndpointBearing('station', 90), 90);
+assert.equal(resolveEndpointBearing('station', null), 90);
+assert.equal(resolveEndpointBearing(undefined, 135), 135);
+
+const endpointNormal = topology.calculateEndpointAlignedNormal;
+const northboundNormal = endpointNormal(0, 1, 0);
+const southboundNormal = endpointNormal(0, -1, 0);
+assert.deepEqual(northboundNormal, { east: -1, north: 0 });
+assert.deepEqual(southboundNormal, { east: 1, north: 0 });
+const normalizeZero = value => value === 0 ? 0 : value;
+const northboundRails = [-1.905, 1.905].map(offset => [
+  normalizeZero(northboundNormal.east * offset), normalizeZero(northboundNormal.north * offset)
+]).sort((a, b) => a[0] - b[0]);
+const southboundRails = [-1.905, 1.905].map(offset => [
+  normalizeZero(southboundNormal.east * offset), normalizeZero(southboundNormal.north * offset)
+]).sort((a, b) => a[0] - b[0]);
+assert.deepEqual(northboundRails, southboundRails);
+const diagonalNormal = endpointNormal(1, 1, 45);
+assert.ok(Math.abs(Math.hypot(diagonalNormal.east, diagonalNormal.north) - 1) < 1e-9);
+assert.equal(endpointNormal(0, 0, 90), null);
+
+const blendEndpointNormal = topology.calculateBlendedEndpointNormal;
+const routeNormal = blendEndpointNormal(0, 1, 0, null, 0, 0);
+assert.deepEqual(routeNormal, { east: -1, north: 0 });
+const alignedAtStart = blendEndpointNormal(0, 1, 0, null, 1, 0);
+assert.deepEqual(alignedAtStart, { east: -1, north: 0 });
+const halfAligned = blendEndpointNormal(0, 1, 90, null, 0.5, 0);
+assert.ok(Math.abs(Math.hypot(halfAligned.east, halfAligned.north) - 1) < 1e-9);
+assert.ok(halfAligned.east < 0 && halfAligned.north > 0);
+const alignedAtEnd = blendEndpointNormal(0, -1, null, 180, 0, 1);
+assert.deepEqual(alignedAtEnd, { east: 1, north: 0 });
+const invalidBlend = blendEndpointNormal(0, 0, 90, 90, 1, 1);
+assert.equal(invalidBlend, null);
+
+const stationEndpoint = topology.calculateStationEndpoint;
+const eastEnd = stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-121.999}, 100);
+const westEnd = stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-122.001}, 100);
+assert.ok(eastEnd.lng > -122);
+assert.ok(westEnd.lng < -122);
+assert.ok(Math.abs(eastEnd.lat - 37) < 1e-9);
+assert.ok(Math.abs(eastEnd.lng - (-122 + 100 / (111320 * Math.cos(37 * Math.PI / 180)))) < 1e-9);
+const northEnd = stationEndpoint({lat:37,lng:-122}, 0, {lat:37.001,lng:-122}, 75);
+const southEnd = stationEndpoint({lat:37,lng:-122}, 0, {lat:36.999,lng:-122}, 75);
+assert.ok(northEnd.lat > 37);
+assert.ok(southEnd.lat < 37);
+assert.equal(stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-122}, 50), null);
+assert.equal(stationEndpoint({lat:37,lng:-122}, 90, {lat:37,lng:-121.9}, -1), null);
+
+
+// Parallel platform flare adds only the clearance beyond the normal half-spacing.
+const extraParallelClearance = topology.calculateParallelTrackExtraClearance;
+const platformEdgeClearance = 4 + (3.05 / 2 + 0.1);
+assert.ok(Math.abs(extraParallelClearance(platformEdgeClearance, 3.81) - (platformEdgeClearance - 1.905)) < 1e-9);
+assert.equal(extraParallelClearance(1.5, 3.81), 0);
+assert.ok(Math.abs(extraParallelClearance(5.625, 3.81) - 3.72) < 1e-9);
+assert.equal(extraParallelClearance(-1, 3.81), null);
+assert.equal(extraParallelClearance(5, 0), null);
+
+// Since route endpoints are now the physical platform ends, flare begins there;
+// no second platform-length hold is applied beyond the station endpoint.
+const endpointFlare = topology.calculatePlatformClearanceTransitionProfile(
+  [0, 25, 50, 75, 100], 100, 3.72, 0, 50, 0, 0
+);
+assert.deepEqual(endpointFlare, [3.72, 1.86, 0, 0, 0]);
+
+
+// Parallel rails converge to a single track at either junction endpoint.
+const junctionMerge = topology.calculateParallelJunctionMergeProfile;
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, true, false, 50), [1, 0.5, 0, 0, 0]);
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, false, true, 50), [0, 0, 0, 0.5, 1]);
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, false, false, 50), [0, 0, 0, 0, 0]);
+assert.deepEqual(junctionMerge([0, 25, 50, 75, 100], 100, true, true, 50), [1, 0.5, 0, 0.5, 1]);
+assert.deepEqual(junctionMerge([0, 10, 20], 20, true, true, 50), [1, 0, 1]);
+assert.deepEqual(junctionMerge([0, 10, 20], 20, true, false, 0), [0, 0, 0]);

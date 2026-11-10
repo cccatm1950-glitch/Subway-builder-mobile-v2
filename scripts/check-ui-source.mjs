@@ -38,6 +38,21 @@ const unmappedActions = [...new Set(panelActions)]
   .filter((action) => !mappedActions.includes(action) && !specialActions.has(action));
 assert.deepEqual(unmappedActions, [], 'Every construction panel action must be wired');
 
+/* The 3D test switch is a Service Lines control, never a Construction action. */
+assert.ok(!html.includes("['toggle-3d','city','3D city view']"),
+  'Legacy 3D city action must not be generated in Construction');
+assert.ok(!html.includes("'toggle-3d':()=>window.toggle3DCityView()"),
+  'Construction touch bridge must not expose the legacy 3D action');
+assert.ok(html.includes("serviceDock.querySelector('#sb-service-lines')?.append(threeDButton)"),
+  '3D test switch must be mounted inside the Service Lines panel');
+assert.ok(html.includes('sb-pr92-service-lines-expanded-3d-slot'),
+  'Service Lines must reserve a dedicated expanded-panel slot for the 3D test switch');
+assert.ok(html.includes('grid-template-columns:minmax(0,1fr) 46px 46px!important'),
+  'Expanded Service Lines layout must reserve separate Run and 3D button columns');
+assert.ok(html.includes('#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines #sb-3d-toggle'),
+  '3D test switch must be hidden while Service Lines is collapsed');
+
+
 for (const required of [
   'bindConstructionPanelControls',
   'toggleToolsPanel',
@@ -72,9 +87,47 @@ for (const required of [
   'const inheritedLayer=',
   'offsetTransitionZones:t.offsetTransitionZones',
   'splitAlongMeters',
-  'totalLengthMeters:totalRouteDistance'
+  'totalLengthMeters:totalRouteDistance',
+  'function getTrackStationEndpointStations',
+  'getTrackCenterlinePoints(t,endpointStations)',
+  'window.sb3dTrackFeatures.push',
+  'window.getSubway3DPlatforms=function',
+  'id="sb-pr93-cross-view-build-drag-preview"',
+  "if(!['waypoint','curve'].includes(mode))return;",
+  'function commitPoint(state,event)',
+  "sb3dMap.addSource('sb-build-preview'",
+  "sb3dMap.on('click',['sb-station-dots','sb-platform-fills']",
+  "trackIndex,style:t.style||'single'",
+  "mode==='curve'||mode==='waypoint'",
+  'stationConnector:true',
+  "kind:'platform'",
+  'calculateStationEndpoint',
+  'calculateParallelJunctionMergeProfile'
 ]) {
   assert.ok(html.includes(required), 'Expected track topology guard: ' + required);
 }
 
+
+assert.ok(html.includes("kind:'track-tap-preview'"),
+  'Track tool must render a live preview after selecting its start station');
+assert.ok(html.includes("map.on('mousemove',function(event){if(mode==='track'"),
+  '2D track preview must follow the map pointer');
+assert.ok(html.includes("sb3dMap.on('mousemove',event=>"),
+  '3D track preview must follow the map pointer');
+assert.ok(html.includes("map.on('move zoom',function(){if(mode==='track'"),
+  'Track preview must stay aligned with the mobile crosshair while panning');
+assert.ok(html.includes("Tap a start station, preview the route, then tap a destination station"),
+  'Track placement instructions must describe tap-to-preview/tap-to-place');
+assert.ok(html.includes('The drawer intentionally remains open until its build-dock toggle is pressed again.'),
+  'Construction drawer must stay open until its toggle is pressed again');
+assert.doesNotMatch(html, /if\\(typeof setMode==='function'\\)setMode\\(nextMode\\);\\s*closeConstructionContextMenu\\(\\);/,
+  'Selecting a construction tool must not close the construction drawer');
+assert.ok(!html.includes("if(menu&&!menu.contains(event.target)&&!toggle?.contains(event.target))closeConstructionContextMenu();"),
+  'Outside taps must not close the construction drawer');
+assert.ok(html.includes("if(existing){closeConstructionContextMenu();return;}"),
+  'The build button must remain the construction drawer close control');
+assert.ok(!html.includes('function commitTrack(state,event)'),
+  'Track placement must remain tap-to-select/tap-to-place, not drag-to-draw');
+assert.ok(!html.includes("kind:'track-preview'"),
+  'Track preview must remain the existing tap-based station preview');
 console.log('UI source checks passed: ' + scripts.length + ' inline scripts, ' + ids.length + ' IDs, ' + new Set(panelActions).size + ' panel actions.');

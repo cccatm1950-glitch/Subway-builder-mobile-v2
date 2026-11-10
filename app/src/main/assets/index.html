@@ -33,7 +33,7 @@ SUBWAY BUILDER MOBILE - INDEX.HTML GUIDE
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Subway Builder</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/maplibre-gl@5.18.0/dist/maplibre-gl.css">
 <style>
 
 /* =========================================================
@@ -2448,20 +2448,41 @@ function redo(){
 
 /* Export the live network to the optional 3D city preview. */
 window.getSubway3DTracks=function(){
+ if(Array.isArray(window.sb3dTrackFeatures)&&window.sb3dTrackFeatures.length)return window.sb3dTrackFeatures;
  return tracks.map((t,i)=>{
   const a=stations[t.a],b=stations[t.b];if(!a||!b)return null;
   const coords=getTrackCenterlinePoints(t).map(point=>[point[1],point[0]]);
-  return {type:'Feature',properties:{
-   color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],
-   from:a.name||('Station '+(t.a+1)),to:b.name||('Station '+(t.b+1)),
-   trackNumber:i+1,elevation:t.elevation||'at',
-   startElevation:Number.isFinite(t.startElevation)?t.startElevation:legacyTrackElevation(t.elevation),
-   endElevation:Number.isFinite(t.endElevation)?t.endElevation:legacyTrackElevation(t.elevation),style:t.style||'single'
-  },geometry:{type:'LineString',coordinates:coords}};
+  return {type:'Feature',properties:{color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],trackNumber:i+1,style:t.style||'single'},geometry:{type:'LineString',coordinates:coords}};
  }).filter(Boolean);
 };
+window.getSubway3DPlatforms=function(){
+ const features=[];
+ stations.forEach((station,index)=>{
+  if(!station||station.nodeType==='junction')return;
+  const dimensions=getPlatformDimensions(station.platformSize||platformSize);
+  const halfWidth=dimensions.width/2;
+  const halfLength=(Number.isFinite(station.platformLengthMeters)?Math.max(30,Math.min(300,station.platformLengthMeters)):DEFAULT_PLATFORM_LENGTH_METERS)/2;
+  const bearing=(Number.isFinite(station.platformBearing)?station.platformBearing:90)*Math.PI/180;
+  const axisEast=Math.sin(bearing),axisNorth=Math.cos(bearing);
+  const normalEast=-axisNorth,normalNorth=axisEast;
+  const cosLatitude=Math.cos(station.lat*Math.PI/180);
+  const offsets=(station.platformType||platformType)==='side'
+   ?[-1,1].map(side=>side*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)):[0];
+  offsets.forEach((offset,platformIndex)=>{
+   const corners=[];
+   for(const along of [-1,1])for(const across of [-1,1]){
+    const east=axisEast*halfLength*along+normalEast*(offset+halfWidth*across);
+    const north=axisNorth*halfLength*along+normalNorth*(offset+halfWidth*across);
+    corners.push([station.lng+east/(111320*cosLatitude),station.lat+north/111320]);
+   }
+   const ring=[corners[0],corners[1],corners[3],corners[2],corners[0]];
+   features.push({type:'Feature',properties:{kind:'platform',stationIndex:index,platformIndex,platformType:station.platformType||platformType},geometry:{type:'Polygon',coordinates:[ring]}});
+  });
+ });
+ return features;
+};
 window.getSubway3DStations=function(){
- return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
+ return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1)),stationIndex:i},
   geometry:{type:'Point',coordinates:[s.lng,s.lat]}}));
 };
 
@@ -2571,12 +2592,34 @@ function getTrainRoutePoints(track){
  return getTrackCenterlinePoints(track);
 }
 
-function getTrackCenterlinePoints(track){
+function getTrackStationEndpointStations(track){
  const a=stations[track.a],b=stations[track.b];
+ if(!a||!b)return null;
+ const firstReference=Array.isArray(track.centerline)&&track.centerline.length>1
+  ?track.centerline[1]
+  :(track.waypoints?.[0]||b);
+ const lastReference=Array.isArray(track.centerline)&&track.centerline.length>1
+  ?track.centerline[track.centerline.length-2]
+  :(track.waypoints?.[track.waypoints.length-1]||a);
+ const endpointFor=(station,reference)=>{
+  if(station.nodeType==='junction')return {lat:station.lat,lng:station.lng};
+  const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
+  const length=Number.isFinite(station.platformLengthMeters)
+   ?Math.max(30,Math.min(300,station.platformLengthMeters))
+   :DEFAULT_PLATFORM_LENGTH_METERS;
+  const endpoint=window.SBTrackTopology?.calculateStationEndpoint?.(
+   {lat:station.lat,lng:station.lng},bearing,
+   {lat:reference.lat,lng:reference.lng},length/2
+  );
+  return endpoint?{...station,lat:endpoint.lat,lng:endpoint.lng}:station;
+ };
+ return {a:endpointFor(a,firstReference),b:endpointFor(b,lastReference)};
+}
+
+function getTrackCenterlinePoints(track,endpointStations=null){
+ endpointStations=endpointStations||getTrackStationEndpointStations(track);
+ const a=endpointStations?.a||stations[track.a],b=endpointStations?.b||stations[track.b];
  if(!a||!b)return [];
- if(Array.isArray(track.centerline)&&track.centerline.length>=2){
-  return track.centerline.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)).map(p=>[p.lat,p.lng]);
- }
  if(track.curve&&(track.waypoints||[]).length){
   const route=[[a.lat,a.lng],...(track.waypoints||[]).map(w=>[w.lat,w.lng]),[b.lat,b.lng]]
    .map(ll=>map.project(L.latLng(ll[0],ll[1]),18));
@@ -2614,6 +2657,30 @@ function getTrackCenterlinePoints(track){
    }
   }
   return points;
+ }
+ if(Array.isArray(track.centerline)&&track.centerline.length>=2){
+  const saved=track.centerline.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)).map(p=>[p.lat,p.lng]);
+  if(saved.length>=2&&endpointStations){
+   // Move saved endpoints to the physical platform ends without creating a
+   // one-segment kink. The endpoint correction fades out over 50 m of route.
+   const originalStart=saved[0].slice(),originalEnd=saved[saved.length-1].slice();
+   const startDelta=[a.lat-originalStart[0],a.lng-originalStart[1]];
+   const endDelta=[b.lat-originalEnd[0],b.lng-originalEnd[1]];
+   const distances=[0];
+   for(let i=1;i<saved.length;i++){
+    distances[i]=distances[i-1]+map.distance(saved[i-1],saved[i]);
+   }
+   const total=distances[distances.length-1]||0;
+   const fade=distance=>{const x=Math.max(0,Math.min(1,distance/50));return 1-x*x*(3-2*x);};
+   for(let i=0;i<saved.length;i++){
+    const fromStart=fade(distances[i]);
+    const fromEnd=fade(total-distances[i]);
+    saved[i][0]+=startDelta[0]*fromStart+endDelta[0]*fromEnd;
+    saved[i][1]+=startDelta[1]*fromStart+endDelta[1]*fromEnd;
+   }
+   saved[0]=[a.lat,a.lng];saved[saved.length-1]=[b.lat,b.lng];
+  }
+  return saved;
  }
  return getStationTangentCenterline(a,b);
 }
@@ -2663,10 +2730,10 @@ function renderTrackDynamicsOverlay(track,points,layer){
 
 function renderNetwork(){
  // WebView state can be reset during restore/re-entry; normalize marker storage before iteration.
+ window.sb3dTrackFeatures=[];
  if(!Array.isArray(platformCrowdMarkers))platformCrowdMarkers=[];
  platformCrowdMarkers.forEach(marker=>{if(marker&&map&&map.hasLayer(marker))map.removeLayer(marker);});
  platformCrowdMarkers=[];
- if(window.refreshSubway3D)window.refreshSubway3D();
  if(window.networkLayer){
   map.removeLayer(window.networkLayer);
  }
@@ -2766,13 +2833,14 @@ if(mode==='delete'){
  });
 }
 
-  points=getTrackCenterlinePoints(t);
+  const endpointStations=getTrackStationEndpointStations(t);
+  points=getTrackCenterlinePoints(t,endpointStations);
 
    // Transparent edit hitbox follows the sampled route, not the station chord.
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
-    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Pan the map to preview curve radius and speed, then tap to add a curve point.');}
+    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Drag or tap to preview and place curve points.');}
     else if(mode==='delete'){pauseSimulationBeforeTopologyChange();tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
@@ -2782,8 +2850,11 @@ if(mode==='delete'){
   const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
-  const startOffset=getStationTrackSideOffset(t.a,points[0],points[1],t.style);
-  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
+  // Endpoint anchoring places the route at the physical platform end.
+  // Do not add a second station-side offset to single tracks; parallel track
+  // platform clearance remains handled by the dedicated flare profile below.
+  const startOffset=0;
+  const endOffset=0;
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
   // Parallel track centerlines use the desktop 3.81 m standard gauge spacing.
@@ -2829,12 +2900,27 @@ if(mode==='delete'){
     const fromEnd=endOffset*(xEnd*xEnd*(3-2*xEnd));
     return fromStart+fromEnd;
    });
-  const parallelStartClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.a,points[0],points[1]):0;
-  const parallelEndClearance=t.style==='parallel'?getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]):0;
-  const parallelStartPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.a,points[0],points[1]):0;
-  const parallelEndPlatformExtent=t.style==='parallel'?getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]):0;
+  // The base +/-1.905 m offsets already provide 3.81 m track spacing.
+  // Add only the clearance beyond that baseline, not the full platform clearance.
+  const parallelStartClearance=t.style==='parallel'
+   ?(window.SBTrackTopology?.calculateParallelTrackExtraClearance?.(
+     getIslandPlatformTrackClearance(t.a,points[0],points[1]),MOBILE_PARALLEL_TRACK_SPACING_METERS
+    )??0):0;
+  const parallelEndClearance=t.style==='parallel'
+   ?(window.SBTrackTopology?.calculateParallelTrackExtraClearance?.(
+     getIslandPlatformTrackClearance(t.b,points[points.length-2],points[points.length-1]),MOBILE_PARALLEL_TRACK_SPACING_METERS
+    )??0):0;
+  // Track endpoints are already anchored at the physical platform ends.
+  // Do not hold the platform footprint a second time beyond those endpoints.
   const parallelPlatformFlare=window.SBTrackTopology?.calculatePlatformClearanceTransitionProfile
-   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,parallelStartPlatformExtent,parallelEndPlatformExtent)
+   ?window.SBTrackTopology.calculatePlatformClearanceTransitionProfile(cumulativeTrackMeters,totalTrackMeters,parallelStartClearance,parallelEndClearance,OFFSET_TRANSITION_LENGTH_METERS,0,0)
+   :cumulativeTrackMeters.map(()=>0);
+  const parallelJunctionMerge=window.SBTrackTopology?.calculateParallelJunctionMergeProfile
+   ?window.SBTrackTopology.calculateParallelJunctionMergeProfile(
+     cumulativeTrackMeters,totalTrackMeters,
+     stations[t.a]?.nodeType==='junction',stations[t.b]?.nodeType==='junction',
+     OFFSET_TRANSITION_LENGTH_METERS
+    )
    :cumulativeTrackMeters.map(()=>0);
   const shiftTrackPoints=(offset,parallelSide=0)=>points.map((p,i)=>{
    let prev=points[Math.max(0,i-1)];
@@ -2842,15 +2928,37 @@ if(mode==='delete'){
    let dx=(next[1]-prev[1])*Math.cos(p[0]*Math.PI/180);
    let dy=next[0]-prev[0];
    let length=Math.sqrt(dx*dx+dy*dy)||1;
-   const lateralOffset=stationOffsets[i]+offset+parallelSide*parallelPlatformFlare[i];
+   const parallelOffsetScale=1-(parallelJunctionMerge[i]||0);
+   const lateralOffset=stationOffsets[i]+(offset+parallelSide*parallelPlatformFlare[i])*parallelOffsetScale;
+   // Platform-bearing alignment applies only at physical stations. Junctions
+   // have no platform axis, so their parallel pair must follow the local route
+   // tangent and meet the single rail without an arbitrary east-west rotation.
+   const startBearing=window.SBTrackTopology?.resolveEndpointPlatformBearing?.(
+    stations[t.a]?.nodeType,stations[t.a]?.platformBearing,90
+   )??(stations[t.a]?.nodeType==='junction'?null:90);
+   const endBearing=window.SBTrackTopology?.resolveEndpointPlatformBearing?.(
+    stations[t.b]?.nodeType,stations[t.b]?.platformBearing,90
+   )??(stations[t.b]?.nodeType==='junction'?null:90);
+   const smoothstep=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
+   const startNormalWeight=parallelSide!==0&&stations[t.a]?.nodeType!=='junction'?1-smoothstep(cumulativeTrackMeters[i]/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const endNormalWeight=parallelSide!==0&&stations[t.b]?.nodeType!=='junction'?1-smoothstep((totalTrackMeters-cumulativeTrackMeters[i])/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const endpointNormal=parallelSide!==0
+    ?window.SBTrackTopology?.calculateBlendedEndpointNormal?.(dx/length,dy/length,startBearing,endBearing,startNormalWeight,endNormalWeight)
+    :null;
+   const normalEast=endpointNormal?.east??(-dy/length);
+   const normalNorth=endpointNormal?.north??(dx/length);
    return [
-    p[0]+(dx/length)*lateralOffset/111320,
-    p[1]-(dy/length)*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
+    p[0]+normalNorth*lateralOffset/111320,
+    p[1]+normalEast*lateralOffset/(111320*Math.cos(p[0]*Math.PI/180))
    ];
   });
   t.trainCenterline=shiftTrackPoints(0);
   function drawLine(offset,parallelSide=0){
    const shifted=shiftTrackPoints(offset,parallelSide);
+   window.sb3dTrackFeatures.push({type:'Feature',properties:{
+    kind:'rail',color:routeColor,centerlineIndex:parallelSide<0?0:parallelSide>0?1:0,
+    trackNumber:trackIndex+1,trackIndex,style:t.style||'single'
+   },geometry:{type:'LineString',coordinates:shifted.map(point=>[point[1],point[0]])}});
     if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive ? 0.3 : 0.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   const segmentTypes=[];
@@ -2898,6 +3006,59 @@ if(mode==='delete'){
    renderTrackDynamicsOverlay(t,points,window.networkLayer);
   }
 });
+
+
+ // Restore the physical rail span through stations. Route sections terminate at
+ // opposite platform ends, so this connector joins those ends without drawing
+ // a rail through an island-platform footprint.
+ stations.forEach((station,stationIndex)=>{
+  if(station.nodeType==='junction')return;
+  const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
+  const radians=bearing*Math.PI/180;
+  const axisEast=Math.sin(radians),axisNorth=Math.cos(radians);
+  const cosLatitude=Math.cos(station.lat*Math.PI/180);
+  const halfLength=(Number.isFinite(station.platformLengthMeters)
+   ?Math.max(30,Math.min(300,station.platformLengthMeters))
+   :DEFAULT_PLATFORM_LENGTH_METERS)/2;
+  const endpoint=(sign,offset=0)=>{
+   const normalEast=-axisNorth,normalNorth=axisEast;
+   const east=axisEast*halfLength*sign+normalEast*offset;
+   const north=axisNorth*halfLength*sign+normalNorth*offset;
+   return [station.lat+north/111320,station.lng+east/(111320*cosLatitude)];
+  };
+  const incident=tracks.filter(track=>track.a===stationIndex||track.b===stationIndex).map(track=>{
+   const endpoints=getTrackStationEndpointStations(track);
+   const point=track.a===stationIndex?endpoints?.a:endpoints?.b;
+   if(!point)return null;
+   const east=(point.lng-station.lng)*cosLatitude;
+   const north=point.lat-station.lat;
+   const side=east*axisEast+north*axisNorth>=0?1:-1;
+   return {track,side};
+  }).filter(Boolean);
+  // Even a terminal station needs its rail span through the full platform.
+  if(!incident.length)return;
+  const parallel=incident.some(item=>item.track.style==='parallel');
+  const isIsland=(station.platformType||platformType)==='island';
+  const platformClearance=isIsland
+   ?getIslandPlatformTrackClearance(stationIndex,endpoint(-1),endpoint(1)):0;
+  const railOffset=parallel
+   ?(isIsland?Math.max(1.905,platformClearance):MOBILE_PARALLEL_TRACK_SPACING_METERS/2):0;
+  const source=incident.find(item=>item.track.style===(parallel?'parallel':'single'))?.track||incident[0].track;
+  const assigned=lines.filter(line=>(source.lineIds||[]).includes(line.id));
+  const active=assigned.length>0;
+  const color=active?(assigned[0]?.color||'#55a7ff'):'#82909d';
+  const opacity=active?1:.62;
+  const offsets=parallel?[-railOffset,railOffset]:[0];
+  offsets.forEach(offset=>{
+   const span=[endpoint(-1,offset),endpoint(1,offset)];
+   window.sb3dTrackFeatures.push({type:'Feature',properties:{
+    kind:'rail',color,centerlineIndex:parallel?(offset<0?0:1):0,
+    trackNumber:tracks.indexOf(source)+1,trackIndex:tracks.indexOf(source),style:parallel?'parallel':'single',stationConnector:true
+   },geometry:{type:'LineString',coordinates:span.map(point=>[point[1],point[0]])}});
+   L.polyline(span,{pane:'sbTrackPane',color:'#17212b',weight:9,opacity:.9,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+   L.polyline(span,{pane:'sbTrackPane',color,weight:4,opacity,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  });
+ });
 
  stations.forEach((s,i)=>{
   if(s.nodeType==='junction'){
@@ -2953,6 +3114,7 @@ if(mode==='delete'){
 
  });
  syncStationEndpointVisibility();
+ if(window.refreshSubway3D)window.refreshSubway3D();
 }
  /* =========================================================
    SECTION 14 — UI AND CONSTRUCTION MODES
@@ -2972,6 +3134,7 @@ function setMode(newMode){
  const previousMode=mode;
  if(newMode!=='station'&&pendingStationPlacement){pendingStationPlacement=null;clearStationPlacementPreview();}
  mode=newMode;
+ if(mode!=='track')clearTrackPlacementPreview();
  if(mode==='station')updateStationPlacementPreview();else clearStationPlacementPreview();
  if(mode==='curve')scheduleCurvePlacementPreview();else clearCurvePlacementPreview();
  // Keep the construction drawer open while a tool is active. The user closes
@@ -3014,7 +3177,7 @@ function setMode(newMode){
   if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
 
   if(mode==='station')message('Tap the map to place a station ($500).');
- if(mode==='track')message('Tap one station, then another station to connect them ($150).');
+ if(mode==='track')message('Tap a start station, preview the route, then tap a destination station to connect them ($150).');
  if(mode==='waypoint')message('Tap a track to select it for waypoint editing.');
  if(mode==='inspect')message('Tap a station to inspect it.');
  if(mode==='delete')message('Tap a station to delete it and its connected tracks.');
@@ -3177,7 +3340,6 @@ function resetSelection(){
  message('Selection cleared.');
 }
 function activateDeleteMode(){
- if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
  if(typeof closeStationMenu==='function')closeStationMenu();
  const entering=mode!=='delete';
  if(entering&&typeof toggleToolsPanel==='function')toggleToolsPanel(false);
@@ -3198,7 +3360,7 @@ function selectTrackForWaypoints(trackIndex){
   if(mode!=='waypoint'||!tracks[trackIndex])return;
   selectedTrackIndex=trackIndex;
   renderNetwork();
-  message('Track selected. Tap the map to add a waypoint.');
+  message('Track selected. Tap or drag on the map to place a waypoint.');
  }
 function pruneOrphanJunctions(){
  let removed=false;
@@ -3221,6 +3383,7 @@ function pauseSimulationBeforeTopologyChange(){
 }
 
 function handleStationClick(index){
+  if(window.sbDragHandledAt&&Date.now()-window.sbDragHandledAt<500&&!window.sbDragCommitInProgress)return;
   if(mode==='delete'){
   let name=stations[index].name;
 
@@ -3233,7 +3396,7 @@ function handleStationClick(index){
 
   stations.splice(index,1);
   pruneOrphanJunctions();
-  selected=null;
+  selected=null;clearTrackPlacementPreview();
   selectedTrackIndex=null;
 
   saveHistory();
@@ -3245,12 +3408,14 @@ function handleStationClick(index){
   if(selected===null){
    selected=index;
    renderNetwork();
-   message(stations[index].name+' selected. Now tap another station.');
+   requestAnimationFrame(()=>updateTrackPlacementPreview(null,document.getElementById('sb-3d-map')?.classList.contains('active')));
+   message(stations[index].name+' selected. Aim the preview and tap a destination station.');
    return;
   }
 
   if(selected===index){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
+   clearTrackPlacementPreview();
    renderNetwork();
    message('Selection cleared.');
    return;
@@ -3263,17 +3428,17 @@ function handleStationClick(index){
    (t.a===first&&t.b===second)||
    (t.a===second&&t.b===first)
   );
-  if(existingTrack){
+  if(existingTrack&&!(trackStyle==='single'&&existingTrack.style==='parallel'&&Array.isArray(window.sbPendingTrackCenterline))){
    const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
    const assignedLineIds=Array.isArray(existingTrack.lineIds)?existingTrack.lineIds:[];
    if(activeLine&&!assignedLineIds.includes(activeLine.id)){
     existingTrack.lineIds=[...assignedLineIds,activeLine.id];
-    selected=null;
+    selected=null;clearTrackPlacementPreview();
     saveHistory();
     renderNetwork();
     message(activeLine.name+' now shares the existing track.');
    }else{
-    selected=null;
+    selected=null;clearTrackPlacementPreview();
     renderNetwork();
     message(activeLine?'This track is already assigned to '+activeLine.name+'.':'These stations are already connected.');
    }
@@ -3281,7 +3446,7 @@ function handleStationClick(index){
   }
 
   const groupedPath=findTrackGroupPath(first,second);
-  if(groupedPath){
+  if(groupedPath&&!(trackStyle==='single'&&Array.isArray(window.sbPendingTrackCenterline)&&groupedPath.some(index=>tracks[index]?.style==='parallel'))){
    const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
    if(activeLine){
     const unassigned=groupedPath.filter(trackIndex=>!(tracks[trackIndex].lineIds||[]).includes(activeLine.id));
@@ -3301,7 +3466,7 @@ function handleStationClick(index){
     renderNetwork();
     message('These stations are already connected through existing track sections.');
    }
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    return;
   }
 
@@ -3312,13 +3477,13 @@ function handleStationClick(index){
    [stations[second].lat,stations[second].lng]
   );
   if(proposedTrackLengthMeters<10){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    renderNetwork();
    message('Track must be at least 10 m long.');
    return;
   }
   if(proposedTrackLengthMeters>5000){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    renderNetwork();
    message('Track cannot exceed 5,000 m. Add an intermediate station first.');
    return;
@@ -3327,7 +3492,7 @@ function handleStationClick(index){
   const startElevationProfile=resolveStationElevation(first);
   const endElevationProfile=resolveStationElevation(second);
   if(!startElevationProfile.isValid||!endElevationProfile.isValid){
-   selected=null;renderNetwork();
+   selected=null;clearTrackPlacementPreview();renderNetwork();
    message(startElevationProfile.error||endElevationProfile.error||'Station elevations are incompatible.');
    return;
   }
@@ -3335,12 +3500,12 @@ function handleStationClick(index){
   const proposedEndElevation=endElevationProfile.elevation;
   const proposedSlopePercentage=Math.abs(proposedEndElevation-proposedStartElevation)/proposedTrackLengthMeters*100;
   if(proposedSlopePercentage>MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE+1e-9){
-   selected=null;renderNetwork();
+   selected=null;clearTrackPlacementPreview();renderNetwork();
    message('Track grade is '+proposedSlopePercentage.toFixed(2)+'%. The default heavy-metro limit is '+MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE+'%. Add an intermediate station to create a longer grade transition.');
    return;
   }
   if(money<150){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    renderNetwork();
    message('Not enough money to build track.');
    return;
@@ -3361,9 +3526,12 @@ function handleStationClick(index){
   startElevation:proposedStartElevation,
   endElevation:proposedEndElevation,
   waypoints:[],
-  lineIds:activeLineId?[activeLineId]:[]
+  lineIds:activeLineId?[activeLineId]:[],
+  ...(Array.isArray(window.sbPendingTrackCenterline)&&window.sbPendingTrackCenterline.length>=2?{centerline:window.sbPendingTrackCenterline.map(point=>({lat:point.lat,lng:point.lng}))}:{})
 });
-  selected=null;
+  window.sbPendingTrackCenterline=null;
+  selected=null;clearTrackPlacementPreview();
+  clearTrackPlacementPreview();
   saveHistory();
   renderNetwork();
   message('Track successfully connected to both stations!');
@@ -3400,13 +3568,13 @@ function scheduleCurvePlacementPreview(){
  if(curvePreviewFrame)return;
  curvePreviewFrame=requestAnimationFrame(()=>{curvePreviewFrame=0;updateCurvePlacementPreview();});
 }
-function updateCurvePlacementPreview(){
+function updateCurvePlacementPreview(position=null){
  if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]||
     document.getElementById('sb-3d-map')?.classList.contains('active')){
   clearCurvePlacementPreview();return;
  }
  const baseTrack=tracks[selectedTrackIndex];
- const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
+ const crosshair=position||map.containerPointToLatLng(map.getSize().divideBy(2));
  const previewTrack={...baseTrack,curve:true,waypoints:[...(Array.isArray(baseTrack.waypoints)?baseTrack.waypoints:[]),{lat:crosshair.lat,lng:crosshair.lng,elevation:'at'}]};
  delete previewTrack.centerline;
  const previewPoints=getTrackCenterlinePoints(previewTrack);
@@ -3479,12 +3647,22 @@ map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPr
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
  /* Curve and waypoint placement is handled exclusively by the crosshair router. */
- if(mode==='curve'||mode==='waypoint')return;
+ if(mode==='curve'||mode==='waypoint'){
+  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){message('Select a track first.');return;}
+  const targetTrack=tracks[selectedTrackIndex];
+  targetTrack.waypoints=Array.isArray(targetTrack.waypoints)?targetTrack.waypoints:[];
+  if(mode==='curve')targetTrack.curve=true;
+  delete targetTrack.centerline;
+  targetTrack.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
+  saveHistory();renderNetwork();
+  message(mode==='curve'?'Curve point placed.':'Waypoint placed.');
+  return;
+ }
  const now=Date.now();
  if(now-lastTouchPlacementAt<120)return;
  lastTouchPlacementAt=now;
  // Build placements always use the fixed map-center reticle, never the raw touch coordinate.
- if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
+ if(mode==='station')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
  if(mode==='station'){
   latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
   if(money<500){message('Not enough money for a station.');return;}
@@ -3551,7 +3729,58 @@ else if(mode==='delete'){
   message('Waypoint added.');
  }
 }
-map.on('click',function(e){handleMapPlacement(map.containerPointToLatLng(map.getSize().divideBy(2)));});
+map.on('click',function(e){if(window.sbDragHandledAt&&Date.now()-window.sbDragHandledAt<500&&!window.sbDragCommitInProgress)return;handleMapPlacement((mode==='waypoint'||mode==='curve')?e.latlng:map.containerPointToLatLng(map.getSize().divideBy(2)));});
+/* Track placement preview: tap the first station, aim with the cursor/crosshair,
+   then tap a destination station. This is visual guidance only; placement remains click-only. */
+let sbTrackPlacementPreviewLayer=null;
+let sbTrackPlacementPreviewVisible=false;
+function clearTrackPlacementPreview(){
+ if(sbTrackPlacementPreviewLayer){map.removeLayer(sbTrackPlacementPreviewLayer);sbTrackPlacementPreviewLayer=null;}
+ if(window.sb3dMap?.getSource('sb-build-preview')){
+  window.sb3dMap.getSource('sb-build-preview').setData({type:'FeatureCollection',features:[]});
+ }
+ sbTrackPlacementPreviewVisible=false;
+}
+function updateTrackPlacementPreview(position=null,is3D=false,screenPoint=null){
+ if(mode!=='track'||!Number.isInteger(selected)||!stations[selected]){
+  clearTrackPlacementPreview();return;
+ }
+ let target=position;
+ if(!target){
+  if(is3D&&window.sb3dMap)target=window.sb3dMap.getCenter();
+  else target=map.containerPointToLatLng(map.getSize().divideBy(2));
+ }
+ let nearest=-1,bestDistance=36;
+ stations.forEach((station,index)=>{
+  if(index===selected)return;
+  let point;
+  if(is3D&&window.sb3dMap)point=window.sb3dMap.project([station.lng,station.lat]);
+  else point=map.latLngToContainerPoint([station.lat,station.lng]);
+  let cursor=screenPoint;
+  if(!cursor)cursor=is3D&&window.sb3dMap
+   ?window.sb3dMap.project([target.lng,target.lat])
+   :map.latLngToContainerPoint(target);
+  const distance=Math.hypot(point.x-cursor.x,point.y-cursor.y);
+  if(distance<bestDistance){bestDistance=distance;nearest=index;}
+ });
+ if(nearest>=0)target=L.latLng(stations[nearest].lat,stations[nearest].lng);
+ const start=stations[selected];
+ if(is3D&&window.sb3dMap?.getSource('sb-build-preview')){
+  window.sb3dMap.getSource('sb-build-preview').setData({type:'FeatureCollection',features:[{
+   type:'Feature',properties:{kind:'track-tap-preview'},
+   geometry:{type:'LineString',coordinates:[[start.lng,start.lat],[target.lng,target.lat]]}
+  }]});
+ }else{
+  const points=[[start.lat,start.lng],[target.lat,target.lng]];
+  if(!sbTrackPlacementPreviewLayer){
+   sbTrackPlacementPreviewLayer=L.polyline(points,{pane:'sbTrackPane',color:'#65ffe4',weight:5,opacity:.92,dashArray:'7 6',lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
+  }else sbTrackPlacementPreviewLayer.setLatLngs(points);
+ }
+ sbTrackPlacementPreviewVisible=true;
+}
+map.on('mousemove',function(event){if(mode==='track'&&selected!==null)updateTrackPlacementPreview(event.latlng,false,event.containerPoint);});
+map.on('touchmove',function(){if(mode==='track'&&selected!==null)updateTrackPlacementPreview();});
+map.on('move zoom',function(){if(mode==='track'&&selected!==null)updateTrackPlacementPreview();});
 /* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
@@ -3740,77 +3969,151 @@ let sb3dLibraryPromise=null;
 function sb3dData(){
  const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
  const stations=window.getSubway3DStations?window.getSubway3DStations():[];
- return {lines:{type:'FeatureCollection',features:lines},stations:{type:'FeatureCollection',features:stations}};
+ const platforms=window.getSubway3DPlatforms?window.getSubway3DPlatforms():[];
+ return {
+  lines:{type:'FeatureCollection',features:lines},
+  stations:{type:'FeatureCollection',features:stations},
+  platforms:{type:'FeatureCollection',features:platforms}
+ };
 }
 function sb3dRefresh(){
  if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
  const data=sb3dData();
  sb3dMap.getSource('sb-lines')?.setData(data.lines);
  sb3dMap.getSource('sb-stations')?.setData(data.stations);
+ sb3dMap.getSource('sb-platforms')?.setData(data.platforms);
+}
+function sbGameZoomIn(){
+ if(document.getElementById('sb-3d-map')?.classList.contains('active')&&sb3dMap)sb3dMap.zoomIn();
+ else map.zoomIn();
+}
+function sbGameZoomOut(){
+ if(document.getElementById('sb-3d-map')?.classList.contains('active')&&sb3dMap)sb3dMap.zoomOut();
+ else map.zoomOut();
 }
 function loadMapLibre(){
- if(!sb3dLibraryPromise)sb3dLibraryPromise=import('https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs').then(mod=>mod).catch(error=>{sb3dLibraryPromise=null;throw error;});
+ if(!sb3dLibraryPromise){
+  sb3dLibraryPromise=new Promise((resolve,reject)=>{
+   if(window.maplibregl){resolve(window.maplibregl);return;}
+   const sources=[
+    'https://cdn.jsdelivr.net/npm/maplibre-gl@5.18.0/dist/maplibre-gl.js',
+    'https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.18.0/maplibre-gl.min.js'
+   ];
+   let index=0;
+   const tryNext=()=>{
+    if(window.maplibregl){resolve(window.maplibregl);return;}
+    if(index>=sources.length){reject(new Error('MapLibre could not be loaded from the tested CDN mirrors.'));return;}
+    const script=document.createElement('script');
+    script.src=sources[index++];script.async=true;script.crossOrigin='anonymous';
+    const timeout=setTimeout(()=>{script.onload=null;script.onerror=null;script.remove();tryNext();},8000);
+    script.onload=()=>{clearTimeout(timeout);window.maplibregl?resolve(window.maplibregl):tryNext();};
+    script.onerror=()=>{clearTimeout(timeout);script.remove();tryNext();};
+    document.head.appendChild(script);
+   };
+   tryNext();
+  }).catch(error=>{sb3dLibraryPromise=null;throw error;});
+ }
  return sb3dLibraryPromise;
 }
 async function ensure3DMap(){
  if(sb3dMap)return sb3dMap;
  const maplibregl=await loadMapLibre();
+ const probe=document.createElement('canvas');
+ const webgl2=probe.getContext('webgl2',{failIfMajorPerformanceCaveat:false});
+ if(!webgl2)throw new Error('WebGL2 is unavailable in this Android WebView.');
  const center=map.getCenter();
  sb3dMap=new maplibregl.Map({
-  container:'sb-3d-map',style:currentTheme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty',
+  container:'sb-3d-map',
+  style:'https://tiles.openfreemap.org/styles/liberty',
   center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
-  pitch:58,bearing:-18,maxPitch:78,minPitch:0,antialias:true,attributionControl:false,
+  pitch:65,bearing:-18,maxPitch:85,minPitch:0,antialias:true,
+  attributionControl:{compact:false},
   interactive:true,dragRotate:true,touchPitch:true,touchZoomRotate:true,
-  pitchWithRotate:true,cooperativeGestures:false
+  pitchWithRotate:true,cooperativeGestures:false,
+  canvasContextAttributes:{antialias:true},failIfMajorPerformanceCaveat:false
  });
- sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}), 'top-right');
+ window.sb3dMap=sb3dMap;
+ sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}),'top-right');
  sb3dMap.on('load',()=>{
   try{
-   sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-   const layers=sb3dMap.getStyle().layers||[];
-   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
-   sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
-    filter:['!=',['get','hide_3d'],true],
-    paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
-     'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
-     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
+   sb3dMap.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const firstSymbolLayer=sb3dMap.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
+   sb3dMap.addLayer({
+    id:'sb-3d-buildings',source:'sb-openfreemap-buildings','source-layer':'building',
+    type:'fill-extrusion',minzoom:14,
+    filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],
+    paint:{
+     'fill-extrusion-color':'#aebbc4',
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],
+     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
+     'fill-extrusion-opacity':0.86
+    }
+   },firstSymbolLayer);
    const data=sb3dData();
    sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
-   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
-   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
+   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}});
+   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['coalesce',['get','color'],'#b8d3dc'],'line-width':3.2,'line-opacity':1,'line-dasharray':[1.4,1.2]}});
+   sb3dMap.addSource('sb-platforms',{type:'geojson',data:data.platforms});
+   sb3dMap.addLayer({id:'sb-platform-fills',type:'fill',source:'sb-platforms',paint:{'fill-color':'#56d7c5','fill-opacity':0.24}});
+   sb3dMap.addLayer({id:'sb-platform-outlines',type:'line',source:'sb-platforms',paint:{'line-color':'#62e5d2','line-width':2.5,'line-opacity':0.95}});
    sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
-   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
-   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-   // Buildings, stations and routes are now directly inspectable in the 3D city.
+   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#f5fbff','circle-opacity':0.9}});
+   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':5,'circle-color':'#ffffff','circle-stroke-color':'#173847','circle-stroke-width':1.5}});
+   sb3dMap.addSource('sb-build-preview',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+   sb3dMap.addLayer({id:'sb-build-preview-line',type:'line',source:'sb-build-preview',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#65ffe4','line-width':4,'line-opacity':0.95,'line-dasharray':[1.5,1.2]}});
+   sb3dMap.addLayer({id:'sb-build-preview-point',type:'circle',source:'sb-build-preview',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#65ffe4','circle-stroke-color':'#f5fbff','circle-stroke-width':2,'circle-opacity':0.95}});
+   sb3dMap.on('click',['sb-station-dots','sb-platform-fills'],event=>{
+    const feature=event.features&&event.features.find(item=>Number.isInteger(Number(item.properties?.stationIndex)));
+    const index=Number(feature?.properties?.stationIndex);
+    if(Number.isInteger(index))handleStationClick(index);
+   });
+   sb3dMap.on('click','sb-route-lines',event=>{
+    if(mode!=='waypoint'&&mode!=='curve')return;
+    const feature=event.features&&event.features[0],index=Number(feature?.properties?.trackIndex);
+    if(!Number.isInteger(index)||!tracks[index])return;
+    if(mode==='waypoint')selectTrackForWaypoints(index);
+    else{selectedTrackIndex=index;renderNetwork();scheduleCurvePlacementPreview();}
+   });
    sb3dMap.on('mouseenter','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
    sb3dMap.on('mouseleave','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='';});
    sb3dMap.on('click','sb-3d-buildings',event=>{
     const feature=event.features&&event.features[0];if(!feature)return;
-    const props=feature.properties||{};
-    const name=props.name||props.name_en||'City building';
-    const height=Number(props.render_height||props.height);
+    const props=feature.properties||{},height=Number(props.render_height||props.height);
     const detail=Number.isFinite(height)&&height>0?Math.round(height)+' m tall':'Building footprint';
     new maplibregl.Popup({closeButton:true,closeOnClick:true,offset:12})
-     .setLngLat(event.lngLat).setText(name+' · '+detail).addTo(sb3dMap);
+     .setLngLat(event.lngLat).setText((props.name||props.name_en||'City building')+' · '+detail).addTo(sb3dMap);
    });
-   sb3dMap.on('click','sb-station-dots',event=>{
-    const feature=event.features&&event.features[0];if(!feature)return;
-    const name=feature.properties?.name||'Subway station';
-    new maplibregl.Popup({closeButton:true,offset:14})
-     .setLngLat(event.lngLat).setText(name+' · Subway Builder station').addTo(sb3dMap);
+   // Keep the hidden Leaflet map's camera aligned so returning to 2D preserves the view.
+   sb3dMap.on('moveend',()=>{
+    if(!sb3dMap||!map)return;
+    const c=sb3dMap.getCenter();
+    const z=Math.max(3,Math.min(19,sb3dMap.getZoom()));
+    const current=map.getCenter();
+    if(Math.abs(current.lat-c.lat)>1e-7||Math.abs(current.lng-c.lng)>1e-7||Math.abs(map.getZoom()-z)>0.01)
+     map.setView([c.lat,c.lng],z,{animate:false});
    });
-   sb3dMap.on('click','sb-route-lines',event=>{
-    const feature=event.features&&event.features[0];if(!feature)return;
-    const p=feature.properties||{};
-    new maplibregl.Popup({closeButton:true,offset:12})
-     .setLngLat(event.lngLat).setText((p.from||'Station')+' ↔ '+(p.to||'Station')+' · Track '+(p.trackNumber||'')).addTo(sb3dMap);
+   // Forward map taps into the existing construction handler; the normal HUD/docks remain above this canvas.
+   sb3dMap.on('mousemove',event=>{
+    if(mode==='track'&&selected!==null&&event?.lngLat)
+     updateTrackPlacementPreview(L.latLng(event.lngLat.lat,event.lngLat.lng),true,event.point);
    });
-   sb3dMap.on('mouseenter','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
-   sb3dMap.on('mouseleave','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='';});
-   sb3dMap.on('mouseenter','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
-   sb3dMap.on('mouseleave','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='';});
+   sb3dMap.on('move',()=>{
+    if(mode==='track'&&selected!==null)updateTrackPlacementPreview(null,true);
+   });
+   sb3dMap.on('click',event=>{
+    if(!event||!event.lngLat||!map)return;
+    const features=sb3dMap.queryRenderedFeatures(event.point,{layers:['sb-3d-buildings','sb-station-dots','sb-platform-fills','sb-route-lines']});
+    if(features&&features.length)return;
+    const target=L.latLng(event.lngLat.lat,event.lngLat.lng);
+    // Reuse every existing Leaflet click handler so station selection, track placement,
+    // waypoints, curves and delete mode keep their established game logic.
+    map.setView(target,Math.max(3,Math.min(19,sb3dMap.getZoom())),{animate:false});
+    const containerPoint=map.latLngToContainerPoint(target);
+    map.fire('click',{latlng:target,containerPoint,layerPoint:map.latLngToLayerPoint(target),originalEvent:event.originalEvent});
+   });
    sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
-  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded. Switch back to 2D Build.');}
+  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded: '+(error.message||String(error)));}
  });
  sb3dMap.on('error',event=>console.warn('3D city map:',event.error||event));
  return sb3dMap;
@@ -3822,23 +4125,25 @@ window.toggle3DCityView=async function(){
  if(!host||!toggle||!buildMap)return;
  const enable=!host.classList.contains('active');
  if(!enable){
-  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city preview';
+  host.classList.remove('active');buildMap.style.visibility='visible';
+  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city view';
   map.invalidateSize();message('2D construction view restored.');return;
  }
- host.classList.add('active');document.getElementById('map').style.visibility='hidden';
+ host.classList.add('active');buildMap.style.visibility='hidden';
  toggle.classList.add('active');toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='Return to 2D build view';
  try{
   await ensure3DMap();
+  if(typeof window.sbInstall3DBuildDragHandlers==='function')window.sbInstall3DBuildDragHandlers();
   const center=map.getCenter();
-  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
+  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)
+   sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:65,bearing:-18});
   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dRefresh();sb3dMap.triggerRepaint();}}));
-  message('3D city preview — switch to 2D Build to edit your network.');
+  message('3D city view active — construction tools and game controls remain available.');
  }catch(error){
-  console.error('Unable to initialize 3D city map:',error);
-  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city preview';
-  map.invalidateSize();message('3D map could not load. Check your connection and try again.');
+  console.error('Unable to initialize tested 3D city renderer:',error);
+  host.classList.remove('active');buildMap.style.visibility='visible';
+  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city view';
+  map.invalidateSize();message('3D map could not load. '+(error&&error.message?error.message:'Check your connection and try again.'));
  }
 };
 window.refreshSubway3D=sb3dRefresh;
@@ -3976,8 +4281,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
     'theme-dark':()=>{setMapTheme('dark');document.getElementById('mapMenu').style.display='none';},
     'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
     'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
-    'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
-    'toggle-3d':()=>window.toggle3DCityView(),
+    'zoom-in':()=>sbGameZoomIn(),'zoom-out':()=>sbGameZoomOut(),
    'line-color':()=>document.getElementById('sb-line-color-trigger')?.click()
    };
    if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
@@ -4244,7 +4548,6 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  let modeBeforeDelete='station';
  const priorActivateDelete=window.activateDeleteMode;
  window.activateDeleteMode=function(){
-  if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
   if(typeof window.closeStationMenu==='function')window.closeStationMenu();
   if(mode==='delete'){
    const restore=['station','track','curve','waypoint','inspect'].includes(modeBeforeDelete)?modeBeforeDelete:'station';
@@ -4576,19 +4879,13 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    if(!action)return;
    const nextMode=action.dataset.mode;
    if(typeof setMode==='function')setMode(nextMode);
-   closeConstructionContextMenu();
   });
   document.body.appendChild(menu);
   positionConstructionContextMenu(menu,toggle);
   syncBuildState();
   requestAnimationFrame(()=>positionConstructionContextMenu(menu,toggle));
  }
- document.addEventListener('pointerdown',function(event){
-  const menu=document.getElementById('sb-construction-context-menu');
-  const toggle=document.getElementById('sb-build-dock-btn');
-  if(menu&&!menu.contains(event.target)&&!toggle?.contains(event.target))closeConstructionContextMenu();
- });
- document.addEventListener('keydown',function(event){if(event.key==='Escape')closeConstructionContextMenu();});
+ /* The drawer intentionally remains open until its build-dock toggle is pressed again. */
  window.addEventListener('resize',function(){
   const menu=document.getElementById('sb-construction-context-menu');
   const toggle=document.getElementById('sb-build-dock-btn');
@@ -5742,7 +6039,6 @@ function waypointAtCrosshair(){
   return best;
  }
  map.on('click',function(){
-  if(document.getElementById('sb-3d-map')?.classList.contains('active'))return;
   const center=map.getCenter();
   const target=stationAtCrosshair();
   if(mode==='track'){
@@ -6190,6 +6486,174 @@ function waypointAtCrosshair(){
  sync();
 })();
 </script>
+
+<script id="sb-pr93-cross-view-build-drag-preview">
+/* Shared pointer-to-preview-to-commit interaction for Leaflet and MapLibre.
+   Tap workflows remain supported; a moved pointer becomes a drag placement. */
+(function(){
+ if(window.__sbBuildDragInstalled)return;
+ window.__sbBuildDragInstalled=true;
+ window.sbPendingTrackCenterline=null;
+ window.sbDragHandledAt=0;
+ window.sbDragCommitInProgress=false;
+ let drag=null,previewLayer=null;
+ const EMPTY={type:'FeatureCollection',features:[]};
+
+ function is3DActive(){return !!document.getElementById('sb-3d-map')?.classList.contains('active');}
+ function is3DContainer(container){return !!(container&&container.closest&&container.closest('#sb-3d-map'));}
+ function toLatLng(container,event){
+  const rect=container.getBoundingClientRect(),point=[event.clientX-rect.left,event.clientY-rect.top];
+  if(is3DContainer(container)&&window.sb3dMap)return window.sb3dMap.unproject(point);
+  return map.containerPointToLatLng(L.point(point[0],point[1]));
+ }
+ function pointInPolygon(point,polygon){
+  let inside=false;
+  for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+   const xi=polygon[i].x,yi=polygon[i].y,xj=polygon[j].x,yj=polygon[j].y;
+   const crosses=((yi>point.y)!==(yj>point.y))&&(point.x<(xj-xi)*(point.y-yi)/(yj-yi||1e-9)+xi);
+   if(crosses)inside=!inside;
+  }
+  return inside;
+ }
+ function stationAt(container,event,latlng){
+  if(is3DContainer(container)&&window.sb3dMap){
+   const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
+   let hits=[];
+   try{hits=window.sb3dMap.queryRenderedFeatures(p,{layers:['sb-station-dots','sb-platform-fills']});}catch(error){/* Layers may still be loading; use the projected station fallback below. */}
+   for(const feature of hits){const index=Number(feature.properties?.stationIndex);if(Number.isInteger(index))return index;}
+  }else{
+   const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
+   for(const area of (window.stationPlatformHitAreas||[])){
+    const polygon=area.corners.map(ll=>{const q=map.latLngToContainerPoint(ll);return{x:q.x,y:q.y};});
+    if(pointInPolygon(p,polygon))return area.index;
+   }
+  }
+  let best=-1,bestDistance=36;
+  stations.forEach((station,index)=>{
+   const q=is3DContainer(container)&&window.sb3dMap
+    ?window.sb3dMap.project([station.lng,station.lat])
+    :map.latLngToContainerPoint([station.lat,station.lng]);
+   const rect=container.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
+   const distance=Math.hypot(q.x-x,q.y-y);
+   if(distance<bestDistance){bestDistance=distance;best=index;}
+  });
+  return best;
+ }
+ function feature(type,coordinates,properties={}){
+  return {type:'Feature',properties,geometry:{type,coordinates}};
+ }
+ function set3DPreview(features){
+  const source=window.sb3dMap?.getSource('sb-build-preview');
+  if(source)source.setData({type:'FeatureCollection',features});
+ }
+ function clearPreview(){
+  if(previewLayer){map.removeLayer(previewLayer);previewLayer=null;}
+  clearCurvePlacementPreview();
+  set3DPreview([]);
+ }
+ function drawPreview(state,latlng){
+  const points=state.path.concat([{lat:latlng.lat,lng:latlng.lng}]);
+  if(state.kind==='waypoint'){
+   const f=feature('Point',[latlng.lng,latlng.lat],{kind:'waypoint-preview'});
+   if(is3DActive())set3DPreview([f]);
+   else{
+    if(!previewLayer)previewLayer=L.circleMarker(latlng,{pane:'sbTrackPane',radius:8,color:'#f5fbff',weight:2,fillColor:'#65ffe4',fillOpacity:.95,interactive:false}).addTo(map);
+    else previewLayer.setLatLng(latlng);
+   }
+   return;
+  }
+  if(state.kind==='curve'){
+   updateCurvePlacementPreview(latlng);
+   if(is3DActive()&&selectedTrackIndex!==null&&tracks[selectedTrackIndex]){
+    const base=tracks[selectedTrackIndex];
+    const temp={...base,curve:true,waypoints:[...(base.waypoints||[]),{lat:latlng.lat,lng:latlng.lng,elevation:'at'}]};
+    delete temp.centerline;
+    const points=getTrackCenterlinePoints(temp);
+    set3DPreview(points.length>1?[feature('LineString',points.map(p=>[p[1],p[0]]),{kind:'curve-preview'})]:[]);
+   }
+  }
+ }
+ function begin(container,event){
+  if(event.button!==undefined&&event.button!==0)return;
+  if(!['waypoint','curve'].includes(mode))return;
+  const latlng=toLatLng(container,event);
+  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])return;
+  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:{x:event.clientX-container.getBoundingClientRect().left,y:event.clientY-container.getBoundingClientRect().top},moved:false,panDisabled:true,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled()};
+  if(is3DContainer(container))window.sb3dMap?.dragPan?.disable();
+  else map.dragging.disable();
+ }
+ function move(container,event){
+  if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
+  const latlng=toLatLng(container,event),rect=container.getBoundingClientRect(),point={x:event.clientX-rect.left,y:event.clientY-rect.top};
+  if(!drag.moved&&drag.lastPoint&&Math.hypot(point.x-drag.lastPoint.x,point.y-drag.lastPoint.y)<7)return;
+  if(!drag.lastPoint)drag.lastPoint=point;
+  if(Math.hypot(point.x-drag.lastPoint.x,point.y-drag.lastPoint.y)>=5)drag.moved=true;
+  if(!drag.moved)return;
+  if(!drag.panDisabled){
+   if(is3DContainer(container))window.sb3dMap?.dragPan?.disable();
+   else if(map.dragging.enabled())map.dragging.disable();
+   drag.panDisabled=true;
+  }
+  event.preventDefault();event.stopPropagation();
+  if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+  if(drag.kind==='track'){
+   const snap=nearestParallelRail(container,event,latlng);
+   const p=snap?snap.latlng:latlng;
+   const last=drag.path[drag.path.length-1];
+   const distance=map.distance([last.lat,last.lng],[p.lat,p.lng]);
+   if(distance>=1.2)drag.path.push({lat:p.lat,lng:p.lng});
+   drawPreview(drag,p);
+  }else{
+   drawPreview(drag,latlng);
+  }
+  drag.lastPoint=point;
+ }
+ function commitPoint(state,event){
+  const latlng=toLatLng(state.container,event),track=tracks[selectedTrackIndex];
+  if(!track)return false;
+  track.waypoints=Array.isArray(track.waypoints)?track.waypoints:[];
+  if(state.kind==='curve')track.curve=true;
+  delete track.centerline;
+  track.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
+  saveHistory();renderNetwork();
+  message(state.kind==='curve'?'Curve point dropped.':'Waypoint dropped.');
+  return true;
+ }
+ function finish(container,event){
+  if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
+  const state=drag;drag=null;
+  if(!is3DContainer(container)){
+   if(state.draggingWasEnabled)map.dragging.enable();
+  }else if(window.sb3dMap&&state.draggingWasEnabled){
+   window.sb3dMap.dragPan.enable();
+  }
+  if(event.type==='pointercancel'){clearPreview();return;}
+  if(state.moved){
+   event.preventDefault();event.stopPropagation();
+   if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+   const committed=commitPoint(state,event);
+   window.sbDragHandledAt=Date.now();
+   clearPreview();
+   if(!committed)message('Drag ended without a valid placement.');
+  }else{
+   clearPreview();
+  }
+ }
+ function install(container){
+  if(!container||container.dataset.sbBuildDragBound==='true')return;
+  container.dataset.sbBuildDragBound='true';
+  container.addEventListener('pointerdown',event=>begin(container,event),true);
+  container.addEventListener('pointermove',event=>move(container,event),true);
+  container.addEventListener('pointerup',event=>finish(container,event),true);
+  container.addEventListener('pointercancel',event=>finish(container,event),true);
+ }
+ window.sbInstall3DBuildDragHandlers=function(){install(document.getElementById('sb-3d-map')?.querySelector('canvas'));};
+ install(document.getElementById('map'));
+ const observer=new MutationObserver(()=>{if(is3DActive())window.sbInstall3DBuildDragHandlers();});
+ observer.observe(document.getElementById('sb-3d-map')||document.body,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 <style id="sb-nov06-final-dock-layout">
 /* The 128px construction dock must be a true 2-column x 4-row grid.
@@ -8746,13 +9210,15 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   ['width-default','standard','Standard width'],
   ['width-wide','wide','Wide width'],
   ['clear-selection','clear','Clear selection'],
-  ['toggle-3d','city','3D city view'],
   ['line-color','palette','Line color']
  ];
  function enhance(menu){
-  if(!menu||menu.dataset.sbSvgInventory==='ready')return;
+  if(!menu)return;
   const grid=menu.querySelector('.sb-construction-context-grid');
   if(!grid)return;
+  /* Remove the obsolete 3D city action from Construction, including stale generated copies. */
+  grid.querySelectorAll('button[data-sb-action="toggle-3d"]').forEach(button=>button.remove());
+  if(menu.dataset.sbSvgInventory==='ready'){sync(menu);return;}
   menu.dataset.sbSvgInventory='ready';
   const modeIcons={station:'station',track:'track',curve:'curve',waypoint:'waypoint',inspect:'inspect'};
   grid.querySelectorAll('button[data-mode]').forEach(button=>{
@@ -8795,7 +9261,6 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-default':currentPlatformWidth==='default',
    'width-wide':currentPlatformWidth==='wide',
    'clear-selection':false,
-   'toggle-3d':!!document.getElementById('sb-3d-map')?.classList.contains('active'),
    'line-color':document.getElementById('sb-line-color-options')?.classList.contains('is-open')===true
   };
   menu.querySelectorAll('button[data-sb-action]').forEach(button=>{
@@ -8829,8 +9294,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-narrow':()=>setPlatformWidth('narrow'),
    'width-default':()=>setPlatformWidth('default'),
    'width-wide':()=>setPlatformWidth('wide'),
-   'clear-selection':()=>resetSelection(),
-   'toggle-3d':()=>window.toggle3DCityView()
+   'clear-selection':()=>resetSelection()
   };
   if(typeof actions[action]!=='function')return false;
   actions[action]();
@@ -9682,6 +10146,30 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
 </style>
 
 
+<style id="sb-pr92-service-dock-3d-control-final">
+/* Keep the sole 3D city switch in Service Lines; never expose it in Construction. */
+#sb-construction-context-menu .sb-construction-context-grid button[data-sb-action="toggle-3d"]{display:none!important}
+#sb-action-dock #sb-service-dock #sb-service-lines #sb-3d-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ align-items:center!important;justify-content:center!important;
+ margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;
+ background:rgba(225,241,255,.105)!important;color:#edf7ff!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.12)!important;
+}
+#sb-action-dock #sb-service-dock #sb-service-lines #sb-3d-toggle svg{
+ display:block!important;flex:0 0 23px!important;width:23px!important;height:23px!important;
+ fill:none!important;stroke:currentColor!important;pointer-events:none!important;
+}
+#sb-action-dock #sb-service-dock #sb-service-lines #sb-3d-toggle.active{
+ color:#8fffea!important;background:rgba(54,211,190,.19)!important;
+ box-shadow:inset 0 0 0 1px rgba(100,244,220,.35),0 0 14px rgba(38,220,196,.14)!important;
+}
+</style>
+
+
+
 <style id="sb-service-dock-close-animation-fix">
 /* Keep the service content mounted while the dock contracts. Hiding it with
    display:none on the collapsed state was cutting off the closing transition. */
@@ -9846,39 +10334,74 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
 (function(){
  if(window.__sb3DThemeSync)return;
  window.__sb3DThemeSync=true;
- let appliedTheme=null;
+ let requestedTheme=null,styleReloadPending=false;
  function installNetworkLayers(){
-  if(!sb3dMap||!sb3dMap.isStyleLoaded())return;
+  const cityMap=window.sb3dMap;
+  if(!cityMap||!cityMap.isStyleLoaded())return;
   try{
-   if(!sb3dMap.getSource('sb-openfreemap'))sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-   const layers=sb3dMap.getStyle().layers||[];
-   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
-   if(!sb3dMap.getLayer('sb-3d-buildings')){
-    sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
-     filter:['!=',['get','hide_3d'],true],
-     paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
-      'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
-      'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
-   }
+   if(!cityMap.getSource('sb-openfreemap-buildings'))
+    cityMap.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const firstSymbolLayer=(cityMap.getStyle().layers||[]).find(layer=>layer.type==='symbol')?.id;
+   if(!cityMap.getLayer('sb-3d-buildings'))cityMap.addLayer({
+    id:'sb-3d-buildings',source:'sb-openfreemap-buildings','source-layer':'building',
+    type:'fill-extrusion',minzoom:14,
+    filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],
+    paint:{
+     'fill-extrusion-color':'#aebbc4',
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],
+     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
+     'fill-extrusion-opacity':0.86
+    }
+   },firstSymbolLayer);
    const data=sb3dData();
-   if(!sb3dMap.getSource('sb-lines'))sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
-   if(!sb3dMap.getLayer('sb-route-casing'))sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
-   if(!sb3dMap.getLayer('sb-route-lines'))sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
-   if(!sb3dMap.getSource('sb-stations'))sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
-   if(!sb3dMap.getLayer('sb-station-halo'))sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
-   if(!sb3dMap.getLayer('sb-station-dots'))sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-   sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
+   if(!cityMap.getSource('sb-lines'))cityMap.addSource('sb-lines',{type:'geojson',data:data.lines});
+   if(!cityMap.getLayer('sb-route-casing'))cityMap.addLayer({
+    id:'sb-route-casing',type:'line',source:'sb-lines',
+    layout:{'line-cap':'round','line-join':'round'},
+    paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}
+   });
+   if(!cityMap.getLayer('sb-route-lines'))cityMap.addLayer({
+    id:'sb-route-lines',type:'line',source:'sb-lines',
+    layout:{'line-cap':'round','line-join':'round'},
+    paint:{'line-color':['coalesce',['get','color'],'#b8d3dc'],'line-width':3.2,'line-opacity':1,'line-dasharray':[1.4,1.2]}
+   });
+   if(!cityMap.getSource('sb-platforms'))cityMap.addSource('sb-platforms',{type:'geojson',data:data.platforms});
+   if(!cityMap.getLayer('sb-platform-fills'))cityMap.addLayer({id:'sb-platform-fills',type:'fill',source:'sb-platforms',paint:{'fill-color':'#56d7c5','fill-opacity':0.24}});
+   if(!cityMap.getLayer('sb-platform-outlines'))cityMap.addLayer({id:'sb-platform-outlines',type:'line',source:'sb-platforms',paint:{'line-color':'#62e5d2','line-width':2.5,'line-opacity':0.95}});
+   if(!cityMap.getSource('sb-stations'))cityMap.addSource('sb-stations',{type:'geojson',data:data.stations});
+   if(!cityMap.getLayer('sb-station-halo'))cityMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#f5fbff','circle-opacity':0.9}});
+   if(!cityMap.getLayer('sb-station-dots'))cityMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':5,'circle-color':'#ffffff','circle-stroke-color':'#173847','circle-stroke-width':1.5}});
+   if(!cityMap.getSource('sb-build-preview'))cityMap.addSource('sb-build-preview',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+   if(!cityMap.getLayer('sb-build-preview-line'))cityMap.addLayer({id:'sb-build-preview-line',type:'line',source:'sb-build-preview',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#65ffe4','line-width':4,'line-opacity':0.95,'line-dasharray':[1.5,1.2]}});
+   if(!cityMap.getLayer('sb-build-preview-point'))cityMap.addLayer({id:'sb-build-preview-point',type:'circle',source:'sb-build-preview',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#65ffe4','circle-stroke-color':'#f5fbff','circle-stroke-width':2,'circle-opacity':0.95}});
+   sb3dReady=true;
+   window.refreshSubway3D?.();
+   cityMap.resize();cityMap.triggerRepaint();
   }catch(error){console.error('3D theme layer restoration failed:',error);}
+ }
+ function applyLatestTheme(){
+  const cityMap=window.sb3dMap;
+  if(!cityMap)return;
+  const currentTheme=document.documentElement.getAttribute('data-sb-theme')||'light';
+  if(currentTheme!==requestedTheme){
+   requestedTheme=currentTheme;
+   cityMap.once('style.load',applyLatestTheme);
+   cityMap.setStyle(requestedTheme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty');
+   return;
+  }
+  styleReloadPending=false;
+  installNetworkLayers();
  }
  function syncTheme(){
   const host=document.getElementById('sb-3d-map');
-  if(!host?.classList.contains('active')||!sb3dMap||!sb3dReady)return;
+  const cityMap=window.sb3dMap;
+  if(!host?.classList.contains('active')||!cityMap)return;
   const theme=document.documentElement.getAttribute('data-sb-theme')||'light';
-  if(theme===appliedTheme)return;
-  appliedTheme=theme;sb3dReady=false;
-  const styleUrl=theme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty';
-  sb3dMap.once('style.load',installNetworkLayers);
-  sb3dMap.setStyle(styleUrl);
+  if(theme===requestedTheme&&styleReloadPending)return;
+  if(theme===requestedTheme&&cityMap.isStyleLoaded())return;
+  requestedTheme=theme;styleReloadPending=true;sb3dReady=false;
+  cityMap.once('style.load',applyLatestTheme);
+  cityMap.setStyle(theme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty');
  }
  function observe(){
   const observer=new MutationObserver(syncTheme);
