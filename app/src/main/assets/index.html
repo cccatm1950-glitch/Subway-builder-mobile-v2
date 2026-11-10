@@ -2386,17 +2386,21 @@ function redo(){
 
 /* Export the live network to the optional 3D city preview. */
 window.getSubway3DTracks=function(){
- return tracks.map((t,i)=>{
-  const a=stations[t.a],b=stations[t.b];if(!a||!b)return null;
-  const coords=getTrackCenterlinePoints(t).map(point=>[point[1],point[0]]);
-  return {type:'Feature',properties:{
-   color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],
-   from:a.name||('Station '+(t.a+1)),to:b.name||('Station '+(t.b+1)),
-   trackNumber:i+1,elevation:t.elevation||'at',
-   startElevation:Number.isFinite(t.startElevation)?t.startElevation:legacyTrackElevation(t.elevation),
-   endElevation:Number.isFinite(t.endElevation)?t.endElevation:legacyTrackElevation(t.elevation),style:t.style||'single'
-  },geometry:{type:'LineString',coordinates:coords}};
- }).filter(Boolean);
+ return tracks.flatMap((t,i)=>{
+  const a=stations[t.a],b=stations[t.b];if(!a||!b)return [];
+  const centerlines=Array.isArray(t.previewCenterlines)&&t.previewCenterlines.length
+   ?t.previewCenterlines:[getTrackCenterlinePoints(t)];
+  return centerlines.filter(points=>Array.isArray(points)&&points.length>=2).map((points,centerlineIndex)=>({
+   type:'Feature',properties:{
+    color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],
+    from:a.name||('Station '+(t.a+1)),to:b.name||('Station '+(t.b+1)),
+    trackNumber:i+1,centerlineIndex,elevation:t.elevation||'at',
+    startElevation:Number.isFinite(t.startElevation)?t.startElevation:legacyTrackElevation(t.elevation),
+    endElevation:Number.isFinite(t.endElevation)?t.endElevation:legacyTrackElevation(t.elevation),
+    style:'single',sourceStyle:t.style||'single'
+   },geometry:{type:'LineString',coordinates:points.map(point=>[point[1],point[0]])}
+  }));
+ });
 };
 window.getSubway3DStations=function(){
  return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
@@ -2817,6 +2821,11 @@ if(mode==='delete'){
    ];
   });
   t.trainCenterline=shiftTrackPoints(0);
+  // Export the same platform-aware physical track centerlines used by the game renderer.
+  // A parallel section is two track centerlines; a single section remains one.
+  t.previewCenterlines=t.style==='parallel'
+   ?[shiftTrackPoints(-1.905,-1),shiftTrackPoints(1.905,1)]
+   :[shiftTrackPoints(0)];
   function drawLine(offset,parallelSide=0){
    const shifted=shiftTrackPoints(offset,parallelSide);
     if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
