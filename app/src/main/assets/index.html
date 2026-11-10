@@ -8770,7 +8770,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   ['line-color','palette','Line color']
  ];
  function enhance(menu){
-  if(!menu||menu.dataset.sbSvgInventory==='ready')return;
+  if(!menu)return;
   const grid=menu.querySelector('.sb-construction-context-grid');
   if(!grid)return;
   /* Remove the obsolete 3D city action from Construction, including stale generated copies. */
