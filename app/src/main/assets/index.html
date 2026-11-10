@@ -9739,3 +9739,64 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
   filter:none!important;
 }
 </style>
+
+
+<style id="sb-pr92-service-lines-3d-slot-final-override">
+/* Must follow all legacy service-dock CSS: its final two-column rule was
+   clipping the 3D control as the third child inside the dock's overflow. */
+#sb-action-dock .sb-dock-panel-service #sb-service-lines{
+ box-sizing:border-box!important;
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 46px 46px!important;
+ grid-template-rows:minmax(0,1fr)!important;
+ grid-auto-flow:row!important;
+ align-items:center!important;align-content:center!important;
+ gap:clamp(4px,1vw,8px)!important;
+ width:100%!important;min-width:0!important;height:100%!important;
+ min-height:0!important;max-height:100%!important;
+ flex:1 1 auto!important;overflow:visible!important;
+ position:relative!important;
+}
+#sb-action-dock .sb-dock-panel-service #sb-service-lines .sb-service-lines-heading{
+ position:absolute!important;left:0!important;top:0!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content{
+ display:flex!important;grid-column:1!important;grid-row:1!important;
+ min-width:0!important;width:100%!important;max-width:100%!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ display:flex!important;grid-column:2!important;grid-row:1!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ align-items:center!important;justify-content:center!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines #sb-3d-toggle{
+ display:inline-flex!important;grid-column:3!important;grid-row:1!important;
+ position:relative!important;visibility:visible!important;opacity:1!important;
+ pointer-events:auto!important;z-index:2!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ align-items:center!important;justify-content:center!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;
+ background:rgba(255,255,255,.09)!important;
+ border:1px solid rgba(255,255,255,.16)!important;
+ color:#edf6ff!important;box-shadow:none!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines #sb-3d-toggle svg{
+ display:block!important;width:23px!important;height:23px!important;
+ flex:0 0 23px!important;pointer-events:none!important;
+}
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines #sb-3d-toggle{
+ display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+@media(max-width:700px){
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+  grid-template-columns:minmax(0,1fr) 42px 42px!important;gap:4px!important;
+ }
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot,
+ #sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines #sb-3d-toggle{
+  flex-basis:42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+ }
+}
+</style>
