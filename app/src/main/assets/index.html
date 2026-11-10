@@ -2025,6 +2025,25 @@ html,body{
  overflow:hidden!important;
 }
 </style>
+
+<style id="sb-service-dock-3d-view-control-final">
+/* The 3D preview switch is a peer of Run in the expanded Service Lines dock. */
+#sb-service-dock #sb-service-lines #sb-3d-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;
+ background:rgba(255,255,255,.09)!important;border:1px solid rgba(255,255,255,.16)!important;
+ color:#edf6ff!important;box-shadow:none!important;
+}
+#sb-service-dock #sb-service-lines #sb-3d-toggle svg{
+ display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important;
+ fill:none!important;stroke:currentColor!important;pointer-events:none!important;
+}
+#sb-service-dock #sb-service-lines #sb-3d-toggle.active{
+ background:rgba(54,211,190,.19)!important;border-color:rgba(100,244,220,.48)!important;color:#8fffea!important;
+}
+</style>
 </head>
 <body class="sb-start-menu-open">
 
@@ -3818,7 +3837,7 @@ window.toggle3DCityView=async function(){
  }catch(error){
   console.error('Unable to initialize 3D city map:',error);
   host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city preview';
   map.invalidateSize();message('3D map could not load. Check your connection and try again.');
  }
 };
