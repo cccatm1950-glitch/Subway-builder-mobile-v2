@@ -4041,13 +4041,13 @@ async function ensure3DMap(){
    const firstSymbolLayer=sb3dMap.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
    sb3dMap.addLayer({
     id:'sb-3d-buildings',source:'sb-openfreemap-buildings','source-layer':'building',
-    type:'fill-extrusion',minzoom:14,
-    filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],
+    type:'fill-extrusion',minzoom:12,
+    filter:['all',['any',['has','render_height'],['has','height']],['!=',['get','hide_3d'],true]],
     paint:{
-     'fill-extrusion-color':'#aebbc4',
-     'fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],
-     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
-     'fill-extrusion-opacity':0.86
+     'fill-extrusion-color':(document.documentElement.getAttribute('data-sb-theme')||'light')==='dark'?'#9aabba':'#aebbc4',
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],12,['*',['to-number',['coalesce',['get','render_height'],['get','height'],8]],0.35],13,['*',['to-number',['coalesce',['get','render_height'],['get','height'],8]],0.7],14,['to-number',['coalesce',['get','render_height'],['get','height'],8]]],
+     'fill-extrusion-base':['to-number',['coalesce',['get','render_min_height'],['get','min_height'],0]],
+     'fill-extrusion-opacity':0.92
     }
    },firstSymbolLayer);
    const data=sb3dData();
@@ -4086,12 +4086,17 @@ async function ensure3DMap(){
    });
    // Keep the hidden Leaflet map's camera aligned so returning to 2D preserves the view.
    sb3dMap.on('moveend',()=>{
-    if(!sb3dMap||!map)return;
+    const host=document.getElementById('sb-3d-map');
+    if(!host?.classList.contains('active')||!sb3dMap||!map)return;
     const c=sb3dMap.getCenter();
     const z=Math.max(3,Math.min(19,sb3dMap.getZoom()));
     const current=map.getCenter();
-    if(Math.abs(current.lat-c.lat)>1e-7||Math.abs(current.lng-c.lng)>1e-7||Math.abs(map.getZoom()-z)>0.01)
+    const latDelta=Math.abs(current.lat-c.lat),lngDelta=Math.abs(current.lng-c.lng);
+    const zoomDelta=Math.abs(map.getZoom()-z);
+    if(latDelta>0.00001||lngDelta>0.00001||zoomDelta>0.02){
+     map.stop();
      map.setView([c.lat,c.lng],z,{animate:false});
+    }
    });
    // Forward map taps into the existing construction handler; the normal HUD/docks remain above this canvas.
    sb3dMap.on('mousemove',event=>{
@@ -4125,10 +4130,12 @@ window.toggle3DCityView=async function(){
  if(!host||!toggle||!buildMap)return;
  const enable=!host.classList.contains('active');
  if(!enable){
+  if(sb3dMap)sb3dMap.stop();
   host.classList.remove('active');buildMap.style.visibility='visible';
   toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city view';
-  map.invalidateSize();message('2D construction view restored.');return;
+  map.stop();map.invalidateSize({pan:false});message('2D construction view restored.');return;
  }
+ map.stop();map.invalidateSize({pan:false});
  host.classList.add('active');buildMap.style.visibility='hidden';
  toggle.classList.add('active');toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='Return to 2D build view';
  try{
@@ -10353,13 +10360,13 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
    const firstSymbolLayer=(cityMap.getStyle().layers||[]).find(layer=>layer.type==='symbol')?.id;
    if(!cityMap.getLayer('sb-3d-buildings'))cityMap.addLayer({
     id:'sb-3d-buildings',source:'sb-openfreemap-buildings','source-layer':'building',
-    type:'fill-extrusion',minzoom:14,
-    filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],
+    type:'fill-extrusion',minzoom:12,
+    filter:['all',['any',['has','render_height'],['has','height']],['!=',['get','hide_3d'],true]],
     paint:{
-     'fill-extrusion-color':'#aebbc4',
-     'fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],
-     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
-     'fill-extrusion-opacity':0.86
+     'fill-extrusion-color':(document.documentElement.getAttribute('data-sb-theme')||'light')==='dark'?'#9aabba':'#aebbc4',
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],12,['*',['to-number',['coalesce',['get','render_height'],['get','height'],8]],0.35],13,['*',['to-number',['coalesce',['get','render_height'],['get','height'],8]],0.7],14,['to-number',['coalesce',['get','render_height'],['get','height'],8]]],
+     'fill-extrusion-base':['to-number',['coalesce',['get','render_min_height'],['get','min_height'],0]],
+     'fill-extrusion-opacity':0.92
     }
    },firstSymbolLayer);
    const data=sb3dData();
