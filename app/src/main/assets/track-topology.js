@@ -165,6 +165,13 @@
       secondControl: controlPoint(end, endControlBearing, endControlDirection) };
   }
 
+  // Junctions have no platform bearing: preserve the local route tangent there.
+  // Only physical stations should rotate the parallel pair to a platform axis.
+  function resolveEndpointPlatformBearing(nodeType, bearing, defaultBearing = 90) {
+    if (nodeType === 'junction') return null;
+    return Number.isFinite(bearing) ? bearing : defaultBearing;
+  }
+
   // Resolve an endpoint normal from the saved station bearing rather than
   // the last sampled curve segment. This gives connected parallel sections
   // the same physical rail endpoints even when approach directions reverse.
@@ -436,5 +443,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculateParallelJunctionMergeProfile, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, resolveEndpointPlatformBearing, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculateParallelJunctionMergeProfile, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });
