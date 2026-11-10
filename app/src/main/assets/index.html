@@ -10671,3 +10671,66 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  mount();document.addEventListener('DOMContentLoaded',mount,{once:true});
 })();
 </script>
+
+<style id="sb-service-dock-divider-and-toggle-centering-repair">
+/* The former toggle, 3D and grid pseudo-dividers stacked offsets into the expanded bar.
+   Keep one clean alignment system and let the toggle sit on the same centerline. */
+#sb-action-dock #sb-service-dock.is-expanded{
+ box-sizing:border-box!important;display:flex!important;flex-flow:row nowrap!important;
+ align-items:center!important;justify-content:flex-start!important;gap:0!important;
+ padding:4px!important;overflow:hidden!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle{
+ position:relative!important;inset:auto!important;align-self:center!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;transform:none!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle:after,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines:after,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle:after{
+ content:none!important;display:none!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{
+ box-sizing:border-box!important;position:relative!important;align-self:center!important;
+ display:grid!important;flex:1 1 0!important;width:0!important;min-width:0!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;border:0!important;
+ grid-template-columns:minmax(0,1fr) 42px 42px!important;
+ grid-template-rows:46px!important;align-items:center!important;align-content:center!important;
+ gap:4px!important;overflow:hidden!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>.sb-service-lines-heading{display:none!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-lines-content{
+ grid-column:1!important;grid-row:1!important;align-self:center!important;
+ min-width:0!important;width:100%!important;height:42px!important;min-height:42px!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{
+ grid-column:2!important;grid-row:1!important;justify-self:center!important;align-self:center!important;
+ position:relative!important;margin:0!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{
+ grid-column:3!important;grid-row:1!important;justify-self:center!important;align-self:center!important;
+ margin:0!important;padding:0!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot #runBtn,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{
+ flex:0 0 42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+ height:42px!important;min-height:42px!important;max-height:42px!important;
+}
+#sb-action-dock #sb-service-dock:not(.is-expanded) #sb-service-dock-toggle{
+ margin:0!important;transform:none!important;align-self:center!important;
+}
+@media(min-width:701px){
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{
+  grid-template-columns:minmax(0,1fr) 46px 46px!important;gap:6px!important;
+ }
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot,
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot #runBtn,
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{
+  flex-basis:46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+  height:46px!important;min-height:46px!important;max-height:46px!important;
+ }
+}
+</style>
