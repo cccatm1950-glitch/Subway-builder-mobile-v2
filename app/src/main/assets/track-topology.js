@@ -273,6 +273,14 @@
     return projectedHalfExtent + clearance;
   }
 
+  // Return only the extra flare beyond the standard half-spacing already
+  // applied to each rail. This prevents counting the base parallel spacing twice.
+  function calculateParallelTrackExtraClearance(platformEdgeClearance, standardTrackSpacing = 3.81) {
+    if (!Number.isFinite(platformEdgeClearance) || !Number.isFinite(standardTrackSpacing) ||
+        platformEdgeClearance < 0 || standardTrackSpacing <= 0) return null;
+    return Math.max(0, platformEdgeClearance - standardTrackSpacing / 2);
+  }
+
   // Project the platform rectangle onto the route axis. This is the distance
   // from a station node to the far end of its platform footprint along the track.
   function calculatePlatformAlongTrackExtent(fromPoint, toPoint, bearing, halfLength, halfWidth) {
@@ -409,5 +417,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });
