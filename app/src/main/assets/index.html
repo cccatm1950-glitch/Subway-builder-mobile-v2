@@ -4840,14 +4840,20 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const left=Math.max(edge,Math.min(centerX-panelWidth/2,window.innerWidth-panelWidth-edge));
   const topLimit=statsRect&&statsRect.bottom>0?statsRect.bottom+gap:edge;
   const bottomLimit=dockRect&&dockRect.top>topLimit?dockRect.top-gap:window.innerHeight-edge;
-  const available=Math.max(120,bottomLimit-topLimit);
+  const safeTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-top'))||0;
+  const safeBottom=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-bottom'))||0;
+  const safeTopLimit=Math.max(topLimit,safeTop+edge);
+  const safeBottomLimit=Math.max(safeTopLimit+120,bottomLimit-safeBottom);
+  const available=Math.max(120,safeBottomLimit-safeTopLimit);
+  const preferredHeight=Math.min(available,Math.max(260,Math.min(window.innerHeight*.62,520)));
+  const menuTop=Math.max(safeTopLimit,safeBottomLimit-preferredHeight);
   menu.style.boxSizing='border-box';
   menu.style.width=panelWidth+'px';menu.style.maxWidth=panelWidth+'px';
   menu.style.left=left+'px';menu.style.right='auto';
-  menu.style.top=topLimit+'px';menu.style.bottom='auto';
-  menu.style.height=available+'px';menu.style.maxHeight=available+'px';menu.style.minHeight='0';
+  menu.style.top=menuTop+'px';menu.style.bottom='auto';
+  menu.style.height='auto';menu.style.maxHeight=Math.max(120,safeBottomLimit-menuTop)+'px';menu.style.minHeight='0';
   menu.style.display='flex';menu.style.flexDirection='column';
-  menu.style.overflowX='hidden';menu.style.overflowY='hidden';
+  menu.style.overflowX='hidden';menu.style.overflowY='auto';
   menu.style.webkitOverflowScrolling='touch';menu.style.touchAction='pan-y';
   menu.style.overscrollBehaviorY='contain';
  }
@@ -10514,3 +10520,35 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  }
 })();
 </script>
+
+
+<style id="sb-service-dock-two-group-control-layout">
+:root{--sb-safe-top:env(safe-area-inset-top,0px);--sb-safe-bottom:env(safe-area-inset-bottom,0px)}
+/* Expanded dock order: toggle | service lines | 3D | divider | Play. */
+#sb-action-dock #sb-service-dock.is-expanded{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:0!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle{position:relative!important;flex:0 0 46px!important;margin:0 8px 0 0!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle:after{
+ content:""!important;display:block!important;position:absolute!important;right:-8px!important;top:9px!important;
+ width:1px!important;height:28px!important;background:rgba(220,238,252,.24)!important;pointer-events:none!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{
+ display:grid!important;flex:1 1 0!important;min-width:0!important;width:0!important;
+ grid-template-columns:minmax(0,1fr) 46px 1px 46px!important;grid-template-rows:minmax(0,1fr)!important;
+ align-items:center!important;gap:clamp(4px,1vw,8px)!important;overflow:hidden!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-lines-content{grid-column:1!important;grid-row:1!important;min-width:0!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{grid-column:2!important;grid-row:1!important;justify-self:center!important;position:relative!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle:after{
+ content:""!important;display:block!important;position:absolute!important;right:-7px!important;top:9px!important;
+ width:1px!important;height:28px!important;background:rgba(220,238,252,.24)!important;pointer-events:none!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines:after{
+ content:""!important;display:block!important;grid-column:3!important;grid-row:1!important;width:1px!important;height:28px!important;
+ background:rgba(220,238,252,.24)!important;justify-self:center!important;pointer-events:none!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{grid-column:4!important;grid-row:1!important;justify-self:center!important}
+@media(max-width:700px){
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1fr) 42px 1px 42px!important;gap:4px!important}
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines:after{height:24px!important}
+}
+</style>
