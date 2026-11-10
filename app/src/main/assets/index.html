@@ -3176,7 +3176,7 @@ function setMode(newMode){
   if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
 
   if(mode==='station')message('Tap the map to place a station ($500).');
- if(mode==='track')message('Tap two stations or drag from one to the other to connect them ($150). Drag along either rail of a parallel section to snap a single track.');
+ if(mode==='track')message('Tap a start station, preview the route, then tap a destination station to connect them ($150).');
  if(mode==='waypoint')message('Tap a track to select it for waypoint editing.');
  if(mode==='inspect')message('Tap a station to inspect it.');
  if(mode==='delete')message('Tap a station to delete it and its connected tracks.');
@@ -3407,12 +3407,14 @@ function handleStationClick(index){
   if(selected===null){
    selected=index;
    renderNetwork();
-   message(stations[index].name+' selected. Now tap another station.');
+   requestAnimationFrame(()=>updateTrackPlacementPreview());
+   message(stations[index].name+' selected. Aim the preview and tap a destination station.');
    return;
   }
 
   if(selected===index){
    selected=null;
+   clearTrackPlacementPreview();
    renderNetwork();
    message('Selection cleared.');
    return;
@@ -3528,6 +3530,7 @@ function handleStationClick(index){
 });
   window.sbPendingTrackCenterline=null;
   selected=null;
+  clearTrackPlacementPreview();
   saveHistory();
   renderNetwork();
   message('Track successfully connected to both stations!');
@@ -3726,6 +3729,57 @@ else if(mode==='delete'){
  }
 }
 map.on('click',function(e){if(window.sbDragHandledAt&&Date.now()-window.sbDragHandledAt<500&&!window.sbDragCommitInProgress)return;handleMapPlacement((mode==='waypoint'||mode==='curve')?e.latlng:map.containerPointToLatLng(map.getSize().divideBy(2)));});
+/* Track placement preview: tap the first station, aim with the cursor/crosshair,
+   then tap a destination station. This is visual guidance only; placement remains click-only. */
+let sbTrackPlacementPreviewLayer=null;
+let sbTrackPlacementPreviewVisible=false;
+function clearTrackPlacementPreview(){
+ if(sbTrackPlacementPreviewLayer){map.removeLayer(sbTrackPlacementPreviewLayer);sbTrackPlacementPreviewLayer=null;}
+ if(window.sb3dMap?.getSource('sb-build-preview')){
+  window.sb3dMap.getSource('sb-build-preview').setData({type:'FeatureCollection',features:[]});
+ }
+ sbTrackPlacementPreviewVisible=false;
+}
+function updateTrackPlacementPreview(position=null,is3D=false,screenPoint=null){
+ if(mode!=='track'||!Number.isInteger(selected)||!stations[selected]){
+  clearTrackPlacementPreview();return;
+ }
+ let target=position;
+ if(!target){
+  if(is3D&&window.sb3dMap)target=window.sb3dMap.getCenter();
+  else target=map.containerPointToLatLng(map.getSize().divideBy(2));
+ }
+ let nearest=-1,bestDistance=36;
+ stations.forEach((station,index)=>{
+  if(index===selected)return;
+  let point;
+  if(is3D&&window.sb3dMap)point=window.sb3dMap.project([station.lng,station.lat]);
+  else point=map.latLngToContainerPoint([station.lat,station.lng]);
+  let cursor=screenPoint;
+  if(!cursor)cursor=is3D&&window.sb3dMap
+   ?window.sb3dMap.project([target.lng,target.lat])
+   :map.latLngToContainerPoint(target);
+  const distance=Math.hypot(point.x-cursor.x,point.y-cursor.y);
+  if(distance<bestDistance){bestDistance=distance;nearest=index;}
+ });
+ if(nearest>=0)target=L.latLng(stations[nearest].lat,stations[nearest].lng);
+ const start=stations[selected];
+ if(is3D&&window.sb3dMap?.getSource('sb-build-preview')){
+  window.sb3dMap.getSource('sb-build-preview').setData({type:'FeatureCollection',features:[{
+   type:'Feature',properties:{kind:'track-tap-preview'},
+   geometry:{type:'LineString',coordinates:[[start.lng,start.lat],[target.lng,target.lat]]}
+  }]});
+ }else{
+  const points=[[start.lat,start.lng],[target.lat,target.lng]];
+  if(!sbTrackPlacementPreviewLayer){
+   sbTrackPlacementPreviewLayer=L.polyline(points,{pane:'sbTrackPane',color:'#65ffe4',weight:5,opacity:.92,dashArray:'7 6',lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
+  }else sbTrackPlacementPreviewLayer.setLatLngs(points);
+ }
+ sbTrackPlacementPreviewVisible=true;
+}
+map.on('mousemove',function(event){if(mode==='track'&&selected!==null)updateTrackPlacementPreview(event.latlng,false,event.containerPoint);});
+map.on('touchmove',function(){if(mode==='track'&&selected!==null)updateTrackPlacementPreview();});
+map.on('move zoom',function(){if(mode==='track'&&selected!==null)updateTrackPlacementPreview();});
 /* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
@@ -4817,19 +4871,13 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    if(!action)return;
    const nextMode=action.dataset.mode;
    if(typeof setMode==='function')setMode(nextMode);
-   closeConstructionContextMenu();
   });
   document.body.appendChild(menu);
   positionConstructionContextMenu(menu,toggle);
   syncBuildState();
   requestAnimationFrame(()=>positionConstructionContextMenu(menu,toggle));
  }
- document.addEventListener('pointerdown',function(event){
-  const menu=document.getElementById('sb-construction-context-menu');
-  const toggle=document.getElementById('sb-build-dock-btn');
-  if(menu&&!menu.contains(event.target)&&!toggle?.contains(event.target))closeConstructionContextMenu();
- });
- document.addEventListener('keydown',function(event){if(event.key==='Escape')closeConstructionContextMenu();});
+ /* The drawer intentionally remains open until its build-dock toggle is pressed again. */
  window.addEventListener('resize',function(){
   const menu=document.getElementById('sb-construction-context-menu');
   const toggle=document.getElementById('sb-build-dock-btn');
