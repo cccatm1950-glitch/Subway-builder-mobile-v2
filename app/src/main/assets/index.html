@@ -2840,7 +2840,7 @@ if(mode==='delete'){
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
-    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Pan the map to preview curve radius and speed, then tap to add a curve point.');}
+    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Drag or tap to preview and place curve points.');}
     else if(mode==='delete'){pauseSimulationBeforeTopologyChange();tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
@@ -3176,7 +3176,7 @@ function setMode(newMode){
   if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
 
   if(mode==='station')message('Tap the map to place a station ($500).');
- if(mode==='track')message('Tap one station, then another station to connect them ($150).');
+ if(mode==='track')message('Tap two stations or drag from one to the other to connect them ($150). Drag along either rail of a parallel section to snap a single track.');
  if(mode==='waypoint')message('Tap a track to select it for waypoint editing.');
  if(mode==='inspect')message('Tap a station to inspect it.');
  if(mode==='delete')message('Tap a station to delete it and its connected tracks.');
@@ -3359,7 +3359,7 @@ function selectTrackForWaypoints(trackIndex){
   if(mode!=='waypoint'||!tracks[trackIndex])return;
   selectedTrackIndex=trackIndex;
   renderNetwork();
-  message('Track selected. Tap the map to add a waypoint.');
+  message('Track selected. Tap or drag on the map to place a waypoint.');
  }
 function pruneOrphanJunctions(){
  let removed=false;
@@ -4070,6 +4070,7 @@ window.toggle3DCityView=async function(){
  toggle.classList.add('active');toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='Return to 2D build view';
  try{
   await ensure3DMap();
+  if(typeof window.sbInstall3DBuildDragHandlers==='function')window.sbInstall3DBuildDragHandlers();
   const center=map.getCenter();
   if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)
    sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:65,bearing:-18});
@@ -6471,7 +6472,7 @@ function waypointAtCrosshair(){
   }
   let best=-1,bestDistance=36;
   stations.forEach((station,index)=>{
-   const q=container.id==='sb-3d-map'&&window.sb3dMap
+   const q=is3DContainer(container)&&window.sb3dMap
     ?window.sb3dMap.project([station.lng,station.lat])
     :map.latLngToContainerPoint([station.lat,station.lng]);
    const rect=container.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
@@ -6554,13 +6555,13 @@ function waypointAtCrosshair(){
   if(mode==='track'){
    const stationIndex=stationAt(container,event,latlng);
    if(stationIndex<0)return;
-   drag={container,pointerId:event.pointerId,kind:'track',startIndex:stationIndex,path:[{lat:stations[stationIndex].lat,lng:stations[stationIndex].lng}],lastPoint:null,moved:false,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled(),panDisabled:mode==='track'};
+   drag={container,pointerId:event.pointerId,kind:'track',startIndex:stationIndex,path:[{lat:stations[stationIndex].lat,lng:stations[stationIndex].lng}],lastPoint:{x:event.clientX-container.getBoundingClientRect().left,y:event.clientY-container.getBoundingClientRect().top},moved:false,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled(),panDisabled:mode==='track'};
    if(container.id==='map')map.dragging.disable();
    else window.sb3dMap?.dragPan?.disable();
    return;
   }
   if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])return;
-  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:null,moved:false,panDisabled:false,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled()};
+  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:{x:event.clientX-container.getBoundingClientRect().left,y:event.clientY-container.getBoundingClientRect().top},moved:false,panDisabled:false,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled()};
  }
  function move(container,event){
   if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
