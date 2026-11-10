@@ -153,7 +153,10 @@
     const endControlBearing = alignBearing(endBearing, routeBearing);
     const resolvedEnd = endControlBearing === null ? null : (endControlBearing + 180) % 360;
     const endControlDirection = -1;
-    const handleLength = chord / 2;
+    // Shorter independent handles preserve each station's local platform axis
+    // without allowing two sharply different endpoint alignments to create a
+    // broad hook or snake through the shared service corridor.
+    const handleLength = chord * 0.28;
     const controlPoint = (origin, bearing, direction) => {
       if (bearing === null) return null;
       const radians = bearing * Math.PI / 180;
