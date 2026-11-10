@@ -6561,7 +6561,9 @@ function waypointAtCrosshair(){
    return;
   }
   if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])return;
-  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:{x:event.clientX-container.getBoundingClientRect().left,y:event.clientY-container.getBoundingClientRect().top},moved:false,panDisabled:false,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled()};
+  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:{x:event.clientX-container.getBoundingClientRect().left,y:event.clientY-container.getBoundingClientRect().top},moved:false,panDisabled:true,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled()};
+  if(is3DContainer(container))window.sb3dMap?.dragPan?.disable();
+  else map.dragging.disable();
  }
  function move(container,event){
   if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
