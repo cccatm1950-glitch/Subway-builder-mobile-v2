@@ -2482,7 +2482,7 @@ window.getSubway3DPlatforms=function(){
  return features;
 };
 window.getSubway3DStations=function(){
- return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1))},
+ return stations.map((s,i)=>({s,i})).filter(x=>x.s.nodeType!=='junction').map(({s,i})=>({type:'Feature',properties:{name:s.name||('Station '+(i+1)),stationIndex:i},
   geometry:{type:'Point',coordinates:[s.lng,s.lat]}}));
 };
 
@@ -2957,7 +2957,7 @@ if(mode==='delete'){
    const shifted=shiftTrackPoints(offset,parallelSide);
    window.sb3dTrackFeatures.push({type:'Feature',properties:{
     kind:'rail',color:routeColor,centerlineIndex:parallelSide<0?0:parallelSide>0?1:0,
-    trackNumber:trackIndex+1,style:t.style||'single'
+    trackNumber:trackIndex+1,trackIndex,style:t.style||'single'
    },geometry:{type:'LineString',coordinates:shifted.map(point=>[point[1],point[0]])}});
     if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   L.polyline(shifted,{pane:'sbTrackPane',color:routeColor,weight:14,opacity:trackIsActive ? 0.3 : 0.14,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
@@ -3053,7 +3053,7 @@ if(mode==='delete'){
    const span=[endpoint(-1,offset),endpoint(1,offset)];
    window.sb3dTrackFeatures.push({type:'Feature',properties:{
     kind:'rail',color,centerlineIndex:parallel?(offset<0?0:1):0,
-    trackNumber:tracks.indexOf(source)+1,style:parallel?'parallel':'single',stationConnector:true
+    trackNumber:tracks.indexOf(source)+1,trackIndex:tracks.indexOf(source),style:parallel?'parallel':'single',stationConnector:true
    },geometry:{type:'LineString',coordinates:span.map(point=>[point[1],point[0]])}});
    L.polyline(span,{pane:'sbTrackPane',color:'#17212b',weight:9,opacity:.9,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
    L.polyline(span,{pane:'sbTrackPane',color,weight:4,opacity,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
@@ -3382,6 +3382,7 @@ function pauseSimulationBeforeTopologyChange(){
 }
 
 function handleStationClick(index){
+  if(window.sbDragHandledAt&&Date.now()-window.sbDragHandledAt<500&&!window.sbDragCommitInProgress)return;
   if(mode==='delete'){
   let name=stations[index].name;
 
@@ -3424,7 +3425,7 @@ function handleStationClick(index){
    (t.a===first&&t.b===second)||
    (t.a===second&&t.b===first)
   );
-  if(existingTrack){
+  if(existingTrack&&!(trackStyle==='single'&&existingTrack.style==='parallel'&&Array.isArray(window.sbPendingTrackCenterline))){
    const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
    const assignedLineIds=Array.isArray(existingTrack.lineIds)?existingTrack.lineIds:[];
    if(activeLine&&!assignedLineIds.includes(activeLine.id)){
@@ -3442,7 +3443,7 @@ function handleStationClick(index){
   }
 
   const groupedPath=findTrackGroupPath(first,second);
-  if(groupedPath){
+  if(groupedPath&&!(trackStyle==='single'&&Array.isArray(window.sbPendingTrackCenterline))){
    const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
    if(activeLine){
     const unassigned=groupedPath.filter(trackIndex=>!(tracks[trackIndex].lineIds||[]).includes(activeLine.id));
@@ -3522,8 +3523,10 @@ function handleStationClick(index){
   startElevation:proposedStartElevation,
   endElevation:proposedEndElevation,
   waypoints:[],
-  lineIds:activeLineId?[activeLineId]:[]
+  lineIds:activeLineId?[activeLineId]:[],
+  ...(Array.isArray(window.sbPendingTrackCenterline)&&window.sbPendingTrackCenterline.length>=2?{centerline:window.sbPendingTrackCenterline.map(point=>({lat:point.lat,lng:point.lng}))}:{})
 });
+  window.sbPendingTrackCenterline=null;
   selected=null;
   saveHistory();
   renderNetwork();
@@ -3561,13 +3564,13 @@ function scheduleCurvePlacementPreview(){
  if(curvePreviewFrame)return;
  curvePreviewFrame=requestAnimationFrame(()=>{curvePreviewFrame=0;updateCurvePlacementPreview();});
 }
-function updateCurvePlacementPreview(){
+function updateCurvePlacementPreview(position=null){
  if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]||
     document.getElementById('sb-3d-map')?.classList.contains('active')){
   clearCurvePlacementPreview();return;
  }
  const baseTrack=tracks[selectedTrackIndex];
- const crosshair=map.containerPointToLatLng(map.getSize().divideBy(2));
+ const crosshair=position||map.containerPointToLatLng(map.getSize().divideBy(2));
  const previewTrack={...baseTrack,curve:true,waypoints:[...(Array.isArray(baseTrack.waypoints)?baseTrack.waypoints:[]),{lat:crosshair.lat,lng:crosshair.lng,elevation:'at'}]};
  delete previewTrack.centerline;
  const previewPoints=getTrackCenterlinePoints(previewTrack);
@@ -3640,12 +3643,22 @@ map.on('mouseout',function(){if(!pendingStationPlacement)clearStationPlacementPr
 let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
  /* Curve and waypoint placement is handled exclusively by the crosshair router. */
- if(mode==='curve'||mode==='waypoint')return;
+ if(mode==='curve'||mode==='waypoint'){
+  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){message('Select a track first.');return;}
+  const targetTrack=tracks[selectedTrackIndex];
+  targetTrack.waypoints=Array.isArray(targetTrack.waypoints)?targetTrack.waypoints:[];
+  if(mode==='curve')targetTrack.curve=true;
+  delete targetTrack.centerline;
+  targetTrack.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
+  saveHistory();renderNetwork();
+  message(mode==='curve'?'Curve point placed.':'Waypoint placed.');
+  return;
+ }
  const now=Date.now();
  if(now-lastTouchPlacementAt<120)return;
  lastTouchPlacementAt=now;
  // Build placements always use the fixed map-center reticle, never the raw touch coordinate.
- if(mode==='station'||mode==='waypoint'||mode==='curve')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
+ if(mode==='station')latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
  if(mode==='station'){
   latlng=map.containerPointToLatLng(map.getSize().divideBy(2));
   if(money<500){message('Not enough money for a station.');return;}
@@ -3712,7 +3725,7 @@ else if(mode==='delete'){
   message('Waypoint added.');
  }
 }
-map.on('click',function(e){handleMapPlacement(map.containerPointToLatLng(map.getSize().divideBy(2)));});
+map.on('click',function(e){if(window.sbDragHandledAt&&Date.now()-window.sbDragHandledAt<500&&!window.sbDragCommitInProgress)return;handleMapPlacement((mode==='waypoint'||mode==='curve')?e.latlng:map.containerPointToLatLng(map.getSize().divideBy(2)));});
 /* Leaflet's native click event is the single placement input; no parallel pointerup path. */
 
 /* =========================================================
@@ -3991,6 +4004,24 @@ async function ensure3DMap(){
    sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
    sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#f5fbff','circle-opacity':0.9}});
    sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':5,'circle-color':'#ffffff','circle-stroke-color':'#173847','circle-stroke-width':1.5}});
+   sb3dMap.addSource('sb-build-preview',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+   sb3dMap.addLayer({id:'sb-build-preview-line',type:'line',source:'sb-build-preview',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#65ffe4','line-width':4,'line-opacity':0.95,'line-dasharray':[1.5,1.2]}});
+   sb3dMap.addLayer({id:'sb-build-preview-point',type:'circle',source:'sb-build-preview',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#65ffe4','circle-stroke-color':'#f5fbff','circle-stroke-width':2,'circle-opacity':0.95}});
+   sb3dMap.on('click','sb-station-dots',event=>{
+    const feature=event.features&&event.features[0],index=Number(feature?.properties?.stationIndex);
+    if(Number.isInteger(index))handleStationClick(index);
+   });
+   sb3dMap.on('click','sb-platform-fills',event=>{
+    const feature=event.features&&event.features[0],index=Number(feature?.properties?.stationIndex);
+    if(Number.isInteger(index))handleStationClick(index);
+   });
+   sb3dMap.on('click','sb-route-lines',event=>{
+    if(mode!=='waypoint'&&mode!=='curve')return;
+    const feature=event.features&&event.features[0],index=Number(feature?.properties?.trackIndex);
+    if(!Number.isInteger(index)||!tracks[index])return;
+    if(mode==='waypoint')selectTrackForWaypoints(index);
+    else{selectedTrackIndex=index;renderNetwork();scheduleCurvePlacementPreview();}
+   });
    sb3dMap.on('mouseenter','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
    sb3dMap.on('mouseleave','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='';});
    sb3dMap.on('click','sb-3d-buildings',event=>{
@@ -4012,7 +4043,7 @@ async function ensure3DMap(){
    // Forward map taps into the existing construction handler; the normal HUD/docks remain above this canvas.
    sb3dMap.on('click',event=>{
     if(!event||!event.lngLat||!map)return;
-    const features=sb3dMap.queryRenderedFeatures(event.point,{layers:['sb-3d-buildings']});
+    const features=sb3dMap.queryRenderedFeatures(event.point,{layers:['sb-3d-buildings','sb-station-dots','sb-platform-fills','sb-route-lines']});
     if(features&&features.length)return;
     const target=L.latLng(event.lngLat.lat,event.lngLat.lng);
     // Reuse every existing Leaflet click handler so station selection, track placement,
@@ -6400,6 +6431,222 @@ function waypointAtCrosshair(){
  sync();
 })();
 </script>
+
+<script id="sb-pr93-cross-view-build-drag-preview">
+/* Shared pointer-to-preview-to-commit interaction for Leaflet and MapLibre.
+   Tap workflows remain supported; a moved pointer becomes a drag placement. */
+(function(){
+ if(window.__sbBuildDragInstalled)return;
+ window.__sbBuildDragInstalled=true;
+ window.sbPendingTrackCenterline=null;
+ window.sbDragHandledAt=0;
+ window.sbDragCommitInProgress=false;
+ let drag=null,previewLayer=null;
+ const EMPTY={type:'FeatureCollection',features:[]};
+
+ function is3DActive(){return !!document.getElementById('sb-3d-map')?.classList.contains('active');}
+ function toLatLng(container,event){
+  const rect=container.getBoundingClientRect(),point=[event.clientX-rect.left,event.clientY-rect.top];
+  if(container.id==='sb-3d-map'&&window.sb3dMap)return window.sb3dMap.unproject(point);
+  return map.containerPointToLatLng(L.point(point[0],point[1]));
+ }
+ function pointInPolygon(point,polygon){
+  let inside=false;
+  for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
+   const xi=polygon[i].x,yi=polygon[i].y,xj=polygon[j].x,yj=polygon[j].y;
+   const crosses=((yi>point.y)!==(yj>point.y))&&(point.x<(xj-xi)*(point.y-yi)/(yj-yi||1e-9)+xi);
+   if(crosses)inside=!inside;
+  }
+  return inside;
+ }
+ function stationAt(container,event,latlng){
+  if(container.id==='sb-3d-map'&&window.sb3dMap){
+   const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
+   const hits=window.sb3dMap.queryRenderedFeatures(p,{layers:['sb-station-dots','sb-platform-fills']});
+   for(const feature of hits){const index=Number(feature.properties?.stationIndex);if(Number.isInteger(index))return index;}
+  }else{
+   const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
+   for(const area of (window.stationPlatformHitAreas||[])){
+    const polygon=area.corners.map(ll=>{const q=map.latLngToContainerPoint(ll);return{x:q.x,y:q.y};});
+    if(pointInPolygon(p,polygon))return area.index;
+   }
+  }
+  let best=-1,bestDistance=36;
+  stations.forEach((station,index)=>{
+   const q=container.id==='sb-3d-map'&&window.sb3dMap
+    ?window.sb3dMap.project([station.lng,station.lat])
+    :map.latLngToContainerPoint([station.lat,station.lng]);
+   const rect=container.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
+   const distance=Math.hypot(q.x-x,q.y-y);
+   if(distance<bestDistance){bestDistance=distance;best=index;}
+  });
+  return best;
+ }
+ function nearestParallelRail(container,event,latlng){
+  if(trackStyle!=='single'||!Array.isArray(window.sb3dTrackFeatures))return null;
+  const rect=container.getBoundingClientRect(),px=event.clientX-rect.left,py=event.clientY-rect.top;
+  let best=null;
+  for(const feature of window.sb3dTrackFeatures){
+   if(feature.properties?.kind!=='rail'||feature.properties?.style!=='parallel')continue;
+   const coords=feature.geometry?.coordinates;if(!Array.isArray(coords)||coords.length<2)continue;
+   for(let i=1;i<coords.length;i++){
+    const a=container.id==='sb-3d-map'&&window.sb3dMap?window.sb3dMap.project(coords[i-1]):map.latLngToContainerPoint([coords[i-1][1],coords[i-1][0]]);
+    const b=container.id==='sb-3d-map'&&window.sb3dMap?window.sb3dMap.project(coords[i]):map.latLngToContainerPoint([coords[i][1],coords[i][0]]);
+    const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1;
+    const t=Math.max(0,Math.min(1,((px-a.x)*dx+(py-a.y)*dy)/len2));
+    const x=a.x+t*dx,y=a.y+t*dy,d=Math.hypot(px-x,py-y);
+    if(!best||d<best.distance){
+     const snapped=container.id==='sb-3d-map'&&window.sb3dMap
+      ?window.sb3dMap.unproject([x,y])
+      :map.containerPointToLatLng(L.point(x,y));
+     best={distance:d,latlng:snapped,side:Number(feature.properties?.centerlineIndex)||0,trackIndex:feature.properties?.trackIndex};
+    }
+   }
+  }
+  return best&&best.distance<=26?best:null;
+ }
+ function feature(type,coordinates,properties={}){
+  return {type:'Feature',properties,geometry:{type,coordinates}};
+ }
+ function set3DPreview(features){
+  const source=window.sb3dMap?.getSource('sb-build-preview');
+  if(source)source.setData({type:'FeatureCollection',features});
+ }
+ function clearPreview(){
+  if(previewLayer){map.removeLayer(previewLayer);previewLayer=null;}
+  clearCurvePlacementPreview();
+  set3DPreview([]);
+ }
+ function drawPreview(state,latlng){
+  const points=state.path.concat([{lat:latlng.lat,lng:latlng.lng}]);
+  if(state.kind==='track'){
+   const coordinates=points.map(p=>[p.lng,p.lat]);
+   const f=feature('LineString',coordinates,{kind:'track-preview'});
+   if(is3DActive())set3DPreview([f]);
+   else{
+    if(!previewLayer)previewLayer=L.polyline(points.map(p=>[p.lat,p.lng]),{pane:'sbTrackPane',color:'#65ffe4',weight:5,opacity:.95,dashArray:'7 6',lineCap:'round',lineJoin:'round',interactive:false}).addTo(map);
+    else previewLayer.setLatLngs(points.map(p=>[p.lat,p.lng]));
+   }
+   return;
+  }
+  if(state.kind==='waypoint'){
+   const f=feature('Point',[latlng.lng,latlng.lat],{kind:'waypoint-preview'});
+   if(is3DActive())set3DPreview([f]);
+   else{
+    if(!previewLayer)previewLayer=L.circleMarker(latlng,{pane:'sbTrackPane',radius:8,color:'#f5fbff',weight:2,fillColor:'#65ffe4',fillOpacity:.95,interactive:false}).addTo(map);
+    else previewLayer.setLatLng(latlng);
+   }
+   return;
+  }
+  if(state.kind==='curve'){
+   updateCurvePlacementPreview(latlng);
+   if(is3DActive()&&selectedTrackIndex!==null&&tracks[selectedTrackIndex]){
+    const base=tracks[selectedTrackIndex];
+    const temp={...base,curve:true,waypoints:[...(base.waypoints||[]),{lat:latlng.lat,lng:latlng.lng,elevation:'at'}]};
+    delete temp.centerline;
+    const points=getTrackCenterlinePoints(temp);
+    set3DPreview(points.length>1?[feature('LineString',points.map(p=>[p[1],p[0]]),{kind:'curve-preview'})]:[]);
+   }
+  }
+ }
+ function begin(container,event){
+  if(event.button!==undefined&&event.button!==0)return;
+  if(!['track','waypoint','curve'].includes(mode))return;
+  const latlng=toLatLng(container,event);
+  if(mode==='track'){
+   const stationIndex=stationAt(container,event,latlng);
+   if(stationIndex<0)return;
+   drag={container,pointerId:event.pointerId,kind:'track',startIndex:stationIndex,path:[{lat:stations[stationIndex].lat,lng:stations[stationIndex].lng}],lastPoint:null,moved:false,draggingWasEnabled:container.id==='map'?map.dragging.enabled():false};
+   if(container.id==='map')map.dragging.disable();
+   else window.sb3dMap?.dragPan?.disable();
+   return;
+  }
+  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])return;
+  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:null,moved:false,draggingWasEnabled:container.id==='map'?map.dragging.enabled():false};
+ }
+ function move(container,event){
+  if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
+  const latlng=toLatLng(container,event),rect=container.getBoundingClientRect(),point={x:event.clientX-rect.left,y:event.clientY-rect.top};
+  if(!drag.moved&&drag.lastPoint&&Math.hypot(point.x-drag.lastPoint.x,point.y-drag.lastPoint.y)<7)return;
+  if(!drag.lastPoint)drag.lastPoint=point;
+  if(Math.hypot(point.x-drag.lastPoint.x,point.y-drag.lastPoint.y)>=5)drag.moved=true;
+  if(!drag.moved)return;
+  event.preventDefault();event.stopPropagation();
+  if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+  if(drag.kind==='track'){
+   const snap=nearestParallelRail(container,event,latlng);
+   const p=snap?snap.latlng:latlng;
+   const last=drag.path[drag.path.length-1];
+   const distance=map.distance([last.lat,last.lng],[p.lat,p.lng]);
+   if(distance>=1.2)drag.path.push({lat:p.lat,lng:p.lng});
+   drawPreview(drag,p);
+  }else{
+   drawPreview(drag,latlng);
+  }
+  drag.lastPoint=point;
+ }
+ function commitTrack(state,event){
+  const target=stationAt(state.container,event,toLatLng(state.container,event));
+  if(target<0||target===state.startIndex)return false;
+  const end=stations[target],path=state.path.slice();
+  if(!path.length||Math.hypot(path[path.length-1].lat-end.lat,path[path.length-1].lng-end.lng)>1e-9)path.push({lat:end.lat,lng:end.lng});
+  if(path.length<2)return false;
+  window.sbPendingTrackCenterline=path;
+  window.sbDragCommitInProgress=true;
+  try{
+   selected=state.startIndex;
+   handleStationClick(target);
+  }finally{
+   window.sbDragCommitInProgress=false;
+   window.sbPendingTrackCenterline=null;
+  }
+  return true;
+ }
+ function commitPoint(state,event){
+  const latlng=toLatLng(state.container,event),track=tracks[selectedTrackIndex];
+  if(!track)return false;
+  track.waypoints=Array.isArray(track.waypoints)?track.waypoints:[];
+  if(state.kind==='curve')track.curve=true;
+  delete track.centerline;
+  track.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
+  saveHistory();renderNetwork();
+  message(state.kind==='curve'?'Curve point dropped.':'Waypoint dropped.');
+  return true;
+ }
+ function finish(container,event){
+  if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
+  const state=drag;drag=null;
+  if(container.id==='map'){
+   if(state.draggingWasEnabled)map.dragging.enable();
+  }else if(window.sb3dMap){
+   window.sb3dMap.dragPan.enable();
+  }
+  if(state.moved){
+   event.preventDefault();event.stopPropagation();
+   if(event.stopImmediatePropagation)event.stopImmediatePropagation();
+   const committed=state.kind==='track'?commitTrack(state,event):commitPoint(state,event);
+   window.sbDragHandledAt=Date.now();
+   clearPreview();
+   if(!committed)message(state.kind==='track'?'Drop the track on another station to connect it.':'Drag ended without a valid placement.');
+  }else{
+   clearPreview();
+  }
+ }
+ function install(container){
+  if(!container||container.dataset.sbBuildDragBound==='true')return;
+  container.dataset.sbBuildDragBound='true';
+  container.addEventListener('pointerdown',event=>begin(container,event),true);
+  container.addEventListener('pointermove',event=>move(container,event),true);
+  container.addEventListener('pointerup',event=>finish(container,event),true);
+  container.addEventListener('pointercancel',event=>finish(container,event),true);
+ }
+ window.sbInstall3DBuildDragHandlers=function(){install(document.getElementById('sb-3d-map')?.querySelector('canvas'));};
+ install(document.getElementById('map'));
+ const observer=new MutationObserver(()=>{if(is3DActive())window.sbInstall3DBuildDragHandlers();});
+ observer.observe(document.getElementById('sb-3d-map')||document.body,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 <style id="sb-nov06-final-dock-layout">
 /* The 128px construction dock must be a true 2-column x 4-row grid.
