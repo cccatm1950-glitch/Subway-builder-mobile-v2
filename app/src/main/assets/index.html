@@ -3889,15 +3889,15 @@ async function ensure3DMap(){
 }
 window.toggle3DCityView=async function(){
  const host=document.getElementById('sb-3d-map');
- const toggle=document.getElementById('sb-3d-toggle');
+ const toggle=document.querySelector('#sb-construction-context-menu [data-sb-action="toggle-3d"]')||document.getElementById('sb-3d-toggle');
  const enable=!host.classList.contains('active');
  if(!enable){
   host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  if(toggle){toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';toggle.setAttribute('aria-pressed','false');}
   map.invalidateSize();message('2D construction view restored.');return;
  }
  host.classList.add('active');document.getElementById('map').style.visibility='hidden';
- toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
+ if(toggle){toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';toggle.setAttribute('aria-pressed','true');}
  try{
   await ensure3DMap();
   const center=map.getCenter();
@@ -4632,6 +4632,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
    '<button type="button" data-mode="curve" aria-label="Curve" title="Curve"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19c5 0 4-14 10-14h6M16 2l4 3-4 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
    '<button type="button" data-mode="waypoint" aria-label="Waypoint" title="Waypoint"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 18 11 6l8 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="5" cy="18" r="2" fill="currentColor"/><circle cx="11" cy="6" r="2" fill="currentColor"/><circle cx="19" cy="18" r="2" fill="currentColor"/></svg></button>'+
    '<button type="button" data-mode="inspect" aria-label="Inspect" title="Inspect"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2.5 12s3.4-6 9.5-6 9.5 6 9.5 6-3.4 6-9.5 6-9.5-6-9.5-6Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.7" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>'+
+   '<button type="button" data-sb-action="toggle-3d" aria-label="3D city view" title="3D city view" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z M4 7.5 12 12l8-4.5M12 12v9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
    '</div>'+
    '<div class="sb-platform-size-heading">PLATFORM SIZE</div>'+
    '<div class="sb-platform-size-grid">'+
@@ -8822,6 +8823,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    ));
   });
   additions.forEach(([action,icon,label])=>{
+   if(grid.querySelector('button[data-sb-action="'+action+'"]'))return;
    const button=document.createElement('button');
    button.type='button';button.dataset.sbAction=action;
    decorate(button,icon,label);
