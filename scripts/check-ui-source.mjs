@@ -38,6 +38,20 @@ const unmappedActions = [...new Set(panelActions)]
   .filter((action) => !mappedActions.includes(action) && !specialActions.has(action));
 assert.deepEqual(unmappedActions, [], 'Every construction panel action must be wired');
 
+/* The 3D test switch is a Service Lines control, never a Construction action. */
+assert.ok(!html.includes("['toggle-3d','city','3D city view']"),
+  'Legacy 3D city action must not be generated in Construction');
+assert.ok(!html.includes("'toggle-3d':()=>window.toggle3DCityView()"),
+  'Construction touch bridge must not expose the legacy 3D action');
+assert.ok(html.includes("serviceDock.querySelector('#sb-service-lines')?.append(threeDButton)"),
+  '3D test switch must be mounted inside the Service Lines panel');
+assert.ok(html.includes('sb-pr92-service-lines-expanded-3d-slot'),
+  'Service Lines must reserve a dedicated expanded-panel slot for the 3D test switch');
+assert.ok(html.includes('grid-template-columns:minmax(0,1fr) 46px 46px!important'),
+  'Expanded Service Lines layout must reserve separate Run and 3D button columns');
+assert.ok(html.includes('#sb-service-dock:not(.is-expanded) #sb-service-lines #sb-3d-toggle'),
+  '3D test switch must be hidden while Service Lines is collapsed');
+
 for (const required of [
   'bindConstructionPanelControls',
   'toggleToolsPanel',
