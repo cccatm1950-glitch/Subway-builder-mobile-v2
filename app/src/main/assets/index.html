@@ -3408,7 +3408,7 @@ function handleStationClick(index){
   if(selected===null){
    selected=index;
    renderNetwork();
-   requestAnimationFrame(()=>updateTrackPlacementPreview());
+   requestAnimationFrame(()=>updateTrackPlacementPreview(null,document.getElementById('sb-3d-map')?.classList.contains('active')));
    message(stations[index].name+' selected. Aim the preview and tap a destination station.');
    return;
   }
