@@ -3554,6 +3554,7 @@ function handleStationClick(index){
 }
 
 map.on('zoom move',function(){if(stationMenuIndex!==null)positionStationMenu(stationMenuIndex);});
+map.on('move zoom',function(){if(mode==='curve'&&selectedTrackIndex!==null)scheduleCurvePlacementPreview();});
 window.addEventListener('resize',function(){if(stationMenuIndex!==null)positionStationMenu(stationMenuIndex);});
 
 /* =========================================================
