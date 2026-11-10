@@ -1982,6 +1982,29 @@ button.sb-flat-close,[data-flat-close="true"]{
  #sb-top-dock #sb-game-menu-toggle{flex-basis:46px!important;width:46px!important;min-width:46px!important;height:46px!important;min-height:46px!important}
 }
 </style>
+
+<style id="sb-viewport-restore-rectangular-screen">
+/* Restore the full rectangular game viewport. Keep glass dock pills and
+   circular controls local to their own UI elements; never clip the map. */
+html,body{
+ width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;
+ margin:0!important;padding:0!important;border-radius:0!important;
+ clip-path:none!important;-webkit-clip-path:none!important;
+ mask:none!important;-webkit-mask:none!important;
+}
+#map,.leaflet-container,.leaflet-pane,.leaflet-map-pane,.leaflet-tile-pane,
+.leaflet-overlay-pane,.leaflet-shadow-pane,.leaflet-marker-pane,.leaflet-tooltip-pane,
+.leaflet-popup-pane{
+ border-radius:0!important;clip-path:none!important;-webkit-clip-path:none!important;
+ mask:none!important;-webkit-mask:none!important;
+}
+#map{
+ position:fixed!important;inset:0!important;
+ width:100vw!important;height:100dvh!important;
+ max-width:none!important;max-height:none!important;
+ overflow:hidden!important;
+}
+</style>
 </head>
 <body class="sb-start-menu-open">
 
