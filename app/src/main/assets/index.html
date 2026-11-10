@@ -3443,7 +3443,7 @@ function handleStationClick(index){
   }
 
   const groupedPath=findTrackGroupPath(first,second);
-  if(groupedPath&&!(trackStyle==='single'&&Array.isArray(window.sbPendingTrackCenterline))){
+  if(groupedPath&&!(trackStyle==='single'&&Array.isArray(window.sbPendingTrackCenterline)&&groupedPath.some(index=>tracks[index]?.style==='parallel'))){
    const activeLine=activeLineId?lines.find(line=>line.id===activeLineId):null;
    if(activeLine){
     const unassigned=groupedPath.filter(trackIndex=>!(tracks[trackIndex].lineIds||[]).includes(activeLine.id));
@@ -4007,12 +4007,9 @@ async function ensure3DMap(){
    sb3dMap.addSource('sb-build-preview',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
    sb3dMap.addLayer({id:'sb-build-preview-line',type:'line',source:'sb-build-preview',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#65ffe4','line-width':4,'line-opacity':0.95,'line-dasharray':[1.5,1.2]}});
    sb3dMap.addLayer({id:'sb-build-preview-point',type:'circle',source:'sb-build-preview',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#65ffe4','circle-stroke-color':'#f5fbff','circle-stroke-width':2,'circle-opacity':0.95}});
-   sb3dMap.on('click','sb-station-dots',event=>{
-    const feature=event.features&&event.features[0],index=Number(feature?.properties?.stationIndex);
-    if(Number.isInteger(index))handleStationClick(index);
-   });
-   sb3dMap.on('click','sb-platform-fills',event=>{
-    const feature=event.features&&event.features[0],index=Number(feature?.properties?.stationIndex);
+   sb3dMap.on('click',['sb-station-dots','sb-platform-fills'],event=>{
+    const feature=event.features&&event.features.find(item=>Number.isInteger(Number(item.properties?.stationIndex)));
+    const index=Number(feature?.properties?.stationIndex);
     if(Number.isInteger(index))handleStationClick(index);
    });
    sb3dMap.on('click','sb-route-lines',event=>{
@@ -6445,9 +6442,10 @@ function waypointAtCrosshair(){
  const EMPTY={type:'FeatureCollection',features:[]};
 
  function is3DActive(){return !!document.getElementById('sb-3d-map')?.classList.contains('active');}
+ function is3DContainer(container){return !!(container&&container.closest&&container.closest('#sb-3d-map'));}
  function toLatLng(container,event){
   const rect=container.getBoundingClientRect(),point=[event.clientX-rect.left,event.clientY-rect.top];
-  if(container.id==='sb-3d-map'&&window.sb3dMap)return window.sb3dMap.unproject(point);
+  if(is3DContainer(container)&&window.sb3dMap)return window.sb3dMap.unproject(point);
   return map.containerPointToLatLng(L.point(point[0],point[1]));
  }
  function pointInPolygon(point,polygon){
@@ -6460,7 +6458,7 @@ function waypointAtCrosshair(){
   return inside;
  }
  function stationAt(container,event,latlng){
-  if(container.id==='sb-3d-map'&&window.sb3dMap){
+  if(is3DContainer(container)&&window.sb3dMap){
    const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
    const hits=window.sb3dMap.queryRenderedFeatures(p,{layers:['sb-station-dots','sb-platform-fills']});
    for(const feature of hits){const index=Number(feature.properties?.stationIndex);if(Number.isInteger(index))return index;}
@@ -6490,13 +6488,13 @@ function waypointAtCrosshair(){
    if(feature.properties?.kind!=='rail'||feature.properties?.style!=='parallel')continue;
    const coords=feature.geometry?.coordinates;if(!Array.isArray(coords)||coords.length<2)continue;
    for(let i=1;i<coords.length;i++){
-    const a=container.id==='sb-3d-map'&&window.sb3dMap?window.sb3dMap.project(coords[i-1]):map.latLngToContainerPoint([coords[i-1][1],coords[i-1][0]]);
-    const b=container.id==='sb-3d-map'&&window.sb3dMap?window.sb3dMap.project(coords[i]):map.latLngToContainerPoint([coords[i][1],coords[i][0]]);
+    const a=is3DContainer(container)&&window.sb3dMap?window.sb3dMap.project(coords[i-1]):map.latLngToContainerPoint([coords[i-1][1],coords[i-1][0]]);
+    const b=is3DContainer(container)&&window.sb3dMap?window.sb3dMap.project(coords[i]):map.latLngToContainerPoint([coords[i][1],coords[i][0]]);
     const dx=b.x-a.x,dy=b.y-a.y,len2=dx*dx+dy*dy||1;
     const t=Math.max(0,Math.min(1,((px-a.x)*dx+(py-a.y)*dy)/len2));
     const x=a.x+t*dx,y=a.y+t*dy,d=Math.hypot(px-x,py-y);
     if(!best||d<best.distance){
-     const snapped=container.id==='sb-3d-map'&&window.sb3dMap
+     const snapped=is3DContainer(container)&&window.sb3dMap
       ?window.sb3dMap.unproject([x,y])
       :map.containerPointToLatLng(L.point(x,y));
      best={distance:d,latlng:snapped,side:Number(feature.properties?.centerlineIndex)||0,trackIndex:feature.properties?.trackIndex};
@@ -6556,13 +6554,13 @@ function waypointAtCrosshair(){
   if(mode==='track'){
    const stationIndex=stationAt(container,event,latlng);
    if(stationIndex<0)return;
-   drag={container,pointerId:event.pointerId,kind:'track',startIndex:stationIndex,path:[{lat:stations[stationIndex].lat,lng:stations[stationIndex].lng}],lastPoint:null,moved:false,draggingWasEnabled:container.id==='map'?map.dragging.enabled():false};
+   drag={container,pointerId:event.pointerId,kind:'track',startIndex:stationIndex,path:[{lat:stations[stationIndex].lat,lng:stations[stationIndex].lng}],lastPoint:null,moved:false,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled(),panDisabled:mode==='track'};
    if(container.id==='map')map.dragging.disable();
    else window.sb3dMap?.dragPan?.disable();
    return;
   }
   if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])return;
-  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:null,moved:false,draggingWasEnabled:container.id==='map'?map.dragging.enabled():false};
+  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:null,moved:false,panDisabled:false,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled()};
  }
  function move(container,event){
   if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
@@ -6571,6 +6569,11 @@ function waypointAtCrosshair(){
   if(!drag.lastPoint)drag.lastPoint=point;
   if(Math.hypot(point.x-drag.lastPoint.x,point.y-drag.lastPoint.y)>=5)drag.moved=true;
   if(!drag.moved)return;
+  if(!drag.panDisabled){
+   if(is3DContainer(container))window.sb3dMap?.dragPan?.disable();
+   else if(map.dragging.enabled())map.dragging.disable();
+   drag.panDisabled=true;
+  }
   event.preventDefault();event.stopPropagation();
   if(event.stopImmediatePropagation)event.stopImmediatePropagation();
   if(drag.kind==='track'){
@@ -6616,11 +6619,12 @@ function waypointAtCrosshair(){
  function finish(container,event){
   if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
   const state=drag;drag=null;
-  if(container.id==='map'){
+  if(!is3DContainer(container)){
    if(state.draggingWasEnabled)map.dragging.enable();
-  }else if(window.sb3dMap){
+  }else if(window.sb3dMap&&state.draggingWasEnabled){
    window.sb3dMap.dragPan.enable();
   }
+  if(event.type==='pointercancel'){clearPreview();return;}
   if(state.moved){
    event.preventDefault();event.stopPropagation();
    if(event.stopImmediatePropagation)event.stopImmediatePropagation();
