@@ -2044,6 +2044,28 @@ html,body{
  background:rgba(54,211,190,.19)!important;border-color:rgba(100,244,220,.48)!important;color:#8fffea!important;
 }
 </style>
+<style id="sb-pr92-service-dock-3d-control-final">
+/* Keep the sole 3D city switch in Service Lines; never expose it in Construction. */
+#sb-construction-context-menu .sb-construction-context-grid button[data-sb-action="toggle-3d"]{display:none!important}
+#sb-action-dock #sb-service-dock #sb-service-lines #sb-3d-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ align-items:center!important;justify-content:center!important;
+ margin:0!important;padding:0!important;border:0!important;border-radius:50%!important;
+ background:rgba(225,241,255,.105)!important;color:#edf7ff!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.09),0 4px 12px rgba(0,0,0,.12)!important;
+}
+#sb-action-dock #sb-service-dock #sb-service-lines #sb-3d-toggle svg{
+ display:block!important;flex:0 0 23px!important;width:23px!important;height:23px!important;
+ fill:none!important;stroke:currentColor!important;pointer-events:none!important;
+}
+#sb-action-dock #sb-service-dock #sb-service-lines #sb-3d-toggle.active{
+ color:#8fffea!important;background:rgba(54,211,190,.19)!important;
+ box-shadow:inset 0 0 0 1px rgba(100,244,220,.35),0 0 14px rgba(38,220,196,.14)!important;
+}
+</style>
+
 </head>
 <body class="sb-start-menu-open">
 
@@ -8746,13 +8768,15 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
   ['width-default','standard','Standard width'],
   ['width-wide','wide','Wide width'],
   ['clear-selection','clear','Clear selection'],
-  ['toggle-3d','city','3D city view'],
   ['line-color','palette','Line color']
  ];
  function enhance(menu){
   if(!menu||menu.dataset.sbSvgInventory==='ready')return;
   const grid=menu.querySelector('.sb-construction-context-grid');
   if(!grid)return;
+  /* Remove the obsolete 3D city action from Construction, including stale generated copies. */
+  grid.querySelectorAll('button[data-sb-action="toggle-3d"]').forEach(button=>button.remove());
+  if(menu.dataset.sbSvgInventory==='ready'){sync(menu);return;}
   menu.dataset.sbSvgInventory='ready';
   const modeIcons={station:'station',track:'track',curve:'curve',waypoint:'waypoint',inspect:'inspect'};
   grid.querySelectorAll('button[data-mode]').forEach(button=>{
@@ -8795,7 +8819,6 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-default':currentPlatformWidth==='default',
    'width-wide':currentPlatformWidth==='wide',
    'clear-selection':false,
-   'toggle-3d':!!document.getElementById('sb-3d-map')?.classList.contains('active'),
    'line-color':document.getElementById('sb-line-color-options')?.classList.contains('is-open')===true
   };
   menu.querySelectorAll('button[data-sb-action]').forEach(button=>{
@@ -8829,8 +8852,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-narrow':()=>setPlatformWidth('narrow'),
    'width-default':()=>setPlatformWidth('default'),
    'width-wide':()=>setPlatformWidth('wide'),
-   'clear-selection':()=>resetSelection(),
-   'toggle-3d':()=>window.toggle3DCityView()
+   'clear-selection':()=>resetSelection()
   };
   if(typeof actions[action]!=='function')return false;
   actions[action]();
