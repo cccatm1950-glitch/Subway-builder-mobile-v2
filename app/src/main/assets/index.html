@@ -4137,7 +4137,7 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
  let stationPreview=null,previewHoldTimer=null,previewHoldTriggered=false,previewMenu=null;
  function ensurePreview(){
   if(typeof map==='undefined'||!map)return;
-  if(mode!=='station'||document.getElementById('sb-3d-map')?.classList.contains('active')){
+  if(mode!=='station'){
    /* Clear the complete placement preview as one unit so platform and endpoint
       nodes cannot remain stranded after switching tools or entering 3D mode. */
    if(typeof clearStationPlacementPreview==='function')clearStationPlacementPreview();
