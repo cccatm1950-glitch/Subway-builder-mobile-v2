@@ -3978,6 +3978,7 @@ async function ensure3DMap(){
   pitchWithRotate:true,cooperativeGestures:false,
   canvasContextAttributes:{antialias:true},failIfMajorPerformanceCaveat:false
  });
+ window.sb3dMap=sb3dMap;
  sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}),'top-right');
  sb3dMap.on('load',()=>{
   try{
