@@ -3983,11 +3983,11 @@ async function ensure3DMap(){
    },firstSymbolLayer);
    const data=sb3dData();
    sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
-   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.88}});
-   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
+   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}});
+   sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['coalesce',['get','color'],'#b8d3dc'],'line-width':3.2,'line-opacity':1,'line-dasharray':[1.4,1.2]}});
    sb3dMap.addSource('sb-platforms',{type:'geojson',data:data.platforms});
-   sb3dMap.addLayer({id:'sb-platform-fills',type:'fill',source:'sb-platforms',paint:{'fill-color':'#dce8ef','fill-opacity':0.72}});
-   sb3dMap.addLayer({id:'sb-platform-outlines',type:'line',source:'sb-platforms',paint:{'line-color':'#f7fbff','line-width':1.5,'line-opacity':0.9}});
+   sb3dMap.addLayer({id:'sb-platform-fills',type:'fill',source:'sb-platforms',paint:{'fill-color':'#56d7c5','fill-opacity':0.24}});
+   sb3dMap.addLayer({id:'sb-platform-outlines',type:'line',source:'sb-platforms',paint:{'line-color':'#62e5d2','line-width':2.5,'line-opacity':0.95}});
    sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
    sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#f5fbff','circle-opacity':0.9}});
    sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':5,'circle-color':'#ffffff','circle-stroke-color':'#173847','circle-stroke-width':1.5}});
