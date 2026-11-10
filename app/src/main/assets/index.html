@@ -2554,6 +2554,23 @@ function getTrackCenterlinePoints(track,endpointStations=null){
  if(Array.isArray(track.centerline)&&track.centerline.length>=2){
   const saved=track.centerline.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lng)).map(p=>[p.lat,p.lng]);
   if(saved.length>=2&&endpointStations){
+   // Move saved endpoints to the physical platform ends without creating a
+   // one-segment kink. The endpoint correction fades out over 50 m of route.
+   const originalStart=saved[0].slice(),originalEnd=saved[saved.length-1].slice();
+   const startDelta=[a.lat-originalStart[0],a.lng-originalStart[1]];
+   const endDelta=[b.lat-originalEnd[0],b.lng-originalEnd[1]];
+   const distances=[0];
+   for(let i=1;i<saved.length;i++){
+    distances[i]=distances[i-1]+map.distance(saved[i-1],saved[i]);
+   }
+   const total=distances[distances.length-1]||0;
+   const fade=distance=>{const x=Math.max(0,Math.min(1,distance/50));return 1-x*x*(3-2*x);};
+   for(let i=0;i<saved.length;i++){
+    const fromStart=fade(distances[i]);
+    const fromEnd=fade(total-distances[i]);
+    saved[i][0]+=startDelta[0]*fromStart+endDelta[0]*fromEnd;
+    saved[i][1]+=startDelta[1]*fromStart+endDelta[1]*fromEnd;
+   }
    saved[0]=[a.lat,a.lng];saved[saved.length-1]=[b.lat,b.lng];
   }
   return saved;
@@ -2752,8 +2769,11 @@ if(mode==='delete'){
   const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
-  const startOffset=getStationTrackSideOffset(t.a,points[0],points[1],t.style);
-  const endOffset=getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
+  // Endpoint anchoring already places single-track routes at the physical
+  // platform end. Do not add a second lateral platform-clearance shift there.
+  // Parallel tracks retain their independent clearance/gauge handling below.
+  const startOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.a,points[0],points[1],t.style);
+  const endOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
   // Parallel track centerlines use the desktop 3.81 m standard gauge spacing.
