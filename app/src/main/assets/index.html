@@ -2914,6 +2914,54 @@ if(mode==='delete'){
   }
 });
 
+
+ // Restore the physical rail span through stations. Route sections terminate at
+ // opposite platform ends, so this connector joins those ends without drawing
+ // a rail through an island-platform footprint.
+ stations.forEach((station,stationIndex)=>{
+  if(station.nodeType==='junction')return;
+  const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
+  const radians=bearing*Math.PI/180;
+  const axisEast=Math.sin(radians),axisNorth=Math.cos(radians);
+  const cosLatitude=Math.cos(station.lat*Math.PI/180);
+  const halfLength=(Number.isFinite(station.platformLengthMeters)
+   ?Math.max(30,Math.min(300,station.platformLengthMeters))
+   :DEFAULT_PLATFORM_LENGTH_METERS)/2;
+  const endpoint=(sign,offset=0)=>{
+   const normalEast=-axisNorth,normalNorth=axisEast;
+   const east=axisEast*halfLength*sign+normalEast*offset;
+   const north=axisNorth*halfLength*sign+normalNorth*offset;
+   return [station.lat+north/111320,station.lng+east/(111320*cosLatitude)];
+  };
+  const incident=tracks.filter(track=>track.a===stationIndex||track.b===stationIndex).map(track=>{
+   const endpoints=getTrackStationEndpointStations(track);
+   const point=track.a===stationIndex?endpoints?.a:endpoints?.b;
+   if(!point)return null;
+   const east=(point.lng-station.lng)*cosLatitude;
+   const north=point.lat-station.lat;
+   const side=east*axisEast+north*axisNorth>=0?1:-1;
+   return {track,side};
+  }).filter(Boolean);
+  if(!incident.some(item=>item.side<0)||!incident.some(item=>item.side>0))return;
+  const parallel=incident.some(item=>item.track.style==='parallel');
+  const isIsland=(station.platformType||platformType)==='island';
+  const platformClearance=isIsland
+   ?getIslandPlatformTrackClearance(stationIndex,endpoint(-1),endpoint(1)):0;
+  const railOffset=parallel
+   ?(isIsland?Math.max(1.905,platformClearance):MOBILE_PARALLEL_TRACK_SPACING_METERS/2):0;
+  const source=incident.find(item=>item.track.style===(parallel?'parallel':'single'))?.track||incident[0].track;
+  const assigned=lines.filter(line=>(source.lineIds||[]).includes(line.id));
+  const active=assigned.length>0;
+  const color=active?(assigned[0]?.color||'#55a7ff'):'#82909d';
+  const opacity=active?1:.62;
+  const offsets=parallel?[-railOffset,railOffset]:[0];
+  offsets.forEach(offset=>{
+   const span=[endpoint(-1,offset),endpoint(1,offset)];
+   L.polyline(span,{pane:'sbTrackPane',color:'#17212b',weight:9,opacity:.9,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+   L.polyline(span,{pane:'sbTrackPane',color,weight:4,opacity,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
+  });
+ });
+
  stations.forEach((s,i)=>{
   if(s.nodeType==='junction'){
    L.circleMarker([s.lat,s.lng],{pane:'sbStationPane',radius:7,color:'#e8fbff',weight:2,fillColor:'#54e3d2',fillOpacity:1,interactive:true,bubblingMouseEvents:false})
