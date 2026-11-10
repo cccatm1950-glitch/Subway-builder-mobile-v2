@@ -10334,39 +10334,74 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
 (function(){
  if(window.__sb3DThemeSync)return;
  window.__sb3DThemeSync=true;
- let appliedTheme=null;
+ let requestedTheme=null,styleReloadPending=false;
  function installNetworkLayers(){
-  if(!sb3dMap||!sb3dMap.isStyleLoaded())return;
+  const cityMap=window.sb3dMap;
+  if(!cityMap||!cityMap.isStyleLoaded())return;
   try{
-   if(!sb3dMap.getSource('sb-openfreemap'))sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-   const layers=sb3dMap.getStyle().layers||[];
-   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
-   if(!sb3dMap.getLayer('sb-3d-buildings')){
-    sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
-     filter:['!=',['get','hide_3d'],true],
-     paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
-      'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
-      'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
-   }
+   if(!cityMap.getSource('sb-openfreemap-buildings'))
+    cityMap.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const firstSymbolLayer=(cityMap.getStyle().layers||[]).find(layer=>layer.type==='symbol')?.id;
+   if(!cityMap.getLayer('sb-3d-buildings'))cityMap.addLayer({
+    id:'sb-3d-buildings',source:'sb-openfreemap-buildings','source-layer':'building',
+    type:'fill-extrusion',minzoom:14,
+    filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],
+    paint:{
+     'fill-extrusion-color':'#aebbc4',
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],
+     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
+     'fill-extrusion-opacity':0.86
+    }
+   },firstSymbolLayer);
    const data=sb3dData();
-   if(!sb3dMap.getSource('sb-lines'))sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
-   if(!sb3dMap.getLayer('sb-route-casing'))sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
-   if(!sb3dMap.getLayer('sb-route-lines'))sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
-   if(!sb3dMap.getSource('sb-stations'))sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
-   if(!sb3dMap.getLayer('sb-station-halo'))sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
-   if(!sb3dMap.getLayer('sb-station-dots'))sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-   sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
+   if(!cityMap.getSource('sb-lines'))cityMap.addSource('sb-lines',{type:'geojson',data:data.lines});
+   if(!cityMap.getLayer('sb-route-casing'))cityMap.addLayer({
+    id:'sb-route-casing',type:'line',source:'sb-lines',
+    layout:{'line-cap':'round','line-join':'round'},
+    paint:{'line-color':'#142b3a','line-width':8,'line-opacity':0.95}
+   });
+   if(!cityMap.getLayer('sb-route-lines'))cityMap.addLayer({
+    id:'sb-route-lines',type:'line',source:'sb-lines',
+    layout:{'line-cap':'round','line-join':'round'},
+    paint:{'line-color':['coalesce',['get','color'],'#b8d3dc'],'line-width':3.2,'line-opacity':1,'line-dasharray':[1.4,1.2]}
+   });
+   if(!cityMap.getSource('sb-platforms'))cityMap.addSource('sb-platforms',{type:'geojson',data:data.platforms});
+   if(!cityMap.getLayer('sb-platform-fills'))cityMap.addLayer({id:'sb-platform-fills',type:'fill',source:'sb-platforms',paint:{'fill-color':'#56d7c5','fill-opacity':0.24}});
+   if(!cityMap.getLayer('sb-platform-outlines'))cityMap.addLayer({id:'sb-platform-outlines',type:'line',source:'sb-platforms',paint:{'line-color':'#62e5d2','line-width':2.5,'line-opacity':0.95}});
+   if(!cityMap.getSource('sb-stations'))cityMap.addSource('sb-stations',{type:'geojson',data:data.stations});
+   if(!cityMap.getLayer('sb-station-halo'))cityMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#f5fbff','circle-opacity':0.9}});
+   if(!cityMap.getLayer('sb-station-dots'))cityMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':5,'circle-color':'#ffffff','circle-stroke-color':'#173847','circle-stroke-width':1.5}});
+   if(!cityMap.getSource('sb-build-preview'))cityMap.addSource('sb-build-preview',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
+   if(!cityMap.getLayer('sb-build-preview-line'))cityMap.addLayer({id:'sb-build-preview-line',type:'line',source:'sb-build-preview',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#65ffe4','line-width':4,'line-opacity':0.95,'line-dasharray':[1.5,1.2]}});
+   if(!cityMap.getLayer('sb-build-preview-point'))cityMap.addLayer({id:'sb-build-preview-point',type:'circle',source:'sb-build-preview',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#65ffe4','circle-stroke-color':'#f5fbff','circle-stroke-width':2,'circle-opacity':0.95}});
+   sb3dReady=true;
+   window.refreshSubway3D?.();
+   cityMap.resize();cityMap.triggerRepaint();
   }catch(error){console.error('3D theme layer restoration failed:',error);}
+ }
+ function applyLatestTheme(){
+  const cityMap=window.sb3dMap;
+  if(!cityMap)return;
+  const currentTheme=document.documentElement.getAttribute('data-sb-theme')||'light';
+  if(currentTheme!==requestedTheme){
+   requestedTheme=currentTheme;
+   cityMap.once('style.load',applyLatestTheme);
+   cityMap.setStyle(requestedTheme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty');
+   return;
+  }
+  styleReloadPending=false;
+  installNetworkLayers();
  }
  function syncTheme(){
   const host=document.getElementById('sb-3d-map');
-  if(!host?.classList.contains('active')||!sb3dMap||!sb3dReady)return;
+  const cityMap=window.sb3dMap;
+  if(!host?.classList.contains('active')||!cityMap)return;
   const theme=document.documentElement.getAttribute('data-sb-theme')||'light';
-  if(theme===appliedTheme)return;
-  appliedTheme=theme;sb3dReady=false;
-  const styleUrl=theme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty';
-  sb3dMap.once('style.load',installNetworkLayers);
-  sb3dMap.setStyle(styleUrl);
+  if(theme===requestedTheme&&styleReloadPending)return;
+  if(theme===requestedTheme&&cityMap.isStyleLoaded())return;
+  requestedTheme=theme;styleReloadPending=true;sb3dReady=false;
+  cityMap.once('style.load',applyLatestTheme);
+  cityMap.setStyle(theme==='dark'?'https://tiles.openfreemap.org/styles/dark':'https://tiles.openfreemap.org/styles/liberty');
  }
  function observe(){
   const observer=new MutationObserver(syncTheme);
