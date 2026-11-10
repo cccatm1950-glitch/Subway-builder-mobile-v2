@@ -4063,6 +4063,8 @@ async function ensure3DMap(){
    sb3dMap.addSource('sb-build-preview',{type:'geojson',data:{type:'FeatureCollection',features:[]}});
    sb3dMap.addLayer({id:'sb-build-preview-line',type:'line',source:'sb-build-preview',filter:['==',['geometry-type'],'LineString'],layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#65ffe4','line-width':4,'line-opacity':0.95,'line-dasharray':[1.5,1.2]}});
    sb3dMap.addLayer({id:'sb-build-preview-point',type:'circle',source:'sb-build-preview',filter:['==',['geometry-type'],'Point'],paint:{'circle-radius':7,'circle-color':'#65ffe4','circle-stroke-color':'#f5fbff','circle-stroke-width':2,'circle-opacity':0.95}});
+   sb3dMap.addLayer({id:'sb-build-preview-polygon-fill',type:'fill',source:'sb-build-preview',filter:['==',['geometry-type'],'Polygon'],paint:{'fill-color':'#35d9c0','fill-opacity':0.18}});
+   sb3dMap.addLayer({id:'sb-build-preview-polygon-outline',type:'line',source:'sb-build-preview',filter:['==',['geometry-type'],'Polygon'],paint:{'line-color':'#65ffe4','line-width':2,'line-dasharray':[2,1],'line-opacity':0.95}});
    sb3dMap.on('click',['sb-station-dots','sb-platform-fills'],event=>{
     const feature=event.features&&event.features.find(item=>Number.isInteger(Number(item.properties?.stationIndex)));
     const index=Number(feature?.properties?.stationIndex);
@@ -4100,11 +4102,23 @@ async function ensure3DMap(){
    });
    // Forward map taps into the existing construction handler; the normal HUD/docks remain above this canvas.
    sb3dMap.on('mousemove',event=>{
-    if(mode==='track'&&selected!==null&&event?.lngLat)
-     updateTrackPlacementPreview(L.latLng(event.lngLat.lat,event.lngLat.lng),true,event.point);
+    if(mode==='track'&&selected!==null)updateTrackPlacementPreview(null,true);
+    else if(mode==='station')updateStationPlacementPreview();
+    else if(mode==='curve'&&Number.isInteger(selectedTrackIndex))scheduleCurvePlacementPreview();
+    else if(mode==='waypoint'&&Number.isInteger(selectedTrackIndex)&&tracks[selectedTrackIndex]){
+     const center=sb3dMap.getCenter(),source=sb3dMap.getSource('sb-build-preview');
+     if(source)source.setData({type:'FeatureCollection',features:[{type:'Feature',properties:{kind:'waypoint-crosshair'},geometry:{type:'Point',coordinates:[center.lng,center.lat]}}]});
+    }
    });
    sb3dMap.on('move',()=>{
     if(mode==='track'&&selected!==null)updateTrackPlacementPreview(null,true);
+    else if(mode==='station')updateStationPlacementPreview();
+    else if(mode==='curve'&&Number.isInteger(selectedTrackIndex))scheduleCurvePlacementPreview();
+    else if(mode==='waypoint'&&Number.isInteger(selectedTrackIndex)&&tracks[selectedTrackIndex]){
+     const center=sb3dMap.getCenter();
+     const source=sb3dMap.getSource('sb-build-preview');
+     if(source)source.setData({type:'FeatureCollection',features:[{type:'Feature',properties:{kind:'waypoint-crosshair'},geometry:{type:'Point',coordinates:[center.lng,center.lat]}}]});
+    }
    });
    sb3dMap.on('click',event=>{
     if(!event||!event.lngLat||!map)return;
@@ -10609,3 +10623,51 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{height:42px!important;min-height:42px!important;max-height:42px!important}
 }
 </style>
+
+<style id="sb-final-dock-centering-and-3d-crosshair">
+/* Center the complete bottom dock group on the viewport, independent of its contents. */
+#sb-action-dock{
+ left:50%!important;right:auto!important;transform:translateX(-50%)!important;
+ margin-left:0!important;margin-right:0!important;
+}
+/* A fixed Construction footprint; only shrink when the actual safe viewport is smaller. */
+#sb-construction-context-menu{width:min(286px,calc(100vw - var(--sb-safe-left,0px) - var(--sb-safe-right,0px) - 20px))!important;max-width:min(286px,calc(100vw - var(--sb-safe-left,0px) - var(--sb-safe-right,0px) - 20px))!important}
+/* Keep the closed service toggle optically centered in its glass capsule. */
+#sb-action-dock #sb-service-dock:not(.is-expanded){
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:4px!important;margin:0!important;
+}
+#sb-action-dock #sb-service-dock:not(.is-expanded) #sb-service-dock-toggle,
+#sb-action-dock #sb-service-dock #sb-service-dock-toggle{
+ position:relative!important;inset:auto!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;
+ box-sizing:border-box!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;transform:none!important;align-self:center!important;
+}
+#sb-3d-map .sb-3d-crosshair{
+ position:absolute!important;z-index:40!important;left:50%!important;top:50%!important;
+ width:36px!important;height:36px!important;transform:translate(-50%,-50%)!important;
+ border:1.5px solid var(--sb-crosshair-core,#f8fcff)!important;border-radius:50%!important;
+ background:linear-gradient(var(--sb-crosshair-core,#f8fcff),var(--sb-crosshair-core,#f8fcff)) center/100% 1px no-repeat!important;
+ box-shadow:0 0 0 2px var(--sb-crosshair-outline,#071321),0 0 0 4px var(--sb-crosshair-accent,#35d9c5),0 0 10px var(--sb-crosshair-accent,#35d9c5)!important;
+ pointer-events:none!important;display:none!important;
+}
+#sb-3d-map .sb-3d-crosshair:before{
+ content:""!important;position:absolute!important;left:50%!important;top:50%!important;width:8px!important;height:8px!important;
+ transform:translate(-50%,-50%)!important;border-radius:50%!important;background:var(--sb-crosshair-accent,#35d9c5)!important;
+ border:1.5px solid var(--sb-crosshair-core,#f8fcff)!important;box-shadow:0 0 0 2px var(--sb-crosshair-outline,#071321)!important;
+}
+#sb-3d-map.active .sb-3d-crosshair{display:block!important}
+</style>
+<script id="sb-3d-crosshair-overlay-mount">
+(function(){
+ function mount(){
+  const host=document.getElementById('sb-3d-map');
+  if(host&&!host.querySelector('.sb-3d-crosshair')){
+   const cross=document.createElement('div');cross.className='sb-3d-crosshair';cross.setAttribute('aria-hidden','true');host.appendChild(cross);
+  }
+ }
+ mount();document.addEventListener('DOMContentLoaded',mount,{once:true});
+})();
+</script>
