@@ -95,11 +95,10 @@ for (const required of [
   "id='sb-pr93-cross-view-build-drag-preview'",
   'window.sbPendingTrackCenterline',
   "sb3dMap.addSource('sb-build-preview'",
-  "sb3dMap.on('click','sb-station-dots'",
+  "sb3dMap.on('click',['sb-station-dots','sb-platform-fills']",
   "trackIndex,style:t.style||'single'",
   "mode==='curve'||mode==='waypoint'",
-  "nearestParallelRail(container,event,latlng)"
-
+  "nearestParallelRail(container,event,latlng)",
   'stationConnector:true',
   "kind:'platform'",
   'calculateStationEndpoint',
