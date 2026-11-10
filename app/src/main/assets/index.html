@@ -2476,7 +2476,7 @@ window.getSubway3DPlatforms=function(){
     corners.push([station.lng+east/(111320*cosLatitude),station.lat+north/111320]);
    }
    const ring=[corners[0],corners[1],corners[3],corners[2],corners[0]];
-   features.push({type:'Feature',properties:{stationIndex:index,platformIndex,platformType:station.platformType||platformType},geometry:{type:'Polygon',coordinates:[ring]}});
+   features.push({type:'Feature',properties:{kind:'platform',stationIndex:index,platformIndex,platformType:station.platformType||platformType},geometry:{type:'Polygon',coordinates:[ring]}});
   });
  });
  return features;
@@ -2956,7 +2956,7 @@ if(mode==='delete'){
   function drawLine(offset,parallelSide=0){
    const shifted=shiftTrackPoints(offset,parallelSide);
    window.sb3dTrackFeatures.push({type:'Feature',properties:{
-    color:routeColor,centerlineIndex:parallelSide<0?0:parallelSide>0?1:0,
+    kind:'rail',color:routeColor,centerlineIndex:parallelSide<0?0:parallelSide>0?1:0,
     trackNumber:trackIndex+1,style:t.style||'single'
    },geometry:{type:'LineString',coordinates:shifted.map(point=>[point[1],point[0]])}});
     if(trackIsSelected)L.polyline(shifted,{pane:'sbTrackPane',color:'#65ffe4',weight:19,opacity:.38,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
@@ -3051,6 +3051,10 @@ if(mode==='delete'){
   const offsets=parallel?[-railOffset,railOffset]:[0];
   offsets.forEach(offset=>{
    const span=[endpoint(-1,offset),endpoint(1,offset)];
+   window.sb3dTrackFeatures.push({type:'Feature',properties:{
+    kind:'rail',color,centerlineIndex:parallel?(offset<0?0:1):0,
+    trackNumber:tracks.indexOf(source)+1,style:parallel?'parallel':'single',stationConnector:true
+   },geometry:{type:'LineString',coordinates:span.map(point=>[point[1],point[0]])}});
    L.polyline(span,{pane:'sbTrackPane',color:'#17212b',weight:9,opacity:.9,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
    L.polyline(span,{pane:'sbTrackPane',color,weight:4,opacity,lineCap:'round',lineJoin:'round',interactive:false}).addTo(window.networkLayer);
   });
