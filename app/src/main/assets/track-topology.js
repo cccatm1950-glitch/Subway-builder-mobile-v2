@@ -165,6 +165,95 @@
       secondControl: controlPoint(end, endControlBearing, endControlDirection) };
   }
 
+  // Junctions have no platform bearing: preserve the local route tangent there.
+  // Only physical stations should rotate the parallel pair to a platform axis.
+  function resolveEndpointPlatformBearing(nodeType, bearing, defaultBearing = 90) {
+    if (nodeType === 'junction') return null;
+    return Number.isFinite(bearing) ? bearing : defaultBearing;
+  }
+
+  // Resolve an endpoint normal from the saved station bearing rather than
+  // the last sampled curve segment. This gives connected parallel sections
+  // the same physical rail endpoints even when approach directions reverse.
+  function calculateEndpointAlignedNormal(routeEast, routeNorth, stationBearing) {
+    if (!Number.isFinite(routeEast) || !Number.isFinite(routeNorth)) return null;
+    const magnitude = Math.hypot(routeEast, routeNorth);
+    if (magnitude < 1e-12) return null;
+    let east = routeEast / magnitude, north = routeNorth / magnitude;
+    if (Number.isFinite(stationBearing)) {
+      const radians = stationBearing * Math.PI / 180;
+      let bearingEast = Math.sin(radians), bearingNorth = Math.cos(radians);
+      if (bearingEast * east + bearingNorth * north < 0) {
+        bearingEast = -bearingEast;
+        bearingNorth = -bearingNorth;
+      }
+      east = bearingEast;
+      north = bearingNorth;
+    }
+    return { east: Object.is(-north, -0) ? 0 : -north, north: Object.is(east, -0) ? 0 : east };
+  }
+
+  // Blend the route normal into each station's saved platform normal over
+  // the approach transition. This avoids a one-sample kink at curved station
+  // entries while keeping both parallel rails aligned to the same platform face.
+  function calculateBlendedEndpointNormal(routeEast, routeNorth, startBearing, endBearing, startWeight = 0, endWeight = 0) {
+    if (![routeEast, routeNorth, startWeight, endWeight].every(Number.isFinite) ||
+        startWeight < 0 || endWeight < 0) return null;
+    const magnitude = Math.hypot(routeEast, routeNorth);
+    if (magnitude < 1e-12) return null;
+    const east = routeEast / magnitude, north = routeNorth / magnitude;
+    const routeNormal = { east: -north, north: east };
+    const stationNormal = bearing => {
+      if (!Number.isFinite(bearing)) return null;
+      const radians = bearing * Math.PI / 180;
+      let tangentEast = Math.sin(radians), tangentNorth = Math.cos(radians);
+      if (tangentEast * east + tangentNorth * north < 0) {
+        tangentEast = -tangentEast;
+        tangentNorth = -tangentNorth;
+      }
+      return { east: -tangentNorth, north: tangentEast };
+    };
+    const startNormal = stationNormal(startBearing);
+    const endNormal = stationNormal(endBearing);
+    const start = startNormal ? Math.min(1, startWeight) : 0;
+    const end = endNormal ? Math.min(1, endWeight) : 0;
+    const base = Math.max(0, 1 - start - end);
+    const total = base + start + end;
+    let blendedEast = routeNormal.east * base +
+      (startNormal?.east || 0) * start + (endNormal?.east || 0) * end;
+    let blendedNorth = routeNormal.north * base +
+      (startNormal?.north || 0) * start + (endNormal?.north || 0) * end;
+    const blendedLength = Math.hypot(blendedEast, blendedNorth);
+    if (blendedLength < 1e-12 || total <= 0) return routeNormal;
+    blendedEast /= blendedLength;
+    blendedNorth /= blendedLength;
+    return {
+      east: Math.abs(blendedEast) < 1e-12 ? 0 : blendedEast,
+      north: Math.abs(blendedNorth) < 1e-12 ? 0 : blendedNorth
+    };
+  }
+
+  // Return the physical station end nearest the route's departure/arrival
+  // direction. Coordinates are [latitude, longitude]; bearing is clockwise
+  // from north and halfLength is measured in metres.
+  function calculateStationEndpoint(center, bearing, reference, halfLength) {
+    if (!center || !reference ||
+        !Number.isFinite(center.lat) || !Number.isFinite(center.lng) ||
+        !Number.isFinite(reference.lat) || !Number.isFinite(reference.lng) ||
+        !Number.isFinite(bearing) || !Number.isFinite(halfLength) || halfLength < 0) return null;
+    const latitudeRadians = center.lat * Math.PI / 180;
+    const east = (reference.lng - center.lng) * Math.cos(latitudeRadians);
+    const north = reference.lat - center.lat;
+    if (Math.hypot(east, north) < 1e-12) return null;
+    const radians = bearing * Math.PI / 180;
+    const axisEast = Math.sin(radians), axisNorth = Math.cos(radians);
+    const sign = east * axisEast + north * axisNorth >= 0 ? 1 : -1;
+    const distance = halfLength * sign;
+    const lat = center.lat + axisNorth * distance / 111320;
+    const lng = center.lng + axisEast * distance / (111320 * Math.max(1e-8, Math.cos(latitudeRadians)));
+    return { lat, lng, sign };
+  }
+
   // Project a rectangular platform onto the route-normal axis. The returned
   // clearance is the exact lateral distance needed to keep a parallel rail
   // outside the platform footprint, independent of route direction.
@@ -189,6 +278,33 @@
     const projectedHalfExtent = halfLength * Math.abs(axisAlignment) +
       halfWidth * Math.abs(normalAlignment);
     return projectedHalfExtent + clearance;
+  }
+
+  // Return only the extra flare beyond the standard half-spacing already
+  // applied to each rail. This prevents counting the base parallel spacing twice.
+  function calculateParallelTrackExtraClearance(platformEdgeClearance, standardTrackSpacing = 3.81) {
+    if (!Number.isFinite(platformEdgeClearance) || !Number.isFinite(standardTrackSpacing) ||
+        platformEdgeClearance < 0 || standardTrackSpacing <= 0) return null;
+    return Math.max(0, platformEdgeClearance - standardTrackSpacing / 2);
+  }
+
+  // Fade parallel half-spacing to zero where a parallel route meets a
+  // single-track junction. Station endpoints retain their platform clearance.
+  function calculateParallelJunctionMergeProfile(cumulativeDistances, totalLength, startIsJunction, endIsJunction, transitionLength = 50) {
+    if (!Array.isArray(cumulativeDistances)) return [];
+    if (!Number.isFinite(totalLength) || totalLength < 0 ||
+        !Number.isFinite(transitionLength) || transitionLength <= 0) {
+      return cumulativeDistances.map(() => 0);
+    }
+    const extent = Math.min(transitionLength, totalLength / 2);
+    if (extent <= 0) return cumulativeDistances.map(() => 0);
+    const smoothstep = value => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x); };
+    return cumulativeDistances.map(distance => {
+      if (!Number.isFinite(distance)) return 0;
+      const fromStart = startIsJunction ? 1 - smoothstep(distance / extent) : 0;
+      const fromEnd = endIsJunction ? 1 - smoothstep((totalLength - distance) / extent) : 0;
+      return Math.max(fromStart, fromEnd);
+    });
   }
 
   // Project the platform rectangle onto the route axis. This is the distance
@@ -327,5 +443,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculatePlatformNormalClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, resolveEndpointPlatformBearing, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculateParallelJunctionMergeProfile, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });
