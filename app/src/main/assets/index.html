@@ -3134,6 +3134,7 @@ function setMode(newMode){
  const previousMode=mode;
  if(newMode!=='station'&&pendingStationPlacement){pendingStationPlacement=null;clearStationPlacementPreview();}
  mode=newMode;
+ if(mode!=='track')clearTrackPlacementPreview();
  if(mode==='station')updateStationPlacementPreview();else clearStationPlacementPreview();
  if(mode==='curve')scheduleCurvePlacementPreview();else clearCurvePlacementPreview();
  // Keep the construction drawer open while a tool is active. The user closes
@@ -3395,7 +3396,7 @@ function handleStationClick(index){
 
   stations.splice(index,1);
   pruneOrphanJunctions();
-  selected=null;
+  selected=null;clearTrackPlacementPreview();
   selectedTrackIndex=null;
 
   saveHistory();
@@ -3413,7 +3414,7 @@ function handleStationClick(index){
   }
 
   if(selected===index){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    clearTrackPlacementPreview();
    renderNetwork();
    message('Selection cleared.');
@@ -3432,12 +3433,12 @@ function handleStationClick(index){
    const assignedLineIds=Array.isArray(existingTrack.lineIds)?existingTrack.lineIds:[];
    if(activeLine&&!assignedLineIds.includes(activeLine.id)){
     existingTrack.lineIds=[...assignedLineIds,activeLine.id];
-    selected=null;
+    selected=null;clearTrackPlacementPreview();
     saveHistory();
     renderNetwork();
     message(activeLine.name+' now shares the existing track.');
    }else{
-    selected=null;
+    selected=null;clearTrackPlacementPreview();
     renderNetwork();
     message(activeLine?'This track is already assigned to '+activeLine.name+'.':'These stations are already connected.');
    }
@@ -3465,7 +3466,7 @@ function handleStationClick(index){
     renderNetwork();
     message('These stations are already connected through existing track sections.');
    }
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    return;
   }
 
@@ -3476,13 +3477,13 @@ function handleStationClick(index){
    [stations[second].lat,stations[second].lng]
   );
   if(proposedTrackLengthMeters<10){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    renderNetwork();
    message('Track must be at least 10 m long.');
    return;
   }
   if(proposedTrackLengthMeters>5000){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    renderNetwork();
    message('Track cannot exceed 5,000 m. Add an intermediate station first.');
    return;
@@ -3491,7 +3492,7 @@ function handleStationClick(index){
   const startElevationProfile=resolveStationElevation(first);
   const endElevationProfile=resolveStationElevation(second);
   if(!startElevationProfile.isValid||!endElevationProfile.isValid){
-   selected=null;renderNetwork();
+   selected=null;clearTrackPlacementPreview();renderNetwork();
    message(startElevationProfile.error||endElevationProfile.error||'Station elevations are incompatible.');
    return;
   }
@@ -3499,12 +3500,12 @@ function handleStationClick(index){
   const proposedEndElevation=endElevationProfile.elevation;
   const proposedSlopePercentage=Math.abs(proposedEndElevation-proposedStartElevation)/proposedTrackLengthMeters*100;
   if(proposedSlopePercentage>MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE+1e-9){
-   selected=null;renderNetwork();
+   selected=null;clearTrackPlacementPreview();renderNetwork();
    message('Track grade is '+proposedSlopePercentage.toFixed(2)+'%. The default heavy-metro limit is '+MOBILE_DEFAULT_MAX_SLOPE_PERCENTAGE+'%. Add an intermediate station to create a longer grade transition.');
    return;
   }
   if(money<150){
-   selected=null;
+   selected=null;clearTrackPlacementPreview();
    renderNetwork();
    message('Not enough money to build track.');
    return;
@@ -3529,7 +3530,7 @@ function handleStationClick(index){
   ...(Array.isArray(window.sbPendingTrackCenterline)&&window.sbPendingTrackCenterline.length>=2?{centerline:window.sbPendingTrackCenterline.map(point=>({lat:point.lat,lng:point.lng}))}:{})
 });
   window.sbPendingTrackCenterline=null;
-  selected=null;
+  selected=null;clearTrackPlacementPreview();
   clearTrackPlacementPreview();
   saveHistory();
   renderNetwork();
@@ -4093,6 +4094,13 @@ async function ensure3DMap(){
      map.setView([c.lat,c.lng],z,{animate:false});
    });
    // Forward map taps into the existing construction handler; the normal HUD/docks remain above this canvas.
+   sb3dMap.on('mousemove',event=>{
+    if(mode==='track'&&selected!==null&&event?.lngLat)
+     updateTrackPlacementPreview(L.latLng(event.lngLat.lat,event.lngLat.lng),true,event.point);
+   });
+   sb3dMap.on('move',()=>{
+    if(mode==='track'&&selected!==null)updateTrackPlacementPreview(null,true);
+   });
    sb3dMap.on('click',event=>{
     if(!event||!event.lngLat||!map)return;
     const features=sb3dMap.queryRenderedFeatures(event.point,{layers:['sb-3d-buildings','sb-station-dots','sb-platform-fills','sb-route-lines']});
