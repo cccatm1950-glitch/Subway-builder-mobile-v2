@@ -1983,6 +1983,26 @@ button.sb-flat-close,[data-flat-close="true"]{
 }
 </style>
 
+<style id="sb-service-dock-3d-view-control">
+/* 3D city preview belongs to the Service Lines dock, matching its 46px glass controls. */
+#sb-service-dock #sb-service-lines #sb-3d-toggle{
+ box-sizing:border-box!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;border-radius:50%!important;
+ background:rgba(255,255,255,.09)!important;border:1px solid rgba(255,255,255,.16)!important;
+ color:#edf6ff!important;box-shadow:none!important;
+}
+#sb-service-dock #sb-service-lines #sb-3d-toggle svg{
+ display:block!important;width:23px!important;height:23px!important;flex:0 0 23px!important;
+ fill:none!important;stroke:currentColor!important;pointer-events:none!important;
+}
+#sb-service-dock #sb-service-lines #sb-3d-toggle.active{
+ background:rgba(54,211,190,.19)!important;border-color:rgba(100,244,220,.48)!important;color:#8fffea!important;
+}
+@media(prefers-reduced-motion:reduce){#sb-service-dock #sb-service-lines #sb-3d-toggle{transition:none!important}}
+</style>
+
 <style id="sb-viewport-restore-rectangular-screen">
 /* Restore the full rectangular game viewport. Keep glass dock pills and
    circular controls local to their own UI elements; never clip the map. */
@@ -3779,14 +3799,16 @@ async function ensure3DMap(){
 window.toggle3DCityView=async function(){
  const host=document.getElementById('sb-3d-map');
  const toggle=document.getElementById('sb-3d-toggle');
+ const buildMap=document.getElementById('map');
+ if(!host||!toggle||!buildMap)return;
  const enable=!host.classList.contains('active');
  if(!enable){
   host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.textContent='3D';toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D City';
+  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city preview';
   map.invalidateSize();message('2D construction view restored.');return;
  }
  host.classList.add('active');document.getElementById('map').style.visibility='hidden';
- toggle.classList.add('active');toggle.textContent='2D';toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='2D Build';
+ toggle.classList.add('active');toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='Return to 2D build view';
  try{
   await ensure3DMap();
   const center=map.getCenter();
@@ -4782,8 +4804,23 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div><button id="sb-3d-toggle" type="button" aria-label="Switch to 3D city view" title="3D city preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2.8 8.2 4.6v9.2L12 21.2l-8.2-4.6V7.4L12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m3.8 7.4 8.2 4.7 8.2-4.7M12 12.1v9.1M8 5l8.1 4.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg></button></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
+  }
+  /* Keep the 3D view control out of Construction and mount it in Service Lines. */
+  const legacy3D=document.getElementById('sb-3d-toggle');
+  if(legacy3D&&!serviceDock.contains(legacy3D))legacy3D.remove();
+  let threeDButton=serviceDock.querySelector('#sb-3d-toggle');
+  if(!threeDButton){
+   threeDButton=document.createElement('button');threeDButton.id='sb-3d-toggle';threeDButton.type='button';
+   threeDButton.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2.8 8.2 4.6v9.2L12 21.2l-8.2-4.6V7.4L12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m3.8 7.4 8.2 4.7 8.2-4.7M12 12.1v9.1M8 5l8.1 4.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+   serviceDock.querySelector('#sb-service-lines')?.append(threeDButton);
+  }
+  threeDButton.setAttribute('aria-label',threeDButton.classList.contains('active')?'Switch to 2D build view':'Switch to 3D city view');
+  threeDButton.title=threeDButton.classList.contains('active')?'Return to 2D build view':'3D city preview';
+  if(!threeDButton.dataset.viewToggleBound){
+   threeDButton.dataset.viewToggleBound='true';
+   threeDButton.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();if(typeof window.toggle3DCityView==='function')window.toggle3DCityView();});
   }
   const createSlot=document.getElementById("sb-service-create-slot");
   const colorPicker=createSlot?.querySelector(".sb-line-color-picker");
