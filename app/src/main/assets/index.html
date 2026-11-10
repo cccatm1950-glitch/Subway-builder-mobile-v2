@@ -2849,11 +2849,18 @@ if(mode==='delete'){
    let length=Math.sqrt(dx*dx+dy*dy)||1;
    const parallelOffsetScale=1-(parallelJunctionMerge[i]||0);
    const lateralOffset=stationOffsets[i]+(offset+parallelSide*parallelPlatformFlare[i])*parallelOffsetScale;
-   const startBearing=Number.isFinite(stations[t.a]?.platformBearing)?stations[t.a].platformBearing:90;
-   const endBearing=Number.isFinite(stations[t.b]?.platformBearing)?stations[t.b].platformBearing:90;
+   // Platform-bearing alignment applies only at physical stations. Junctions
+   // have no platform axis, so their parallel pair must follow the local route
+   // tangent and meet the single rail without an arbitrary east-west rotation.
+   const startBearing=window.SBTrackTopology?.resolveEndpointPlatformBearing?.(
+    stations[t.a]?.nodeType,stations[t.a]?.platformBearing,90
+   )??(stations[t.a]?.nodeType==='junction'?null:90);
+   const endBearing=window.SBTrackTopology?.resolveEndpointPlatformBearing?.(
+    stations[t.b]?.nodeType,stations[t.b]?.platformBearing,90
+   )??(stations[t.b]?.nodeType==='junction'?null:90);
    const smoothstep=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
-   const startNormalWeight=parallelSide!==0?1-smoothstep(cumulativeTrackMeters[i]/OFFSET_TRANSITION_LENGTH_METERS):0;
-   const endNormalWeight=parallelSide!==0?1-smoothstep((totalTrackMeters-cumulativeTrackMeters[i])/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const startNormalWeight=parallelSide!==0&&stations[t.a]?.nodeType!=='junction'?1-smoothstep(cumulativeTrackMeters[i]/OFFSET_TRANSITION_LENGTH_METERS):0;
+   const endNormalWeight=parallelSide!==0&&stations[t.b]?.nodeType!=='junction'?1-smoothstep((totalTrackMeters-cumulativeTrackMeters[i])/OFFSET_TRANSITION_LENGTH_METERS):0;
    const endpointNormal=parallelSide!==0
     ?window.SBTrackTopology?.calculateBlendedEndpointNormal?.(dx/length,dy/length,startBearing,endBearing,startNormalWeight,endNormalWeight)
     :null;
