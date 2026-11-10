@@ -2305,10 +2305,6 @@ function snapshot(){
   platformWidth:platformWidth,
   platformSize:platformSize,
   platformType:platformType,
-  mode:mode,
-  trackStyle:trackStyle,
-  curveMode:curveMode,
-  tunnelMode:tunnelMode,
   stations:stations.map(s=>({
    lat:s.lat,lng:s.lng,name:s.name,nodeType:s.nodeType==='junction'?'junction':'station',elevation:s.elevation||'at',
    elevationMeters:Number.isFinite(s.elevationMeters)?s.elevationMeters:null,
@@ -2350,9 +2346,7 @@ function restoreSnapshot(data){
  if(['default','narrow','wide'].includes(data.platformWidth))platformWidth=data.platformWidth;
  if(PLATFORM_SIZE_PRESETS[data.platformSize])platformSize=data.platformSize;
  if(['island','side'].includes(data.platformType))platformType=data.platformType;
- if(['station','track','waypoint','delete','inspect','curve'].includes(data.mode))mode=data.mode;
- if(['single','parallel'].includes(data.trackStyle))trackStyle=data.trackStyle;
- curveMode=!!data.curveMode;tunnelMode=!!data.tunnelMode;
+ /* Tool selection and transient construction modes are deliberately not part of edit history. */
  stations=data.stations.map((s,i)=>({
   lat:Number(s.lat),lng:Number(s.lng),name:s.name||(s.nodeType==='junction'?'Junction '+(i+1):'Station '+(i+1)),
   nodeType:s.nodeType==='junction'?'junction':'station',
@@ -2452,7 +2446,7 @@ window.getSubway3DTracks=function(){
  return tracks.map((t,i)=>{
   const a=stations[t.a],b=stations[t.b];if(!a||!b)return null;
   const coords=getTrackCenterlinePoints(t).map(point=>[point[1],point[0]]);
-  return {type:'Feature',properties:{color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],trackNumber:i+1,style:t.style||'single'},geometry:{type:'LineString',coordinates:coords}};
+  return {type:'Feature',properties:{color:['#ff5263','#42d69a','#55a7ff','#f4c451','#b58aff'][i%5],trackNumber:i+1,trackIndex:i,style:t.style||'single'},geometry:{type:'LineString',coordinates:coords}};
  }).filter(Boolean);
 };
 window.getSubway3DPlatforms=function(){
@@ -2840,7 +2834,7 @@ if(mode==='delete'){
   if(mode==='waypoint'||mode==='curve'||mode==='delete'){
    L.polyline(points,{pane:'sbInteractionPane',color:mode==='delete'?'#e74c3c':'#f0a52b',weight:mode==='delete'?24:26,opacity:mode==='delete'?0.28:0,interactive:true,bubblingMouseEvents:false,lineCap:'round',lineJoin:'round'}).addTo(window.networkLayer).on('click',function(e){
     L.DomEvent.stopPropagation(e);
-    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Drag or tap to preview and place curve points.');}
+    if(mode==='curve'){selectedTrackIndex=trackIndex;renderNetwork();scheduleCurvePlacementPreview();message('Track selected. Aim the crosshair, then tap to place a curve point.');}
     else if(mode==='delete'){pauseSimulationBeforeTopologyChange();tracks.splice(trackIndex,1);pruneOrphanJunctions();selectedTrackIndex=null;saveHistory();renderNetwork();message('Track section deleted.');}
     else selectTrackForWaypoints(trackIndex);
    });
@@ -3562,6 +3556,9 @@ let stationPlacementPreview=null;
 let curvePlacementPreviewLayer=null;
 function clearCurvePlacementPreview(){
  if(curvePlacementPreviewLayer){map.removeLayer(curvePlacementPreviewLayer);curvePlacementPreviewLayer=null;}
+ const source=window.sb3dMap?.getSource('sb-build-preview');
+ if(source&&document.getElementById('sb-3d-map')?.classList.contains('active'))
+  source.setData({type:'FeatureCollection',features:[]});
 }
 let curvePreviewFrame=0;
 function scheduleCurvePlacementPreview(){
@@ -3569,17 +3566,28 @@ function scheduleCurvePlacementPreview(){
  curvePreviewFrame=requestAnimationFrame(()=>{curvePreviewFrame=0;updateCurvePlacementPreview();});
 }
 function updateCurvePlacementPreview(position=null){
- if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]||
-    document.getElementById('sb-3d-map')?.classList.contains('active')){
+ if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){
   clearCurvePlacementPreview();return;
  }
+ const is3D=!!document.getElementById('sb-3d-map')?.classList.contains('active');
+ const crosshair=position||(is3D&&window.sb3dMap?window.sb3dMap.getCenter():map.containerPointToLatLng(map.getSize().divideBy(2)));
  const baseTrack=tracks[selectedTrackIndex];
- const crosshair=position||map.containerPointToLatLng(map.getSize().divideBy(2));
  const previewTrack={...baseTrack,curve:true,waypoints:[...(Array.isArray(baseTrack.waypoints)?baseTrack.waypoints:[]),{lat:crosshair.lat,lng:crosshair.lng,elevation:'at'}]};
  delete previewTrack.centerline;
  const previewPoints=getTrackCenterlinePoints(previewTrack);
  if(previewPoints.length<3){clearCurvePlacementPreview();return;}
- clearCurvePlacementPreview();
+ if(is3D){
+  if(curvePlacementPreviewLayer){map.removeLayer(curvePlacementPreviewLayer);curvePlacementPreviewLayer=null;}
+  const source=window.sb3dMap?.getSource('sb-build-preview');
+  if(source)source.setData({type:'FeatureCollection',features:[{
+   type:'Feature',properties:{kind:'curve-preview',trackIndex:selectedTrackIndex},
+   geometry:{type:'LineString',coordinates:previewPoints.map(point=>[point[1],point[0]])}
+  }]});
+  return;
+ }
+ const source=window.sb3dMap?.getSource('sb-build-preview');
+ if(source)source.setData({type:'FeatureCollection',features:[]});
+ if(curvePlacementPreviewLayer){map.removeLayer(curvePlacementPreviewLayer);curvePlacementPreviewLayer=null;}
  curvePlacementPreviewLayer=L.layerGroup().addTo(map);
  L.polyline(previewPoints,{pane:'sbTrackPane',color:'#65ffe4',weight:4,opacity:.82,dashArray:'7 6',lineCap:'round',lineJoin:'round',interactive:false}).addTo(curvePlacementPreviewLayer);
  renderTrackDynamicsOverlay(previewTrack,previewPoints,curvePlacementPreviewLayer);
@@ -3649,13 +3657,18 @@ function handleMapPlacement(latlng){
  /* Curve and waypoint placement is handled exclusively by the crosshair router. */
  if(mode==='curve'||mode==='waypoint'){
   if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){message('Select a track first.');return;}
+  /* A second tap commits at the fixed viewport crosshair, never at the finger. */
+  const crosshair=window.sbGetCrosshairLatLng?.()||
+   (document.getElementById('sb-3d-map')?.classList.contains('active')&&window.sb3dMap
+    ?window.sb3dMap.getCenter():map.containerPointToLatLng(map.getSize().divideBy(2)));
   const targetTrack=tracks[selectedTrackIndex];
   targetTrack.waypoints=Array.isArray(targetTrack.waypoints)?targetTrack.waypoints:[];
   if(mode==='curve')targetTrack.curve=true;
   delete targetTrack.centerline;
-  targetTrack.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
+  targetTrack.waypoints.push({lat:crosshair.lat,lng:crosshair.lng,elevation:'at'});
   saveHistory();renderNetwork();
-  message(mode==='curve'?'Curve point placed.':'Waypoint placed.');
+  if(mode==='curve')scheduleCurvePlacementPreview();
+  message(mode==='curve'?'Curve point placed at crosshair.':'Waypoint placed at crosshair.');
   return;
  }
  const now=Date.now();
@@ -4123,10 +4136,21 @@ async function ensure3DMap(){
    sb3dMap.on('click',event=>{
     if(!event||!event.lngLat||!map)return;
     const features=sb3dMap.queryRenderedFeatures(event.point,{layers:['sb-3d-buildings','sb-station-dots','sb-platform-fills','sb-route-lines']});
+    const routeFeature=features?.find(feature=>feature.layer?.id==='sb-route-lines');
+    if((mode==='curve'||mode==='waypoint')&&routeFeature){
+     const trackIndex=Number(routeFeature.properties?.trackIndex);
+     if(Number.isInteger(trackIndex)&&tracks[trackIndex]){
+      selectedTrackIndex=trackIndex;
+      renderNetwork();
+      if(mode==='curve')scheduleCurvePlacementPreview();
+      else message('Track selected. Aim the crosshair, then tap to place a waypoint.');
+      return;
+     }
+    }
     if(features&&features.length)return;
-    const target=L.latLng(event.lngLat.lat,event.lngLat.lng);
-    // Reuse every existing Leaflet click handler so station selection, track placement,
-    // waypoints, curves and delete mode keep their established game logic.
+    const isCrosshairTool=mode==='curve'||mode==='waypoint';
+    const target=isCrosshairTool?sb3dMap.getCenter():L.latLng(event.lngLat.lat,event.lngLat.lng);
+    // Reuse the existing Leaflet click pipeline, but keep curve/waypoint taps fixed at the viewport reticle.
     map.setView(target,Math.max(3,Math.min(19,sb3dMap.getZoom())),{animate:false});
     const containerPoint=map.latLngToContainerPoint(target);
     map.fire('click',{latlng:target,containerPoint,layerPoint:map.latLngToLayerPoint(target),originalEvent:event.originalEvent});
@@ -10288,8 +10312,11 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  flex:0 0 58px!important;width:58px!important;max-width:58px!important;
 }
 #sb-action-dock #sb-service-dock:not(.is-expanded) #sb-service-dock-toggle{
- position:relative!important;inset:auto!important;transform:none!important;
- align-self:center!important;justify-self:center!important;margin:0!important;
+ position:relative!important;inset:auto!important;left:auto!important;right:auto!important;top:auto!important;bottom:auto!important;
+ transform:none!important;align-self:center!important;justify-self:center!important;
+ display:inline-flex!important;flex:0 0 46px!important;width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;max-width:46px!important;max-height:46px!important;
+ margin:0 auto!important;padding:0!important;line-height:1!important;
 }
 #sb-action-dock #sb-service-dock #sb-service-dock-toggle{
  box-sizing:border-box!important;flex:0 0 46px!important;
@@ -10666,3 +10693,19 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  }
 })();
 </script>
+
+<style id="sb-service-toggle-final-centering-and-preview-state">
+#sb-action-dock #sb-service-dock:not(.is-expanded){
+ box-sizing:border-box!important;display:flex!important;flex:0 0 58px!important;
+ width:58px!important;min-width:58px!important;max-width:58px!important;
+ height:58px!important;min-height:58px!important;max-height:58px!important;
+ align-items:center!important;justify-content:center!important;
+ padding:6px!important;overflow:hidden!important;
+}
+@media(max-width:700px){
+ #sb-action-dock #sb-service-dock:not(.is-expanded){
+  flex-basis:54px!important;width:54px!important;min-width:54px!important;max-width:54px!important;
+  height:54px!important;min-height:54px!important;max-height:54px!important;padding:4px!important;
+ }
+}
+</style>
