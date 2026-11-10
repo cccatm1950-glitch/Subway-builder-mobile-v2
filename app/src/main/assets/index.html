@@ -8878,8 +8878,7 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-narrow':()=>setPlatformWidth('narrow'),
    'width-default':()=>setPlatformWidth('default'),
    'width-wide':()=>setPlatformWidth('wide'),
-   'clear-selection':()=>resetSelection(),
-   'toggle-3d':()=>window.toggle3DCityView()
+   'clear-selection':()=>resetSelection()
   };
   if(typeof actions[action]!=='function')return false;
   actions[action]();
