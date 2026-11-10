@@ -2944,8 +2944,14 @@ if(mode==='delete'){
     stations[t.b]?.nodeType,stations[t.b]?.platformBearing,90
    )??(stations[t.b]?.nodeType==='junction'?null:90);
    const smoothstep=value=>{const x=Math.max(0,Math.min(1,value));return x*x*(3-2*x);};
-   const startNormalWeight=parallelSide!==0&&stations[t.a]?.nodeType!=='junction'?1-smoothstep(cumulativeTrackMeters[i]/OFFSET_TRANSITION_LENGTH_METERS):0;
-   const endNormalWeight=parallelSide!==0&&stations[t.b]?.nodeType!=='junction'?1-smoothstep((totalTrackMeters-cumulativeTrackMeters[i])/OFFSET_TRANSITION_LENGTH_METERS):0;
+   // Keep each station's own platform alignment local to its endpoint.
+   // For short links, cap each transition at half the route length so the
+   // start station can never pull the destination endpoint off its bearing.
+   const endpointAlignmentTransitionMeters=Math.min(OFFSET_TRANSITION_LENGTH_METERS,totalTrackMeters/2);
+   const startNormalWeight=parallelSide!==0&&stations[t.a]?.nodeType!=='junction'&&endpointAlignmentTransitionMeters>0
+    ?1-smoothstep(cumulativeTrackMeters[i]/endpointAlignmentTransitionMeters):0;
+   const endNormalWeight=parallelSide!==0&&stations[t.b]?.nodeType!=='junction'&&endpointAlignmentTransitionMeters>0
+    ?1-smoothstep((totalTrackMeters-cumulativeTrackMeters[i])/endpointAlignmentTransitionMeters):0;
    const endpointNormal=parallelSide!==0
     ?window.SBTrackTopology?.calculateBlendedEndpointNormal?.(dx/length,dy/length,startBearing,endBearing,startNormalWeight,endNormalWeight)
     :null;
