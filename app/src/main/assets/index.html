@@ -3740,77 +3740,115 @@ let sb3dLibraryPromise=null;
 function sb3dData(){
  const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
  const stations=window.getSubway3DStations?window.getSubway3DStations():[];
- return {lines:{type:'FeatureCollection',features:lines},stations:{type:'FeatureCollection',features:stations}};
+ const platforms=window.getSubway3DPlatforms?window.getSubway3DPlatforms():[];
+ return {
+  lines:{type:'FeatureCollection',features:lines},
+  stations:{type:'FeatureCollection',features:stations},
+  platforms:{type:'FeatureCollection',features:platforms}
+ };
 }
 function sb3dRefresh(){
  if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
  const data=sb3dData();
  sb3dMap.getSource('sb-lines')?.setData(data.lines);
  sb3dMap.getSource('sb-stations')?.setData(data.stations);
+ sb3dMap.getSource('sb-platforms')?.setData(data.platforms);
 }
 function loadMapLibre(){
- if(!sb3dLibraryPromise)sb3dLibraryPromise=import('https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.mjs').then(mod=>mod).catch(error=>{sb3dLibraryPromise=null;throw error;});
+ if(!sb3dLibraryPromise){
+  sb3dLibraryPromise=new Promise((resolve,reject)=>{
+   if(window.maplibregl){resolve(window.maplibregl);return;}
+   const sources=[
+    'https://cdn.jsdelivr.net/npm/maplibre-gl@5.18.0/dist/maplibre-gl.js',
+    'https://unpkg.com/maplibre-gl@5.18.0/dist/maplibre-gl.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/5.18.0/maplibre-gl.min.js'
+   ];
+   let index=0;
+   const tryNext=()=>{
+    if(window.maplibregl){resolve(window.maplibregl);return;}
+    if(index>=sources.length){reject(new Error('MapLibre could not be loaded from the tested CDN mirrors.'));return;}
+    const script=document.createElement('script');
+    script.src=sources[index++];script.async=true;script.crossOrigin='anonymous';
+    const timeout=setTimeout(()=>{script.onload=null;script.onerror=null;script.remove();tryNext();},8000);
+    script.onload=()=>{clearTimeout(timeout);window.maplibregl?resolve(window.maplibregl):tryNext();};
+    script.onerror=()=>{clearTimeout(timeout);script.remove();tryNext();};
+    document.head.appendChild(script);
+   };
+   tryNext();
+  }).catch(error=>{sb3dLibraryPromise=null;throw error;});
+ }
  return sb3dLibraryPromise;
 }
 async function ensure3DMap(){
  if(sb3dMap)return sb3dMap;
  const maplibregl=await loadMapLibre();
+ const probe=document.createElement('canvas');
+ const webgl2=probe.getContext('webgl2',{failIfMajorPerformanceCaveat:false});
+ if(!webgl2)throw new Error('WebGL2 is unavailable in this Android WebView.');
  const center=map.getCenter();
  sb3dMap=new maplibregl.Map({
-  container:'sb-3d-map',style:'https://tiles.openfreemap.org/styles/liberty',
+  container:'sb-3d-map',
+  style:'https://tiles.openfreemap.org/styles/liberty',
   center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),
-  pitch:58,bearing:-18,maxPitch:78,minPitch:0,antialias:true,attributionControl:false,
+  pitch:65,bearing:-18,maxPitch:85,minPitch:0,antialias:true,
+  attributionControl:{compact:false},
   interactive:true,dragRotate:true,touchPitch:true,touchZoomRotate:true,
-  pitchWithRotate:true,cooperativeGestures:false
+  pitchWithRotate:true,cooperativeGestures:false,
+  canvasContextAttributes:{antialias:true},failIfMajorPerformanceCaveat:false
  });
- sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}), 'top-right');
+ sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}),'top-right');
  sb3dMap.on('load',()=>{
   try{
-   sb3dMap.addSource('sb-openfreemap',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
-   const layers=sb3dMap.getStyle().layers||[];
-   const label=layers.find(layer=>layer.type==='symbol'&&layer.layout&&layer.layout['text-field']);
-   sb3dMap.addLayer({id:'sb-3d-buildings',source:'sb-openfreemap','source-layer':'building',type:'fill-extrusion',minzoom:13,
-    filter:['!=',['get','hide_3d'],true],
-    paint:{'fill-extrusion-color':['interpolate',['linear'],['coalesce',['get','render_height'],0],0,'#263b50',35,'#526b82',100,'#8196a9',250,'#b1bfca'],
-     'fill-extrusion-height':['interpolate',['linear'],['zoom'],13,0,15,['coalesce',['get','render_height'],8]],
-     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],'fill-extrusion-opacity':0.92}},label?.id);
+   sb3dMap.addSource('sb-openfreemap-buildings',{type:'vector',url:'https://tiles.openfreemap.org/planet'});
+   const firstSymbolLayer=sb3dMap.getStyle().layers.find(layer=>layer.type==='symbol')?.id;
+   sb3dMap.addLayer({
+    id:'sb-3d-buildings',source:'sb-openfreemap-buildings','source-layer':'building',
+    type:'fill-extrusion',minzoom:14,
+    filter:['all',['has','render_height'],['!=',['get','hide_3d'],true]],
+    paint:{
+     'fill-extrusion-color':'#aebbc4',
+     'fill-extrusion-height':['interpolate',['linear'],['zoom'],14,0,15,['get','render_height']],
+     'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
+     'fill-extrusion-opacity':0.86
+    }
+   },firstSymbolLayer);
    const data=sb3dData();
    sb3dMap.addSource('sb-lines',{type:'geojson',data:data.lines});
-   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.85}});
+   sb3dMap.addLayer({id:'sb-route-casing',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':'#07111e','line-width':9,'line-opacity':0.88}});
    sb3dMap.addLayer({id:'sb-route-lines',type:'line',source:'sb-lines',layout:{'line-cap':'round','line-join':'round'},paint:{'line-color':['get','color'],'line-width':5,'line-opacity':0.98}});
+   sb3dMap.addSource('sb-platforms',{type:'geojson',data:data.platforms});
+   sb3dMap.addLayer({id:'sb-platform-fills',type:'fill',source:'sb-platforms',paint:{'fill-color':'#dce8ef','fill-opacity':0.72}});
+   sb3dMap.addLayer({id:'sb-platform-outlines',type:'line',source:'sb-platforms',paint:{'line-color':'#f7fbff','line-width':1.5,'line-opacity':0.9}});
    sb3dMap.addSource('sb-stations',{type:'geojson',data:data.stations});
-   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#eaf7ff','circle-opacity':0.95}});
-   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':6,'circle-color':'#0d9b8b','circle-stroke-color':'#ffffff','circle-stroke-width':2}});
-   // Buildings, stations and routes are now directly inspectable in the 3D city.
+   sb3dMap.addLayer({id:'sb-station-halo',type:'circle',source:'sb-stations',paint:{'circle-radius':10,'circle-color':'#f5fbff','circle-opacity':0.9}});
+   sb3dMap.addLayer({id:'sb-station-dots',type:'circle',source:'sb-stations',paint:{'circle-radius':5,'circle-color':'#ffffff','circle-stroke-color':'#173847','circle-stroke-width':1.5}});
    sb3dMap.on('mouseenter','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
    sb3dMap.on('mouseleave','sb-3d-buildings',()=>{sb3dMap.getCanvas().style.cursor='';});
    sb3dMap.on('click','sb-3d-buildings',event=>{
     const feature=event.features&&event.features[0];if(!feature)return;
-    const props=feature.properties||{};
-    const name=props.name||props.name_en||'City building';
-    const height=Number(props.render_height||props.height);
+    const props=feature.properties||{},height=Number(props.render_height||props.height);
     const detail=Number.isFinite(height)&&height>0?Math.round(height)+' m tall':'Building footprint';
     new maplibregl.Popup({closeButton:true,closeOnClick:true,offset:12})
-     .setLngLat(event.lngLat).setText(name+' · '+detail).addTo(sb3dMap);
+     .setLngLat(event.lngLat).setText((props.name||props.name_en||'City building')+' · '+detail).addTo(sb3dMap);
    });
-   sb3dMap.on('click','sb-station-dots',event=>{
-    const feature=event.features&&event.features[0];if(!feature)return;
-    const name=feature.properties?.name||'Subway station';
-    new maplibregl.Popup({closeButton:true,offset:14})
-     .setLngLat(event.lngLat).setText(name+' · Subway Builder station').addTo(sb3dMap);
+   // Keep the hidden Leaflet map's camera aligned so returning to 2D preserves the view.
+   sb3dMap.on('moveend',()=>{
+    if(!sb3dMap||!map)return;
+    const c=sb3dMap.getCenter();
+    const z=Math.max(3,Math.min(19,sb3dMap.getZoom()));
+    const current=map.getCenter();
+    if(Math.abs(current.lat-c.lat)>1e-7||Math.abs(current.lng-c.lng)>1e-7||Math.abs(map.getZoom()-z)>0.01)
+     map.setView([c.lat,c.lng],z,{animate:false});
    });
-   sb3dMap.on('click','sb-route-lines',event=>{
-    const feature=event.features&&event.features[0];if(!feature)return;
-    const p=feature.properties||{};
-    new maplibregl.Popup({closeButton:true,offset:12})
-     .setLngLat(event.lngLat).setText((p.from||'Station')+' ↔ '+(p.to||'Station')+' · Track '+(p.trackNumber||'')).addTo(sb3dMap);
+   // Forward map taps into the existing construction handler; the normal HUD/docks remain above this canvas.
+   sb3dMap.on('click',event=>{
+    if(!event||!event.lngLat||typeof handleMapPlacement!=='function')return;
+    const features=sb3dMap.queryRenderedFeatures(event.point,{layers:['sb-3d-buildings']});
+    if(features&&features.length)return;
+    handleMapPlacement(L.latLng(event.lngLat.lat,event.lngLat.lng));
    });
-   sb3dMap.on('mouseenter','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
-   sb3dMap.on('mouseleave','sb-station-dots',()=>{sb3dMap.getCanvas().style.cursor='';});
-   sb3dMap.on('mouseenter','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='pointer';});
-   sb3dMap.on('mouseleave','sb-route-lines',()=>{sb3dMap.getCanvas().style.cursor='';});
    sb3dReady=true;sb3dRefresh();sb3dMap.resize();sb3dMap.triggerRepaint();
-  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded. Switch back to 2D Build.');}
+  }catch(error){console.error('3D layer setup failed:',error);message('3D city layers could not be loaded: '+(error.message||String(error)));}
  });
  sb3dMap.on('error',event=>console.warn('3D city map:',event.error||event));
  return sb3dMap;
@@ -3822,23 +3860,24 @@ window.toggle3DCityView=async function(){
  if(!host||!toggle||!buildMap)return;
  const enable=!host.classList.contains('active');
  if(!enable){
-  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city preview';
+  host.classList.remove('active');buildMap.style.visibility='visible';
+  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city view';
   map.invalidateSize();message('2D construction view restored.');return;
  }
- host.classList.add('active');document.getElementById('map').style.visibility='hidden';
+ host.classList.add('active');buildMap.style.visibility='hidden';
  toggle.classList.add('active');toggle.setAttribute('aria-label','Switch to 2D build view');toggle.title='Return to 2D build view';
  try{
   await ensure3DMap();
   const center=map.getCenter();
-  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:58,bearing:-18});
+  if(sb3dMap&&sb3dMap.loaded()&&sb3dReady)
+   sb3dMap.jumpTo({center:[center.lng,center.lat],zoom:Math.max(12,Math.min(16,map.getZoom())),pitch:65,bearing:-18});
   requestAnimationFrame(()=>requestAnimationFrame(()=>{if(sb3dMap){sb3dMap.resize();sb3dRefresh();sb3dMap.triggerRepaint();}}));
-  message('3D city preview — switch to 2D Build to edit your network.');
+  message('3D city view active — construction tools and game controls remain available.');
  }catch(error){
-  console.error('Unable to initialize 3D city map:',error);
-  host.classList.remove('active');document.getElementById('map').style.visibility='visible';
-  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city preview';
-  map.invalidateSize();message('3D map could not load. Check your connection and try again.');
+  console.error('Unable to initialize tested 3D city renderer:',error);
+  host.classList.remove('active');buildMap.style.visibility='visible';
+  toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city view';
+  map.invalidateSize();message('3D map could not load. '+(error&&error.message?error.message:'Check your connection and try again.'));
  }
 };
 window.refreshSubway3D=sb3dRefresh;
