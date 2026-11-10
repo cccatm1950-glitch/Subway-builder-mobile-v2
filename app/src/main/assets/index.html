@@ -3503,8 +3503,7 @@ function scheduleCurvePlacementPreview(){
  curvePreviewFrame=requestAnimationFrame(()=>{curvePreviewFrame=0;updateCurvePlacementPreview();});
 }
 function updateCurvePlacementPreview(){
- if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]||
-  if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){
+ if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){
   clearCurvePlacementPreview();return;
  }
  const baseTrack=tracks[selectedTrackIndex];
