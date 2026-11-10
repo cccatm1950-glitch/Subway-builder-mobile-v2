@@ -2769,11 +2769,11 @@ if(mode==='delete'){
   const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
-  // Endpoint anchoring already places single-track routes at the physical
-  // platform end. Do not add a second lateral platform-clearance shift there.
-  // Parallel tracks retain their independent clearance/gauge handling below.
-  const startOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.a,points[0],points[1],t.style);
-  const endOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
+  // Endpoint anchoring places the route at the physical platform end.
+  // Do not add a second station-side offset to single tracks; parallel track
+  // platform clearance remains handled by the dedicated flare profile below.
+  const startOffset=0;
+  const endOffset=0;
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
   // Parallel track centerlines use the desktop 3.81 m standard gauge spacing.
