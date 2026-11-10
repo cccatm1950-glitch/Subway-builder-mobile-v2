@@ -92,6 +92,8 @@ for (const required of [
   'getTrackCenterlinePoints(t,endpointStations)',
   'window.sb3dTrackFeatures.push',
   'window.getSubway3DPlatforms=function',
+  'stationConnector:true',
+  "kind:'platform'",
   'calculateStationEndpoint',
   'calculateParallelJunctionMergeProfile'
 ]) {
