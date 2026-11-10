@@ -6462,7 +6462,8 @@ function waypointAtCrosshair(){
  function stationAt(container,event,latlng){
   if(is3DContainer(container)&&window.sb3dMap){
    const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
-   const hits=window.sb3dMap.queryRenderedFeatures(p,{layers:['sb-station-dots','sb-platform-fills']});
+   let hits=[];
+   try{hits=window.sb3dMap.queryRenderedFeatures(p,{layers:['sb-station-dots','sb-platform-fills']});}catch(error){/* Layers may still be loading; use the projected station fallback below. */}
    for(const feature of hits){const index=Number(feature.properties?.stationIndex);if(Number.isInteger(index))return index;}
   }else{
    const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
