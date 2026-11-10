@@ -9680,3 +9680,64 @@ body:not(.sb-service-search-keyboard) #sb-service-search-backdrop{display:none!i
   filter:none!important;
 }
 </style>
+
+
+<style id="sb-service-dock-close-animation-fix">
+/* Keep the service content mounted while the dock contracts. Hiding it with
+   display:none on the collapsed state was cutting off the closing transition. */
+#sb-action-dock .sb-dock-panel-service{
+ box-sizing:border-box!important;
+ flex:0 1 54px!important;
+ min-width:54px!important;
+ width:auto!important;
+ max-width:none!important;
+ overflow:hidden!important;
+ transition:flex .42s cubic-bezier(.22,.75,.25,1),
+            flex-basis .42s cubic-bezier(.22,.75,.25,1),
+            width .42s cubic-bezier(.22,.75,.25,1),
+            max-width .42s cubic-bezier(.22,.75,.25,1),
+            padding .42s cubic-bezier(.22,.75,.25,1)!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded{
+ flex:1 1 0!important;
+ min-width:0!important;
+ max-width:none!important;
+}
+#sb-action-dock .sb-dock-panel-service #sb-service-lines,
+#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines{
+ display:grid!important;
+ grid-template-columns:minmax(0,1fr) 46px!important;
+ box-sizing:border-box!important;
+ flex:1 1 0!important;
+ width:0!important;
+ min-width:0!important;
+ max-width:none!important;
+ height:100%!important;
+ min-height:0!important;
+ overflow:hidden!important;
+ opacity:0!important;
+ visibility:hidden!important;
+ pointer-events:none!important;
+ transform:translateX(-10px)!important;
+ transition:opacity .22s ease,
+            transform .34s cubic-bezier(.22,.75,.25,1),
+            visibility 0s linear .42s!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines{
+ opacity:1!important;
+ visibility:visible!important;
+ pointer-events:auto!important;
+ transform:translateX(0)!important;
+ transition-delay:0s,0s,0s!important;
+}
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-lines-content,
+#sb-action-dock .sb-dock-panel-service.is-expanded #sb-service-run-slot{
+ min-width:0!important;
+}
+@media(prefers-reduced-motion:reduce){
+ #sb-action-dock .sb-dock-panel-service,
+ #sb-action-dock .sb-dock-panel-service #sb-service-lines{
+  transition:none!important;
+ }
+}
+</style>
