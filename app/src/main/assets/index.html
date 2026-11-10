@@ -8768,7 +8768,6 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-default':currentPlatformWidth==='default',
    'width-wide':currentPlatformWidth==='wide',
    'clear-selection':false,
-   'toggle-3d':!!document.getElementById('sb-3d-map')?.classList.contains('active'),
    'line-color':document.getElementById('sb-line-color-options')?.classList.contains('is-open')===true
   };
   menu.querySelectorAll('button[data-sb-action]').forEach(button=>{
@@ -8803,7 +8802,6 @@ body.sb-service-search-keyboard #sb-action-dock{z-index:14890!important}
    'width-default':()=>setPlatformWidth('default'),
    'width-wide':()=>setPlatformWidth('wide'),
    'clear-selection':()=>resetSelection(),
-   'toggle-3d':()=>window.toggle3DCityView()
   };
   if(typeof actions[action]!=='function')return false;
   actions[action]();
