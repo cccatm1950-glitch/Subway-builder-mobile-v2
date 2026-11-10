@@ -168,7 +168,8 @@ button:active{background:#24505b}
       network.tracks.forEach((track,index)=>{
        const coords=track&&track.geometry&&track.geometry.coordinates;
        if(!Array.isArray(coords)||coords.length<2)return;
-       [-0.7175,0.7175].forEach((offset,railIndex)=>{
+       const railOffsets=track.properties&&track.properties.style==='parallel'?[-0.7175,0.7175]:[0];
+       railOffsets.forEach((offset,railIndex)=>{
         const rail=coords.map((point,i)=>{
          const prev=coords[Math.max(0,i-1)],next=coords[Math.min(coords.length-1,i+1)];
          const lat=point[1]*Math.PI/180,cos=Math.max(0.01,Math.cos(lat));
