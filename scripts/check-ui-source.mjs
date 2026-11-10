@@ -93,12 +93,12 @@ for (const required of [
   'window.sb3dTrackFeatures.push',
   'window.getSubway3DPlatforms=function',
   'id="sb-pr93-cross-view-build-drag-preview"',
-  'window.sbPendingTrackCenterline',
+  "if(!['waypoint','curve'].includes(mode))return;",
+  'function commitPoint(state,event)',
   "sb3dMap.addSource('sb-build-preview'",
   "sb3dMap.on('click',['sb-station-dots','sb-platform-fills']",
   "trackIndex,style:t.style||'single'",
   "mode==='curve'||mode==='waypoint'",
-  "nearestParallelRail(container,event,latlng)",
   'stationConnector:true',
   "kind:'platform'",
   'calculateStationEndpoint',
@@ -107,4 +107,9 @@ for (const required of [
   assert.ok(html.includes(required), 'Expected track topology guard: ' + required);
 }
 
+
+assert.ok(!html.includes('function commitTrack(state,event)'),
+  'Track placement must remain tap-to-select/tap-to-place, not drag-to-draw');
+assert.ok(!html.includes("kind:'track-preview'"),
+  'Track preview must remain the existing tap-based station preview');
 console.log('UI source checks passed: ' + scripts.length + ' inline scripts, ' + ids.length + ' IDs, ' + new Set(panelActions).size + ' panel actions.');
