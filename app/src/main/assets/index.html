@@ -6517,172 +6517,7 @@ function waypointAtCrosshair(){
 })();
 </script>
 
-<script id="sb-pr93-cross-view-build-drag-preview">
-/* Shared pointer-to-preview-to-commit interaction for Leaflet and MapLibre.
-   Tap workflows remain supported; a moved pointer becomes a drag placement. */
-(function(){
- if(window.__sbBuildDragInstalled)return;
- window.__sbBuildDragInstalled=true;
- window.sbPendingTrackCenterline=null;
- window.sbDragHandledAt=0;
- window.sbDragCommitInProgress=false;
- let drag=null,previewLayer=null;
- const EMPTY={type:'FeatureCollection',features:[]};
 
- function is3DActive(){return !!document.getElementById('sb-3d-map')?.classList.contains('active');}
- function is3DContainer(container){return !!(container&&container.closest&&container.closest('#sb-3d-map'));}
- function toLatLng(container,event){
-  const rect=container.getBoundingClientRect(),point=[event.clientX-rect.left,event.clientY-rect.top];
-  if(is3DContainer(container)&&window.sb3dMap)return window.sb3dMap.unproject(point);
-  return map.containerPointToLatLng(L.point(point[0],point[1]));
- }
- function pointInPolygon(point,polygon){
-  let inside=false;
-  for(let i=0,j=polygon.length-1;i<polygon.length;j=i++){
-   const xi=polygon[i].x,yi=polygon[i].y,xj=polygon[j].x,yj=polygon[j].y;
-   const crosses=((yi>point.y)!==(yj>point.y))&&(point.x<(xj-xi)*(point.y-yi)/(yj-yi||1e-9)+xi);
-   if(crosses)inside=!inside;
-  }
-  return inside;
- }
- function stationAt(container,event,latlng){
-  if(is3DContainer(container)&&window.sb3dMap){
-   const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
-   let hits=[];
-   try{hits=window.sb3dMap.queryRenderedFeatures(p,{layers:['sb-station-dots','sb-platform-fills']});}catch(error){/* Layers may still be loading; use the projected station fallback below. */}
-   for(const feature of hits){const index=Number(feature.properties?.stationIndex);if(Number.isInteger(index))return index;}
-  }else{
-   const rect=container.getBoundingClientRect(),p={x:event.clientX-rect.left,y:event.clientY-rect.top};
-   for(const area of (window.stationPlatformHitAreas||[])){
-    const polygon=area.corners.map(ll=>{const q=map.latLngToContainerPoint(ll);return{x:q.x,y:q.y};});
-    if(pointInPolygon(p,polygon))return area.index;
-   }
-  }
-  let best=-1,bestDistance=36;
-  stations.forEach((station,index)=>{
-   const q=is3DContainer(container)&&window.sb3dMap
-    ?window.sb3dMap.project([station.lng,station.lat])
-    :map.latLngToContainerPoint([station.lat,station.lng]);
-   const rect=container.getBoundingClientRect(),x=event.clientX-rect.left,y=event.clientY-rect.top;
-   const distance=Math.hypot(q.x-x,q.y-y);
-   if(distance<bestDistance){bestDistance=distance;best=index;}
-  });
-  return best;
- }
- function feature(type,coordinates,properties={}){
-  return {type:'Feature',properties,geometry:{type,coordinates}};
- }
- function set3DPreview(features){
-  const source=window.sb3dMap?.getSource('sb-build-preview');
-  if(source)source.setData({type:'FeatureCollection',features});
- }
- function clearPreview(){
-  if(previewLayer){map.removeLayer(previewLayer);previewLayer=null;}
-  clearCurvePlacementPreview();
-  set3DPreview([]);
- }
- function drawPreview(state,latlng){
-  const points=state.path.concat([{lat:latlng.lat,lng:latlng.lng}]);
-  if(state.kind==='waypoint'){
-   const f=feature('Point',[latlng.lng,latlng.lat],{kind:'waypoint-preview'});
-   if(is3DActive())set3DPreview([f]);
-   else{
-    if(!previewLayer)previewLayer=L.circleMarker(latlng,{pane:'sbTrackPane',radius:8,color:'#f5fbff',weight:2,fillColor:'#65ffe4',fillOpacity:.95,interactive:false}).addTo(map);
-    else previewLayer.setLatLng(latlng);
-   }
-   return;
-  }
-  if(state.kind==='curve'){
-   updateCurvePlacementPreview(latlng);
-   if(is3DActive()&&selectedTrackIndex!==null&&tracks[selectedTrackIndex]){
-    const base=tracks[selectedTrackIndex];
-    const temp={...base,curve:true,waypoints:[...(base.waypoints||[]),{lat:latlng.lat,lng:latlng.lng,elevation:'at'}]};
-    delete temp.centerline;
-    const points=getTrackCenterlinePoints(temp);
-    set3DPreview(points.length>1?[feature('LineString',points.map(p=>[p[1],p[0]]),{kind:'curve-preview'})]:[]);
-   }
-  }
- }
- function begin(container,event){
-  if(event.button!==undefined&&event.button!==0)return;
-  if(!['waypoint','curve'].includes(mode))return;
-  const latlng=toLatLng(container,event);
-  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])return;
-  drag={container,pointerId:event.pointerId,kind:mode,path:[],lastPoint:{x:event.clientX-container.getBoundingClientRect().left,y:event.clientY-container.getBoundingClientRect().top},moved:false,panDisabled:true,draggingWasEnabled:is3DContainer(container)?!!window.sb3dMap?.dragPan?.isEnabled():map.dragging.enabled()};
-  if(is3DContainer(container))window.sb3dMap?.dragPan?.disable();
-  else map.dragging.disable();
- }
- function move(container,event){
-  if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
-  const latlng=toLatLng(container,event),rect=container.getBoundingClientRect(),point={x:event.clientX-rect.left,y:event.clientY-rect.top};
-  if(!drag.moved&&drag.lastPoint&&Math.hypot(point.x-drag.lastPoint.x,point.y-drag.lastPoint.y)<7)return;
-  if(!drag.lastPoint)drag.lastPoint=point;
-  if(Math.hypot(point.x-drag.lastPoint.x,point.y-drag.lastPoint.y)>=5)drag.moved=true;
-  if(!drag.moved)return;
-  if(!drag.panDisabled){
-   if(is3DContainer(container))window.sb3dMap?.dragPan?.disable();
-   else if(map.dragging.enabled())map.dragging.disable();
-   drag.panDisabled=true;
-  }
-  event.preventDefault();event.stopPropagation();
-  if(event.stopImmediatePropagation)event.stopImmediatePropagation();
-  if(drag.kind==='track'){
-   const snap=nearestParallelRail(container,event,latlng);
-   const p=snap?snap.latlng:latlng;
-   const last=drag.path[drag.path.length-1];
-   const distance=map.distance([last.lat,last.lng],[p.lat,p.lng]);
-   if(distance>=1.2)drag.path.push({lat:p.lat,lng:p.lng});
-   drawPreview(drag,p);
-  }else{
-   drawPreview(drag,latlng);
-  }
-  drag.lastPoint=point;
- }
- function commitPoint(state,event){
-  const latlng=toLatLng(state.container,event),track=tracks[selectedTrackIndex];
-  if(!track)return false;
-  track.waypoints=Array.isArray(track.waypoints)?track.waypoints:[];
-  if(state.kind==='curve')track.curve=true;
-  delete track.centerline;
-  track.waypoints.push({lat:latlng.lat,lng:latlng.lng,elevation:'at'});
-  saveHistory();renderNetwork();
-  message(state.kind==='curve'?'Curve point dropped.':'Waypoint dropped.');
-  return true;
- }
- function finish(container,event){
-  if(!drag||drag.container!==container||drag.pointerId!==event.pointerId)return;
-  const state=drag;drag=null;
-  if(!is3DContainer(container)){
-   if(state.draggingWasEnabled)map.dragging.enable();
-  }else if(window.sb3dMap&&state.draggingWasEnabled){
-   window.sb3dMap.dragPan.enable();
-  }
-  if(event.type==='pointercancel'){clearPreview();return;}
-  if(state.moved){
-   event.preventDefault();event.stopPropagation();
-   if(event.stopImmediatePropagation)event.stopImmediatePropagation();
-   const committed=commitPoint(state,event);
-   window.sbDragHandledAt=Date.now();
-   clearPreview();
-   if(!committed)message('Drag ended without a valid placement.');
-  }else{
-   clearPreview();
-  }
- }
- function install(container){
-  if(!container||container.dataset.sbBuildDragBound==='true')return;
-  container.dataset.sbBuildDragBound='true';
-  container.addEventListener('pointerdown',event=>begin(container,event),true);
-  container.addEventListener('pointermove',event=>move(container,event),true);
-  container.addEventListener('pointerup',event=>finish(container,event),true);
-  container.addEventListener('pointercancel',event=>finish(container,event),true);
- }
- window.sbInstall3DBuildDragHandlers=function(){install(document.getElementById('sb-3d-map')?.querySelector('canvas'));};
- install(document.getElementById('map'));
- const observer=new MutationObserver(()=>{if(is3DActive())window.sbInstall3DBuildDragHandlers();});
- observer.observe(document.getElementById('sb-3d-map')||document.body,{childList:true,subtree:true});
-})();
-</script>
 
 </body>
 <style id="sb-nov06-final-dock-layout">
@@ -10805,31 +10640,29 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  }
 }
 </style>
-<script id="sb-service-dock-delegated-toggle-repair">
+
+
+<script id="sb-waypoint-curve-touch-tap-restoration">
+/* Waypoint and curve placement use the original map click handlers.
+   Do not capture pointerdown: Leaflet/MapLibre must retain normal pan gestures.
+   This also prevents pointerup + synthesized click from committing twice. */
 (function(){
- if(window.__sbServiceDockDelegatedToggleRepair)return;
- window.__sbServiceDockDelegatedToggleRepair=true;
- document.addEventListener('click',function(event){
-  const button=event.target&&event.target.closest?event.target.closest('#sb-service-dock-toggle'):null;
-  if(!button)return;
-  const dock=document.getElementById('sb-service-dock');
-  if(!dock)return;
-  const expanded=!dock.classList.contains('is-expanded');
-  dock.classList.toggle('is-expanded',expanded);
-  button.setAttribute('aria-expanded',String(expanded));
-  button.setAttribute('aria-pressed',String(expanded));
-  button.classList.toggle('active',expanded);
-  button.setAttribute('aria-label',expanded?'Close service lines':'Open service lines');
-  button.title=expanded?'Close service lines':'Service lines';
-  if(expanded){
-   const scroller=document.getElementById('sb-service-lines-content');
-   if(scroller)scroller.scrollLeft=0;
-  }else{
-   const palette=document.getElementById('sb-line-color-options');
-   const trigger=document.getElementById('sb-line-color-trigger');
-   if(palette)palette.hidden=true;
-   if(trigger)trigger.setAttribute('aria-expanded','false');
-  }
- },true);
+ if(window.__sbWaypointCurveTapRestore)return;
+ window.__sbWaypointCurveTapRestore=true;
+ const mapHost=document.getElementById('map');
+ const map3dHost=document.getElementById('sb-3d-map');
+ function sync(){
+  /* No pointer drag owner is installed. The native map engine owns touch pan,
+     while its single click event remains the only placement commit path. */
+  if(window.sbDragCommitInProgress)window.sbDragCommitInProgress=false;
+ }
+ if(mapHost){
+  mapHost.addEventListener('pointerdown',sync,{passive:true});
+  mapHost.addEventListener('pointerup',sync,{passive:true});
+ }
+ if(map3dHost){
+  map3dHost.addEventListener('pointerdown',sync,{passive:true});
+  map3dHost.addEventListener('pointerup',sync,{passive:true});
+ }
 })();
 </script>
