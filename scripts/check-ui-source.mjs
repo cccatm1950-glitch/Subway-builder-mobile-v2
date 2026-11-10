@@ -108,6 +108,24 @@ for (const required of [
 }
 
 
+assert.ok(html.includes("kind:'track-tap-preview'"),
+  'Track tool must render a live preview after selecting its start station');
+assert.ok(html.includes("map.on('mousemove',function(event){if(mode==='track'"),
+  '2D track preview must follow the map pointer');
+assert.ok(html.includes("sb3dMap.on('mousemove',event=>"),
+  '3D track preview must follow the map pointer');
+assert.ok(html.includes("map.on('move zoom',function(){if(mode==='track'"),
+  'Track preview must stay aligned with the mobile crosshair while panning');
+assert.ok(html.includes("Tap a start station, preview the route, then tap a destination station"),
+  'Track placement instructions must describe tap-to-preview/tap-to-place');
+assert.ok(html.includes('The drawer intentionally remains open until its build-dock toggle is pressed again.'),
+  'Construction drawer must stay open until its toggle is pressed again');
+assert.ok(!html.includes("closeConstructionContextMenu();\\n  });"),
+  'Selecting a construction tool must not close the construction drawer');
+assert.ok(!html.includes("if(menu&&!menu.contains(event.target)&&!toggle?.contains(event.target))closeConstructionContextMenu();"),
+  'Outside taps must not close the construction drawer');
+assert.ok(html.includes("if(existing){closeConstructionContextMenu();return;}"),
+  'The build button must remain the construction drawer close control');
 assert.ok(!html.includes('function commitTrack(state,event)'),
   'Track placement must remain tap-to-select/tap-to-place, not drag-to-draw');
 assert.ok(!html.includes("kind:'track-preview'"),
