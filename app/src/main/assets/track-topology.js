@@ -281,6 +281,25 @@
     return Math.max(0, platformEdgeClearance - standardTrackSpacing / 2);
   }
 
+  // Fade parallel half-spacing to zero where a parallel route meets a
+  // single-track junction. Station endpoints retain their platform clearance.
+  function calculateParallelJunctionMergeProfile(cumulativeDistances, totalLength, startIsJunction, endIsJunction, transitionLength = 50) {
+    if (!Array.isArray(cumulativeDistances)) return [];
+    if (!Number.isFinite(totalLength) || totalLength < 0 ||
+        !Number.isFinite(transitionLength) || transitionLength <= 0) {
+      return cumulativeDistances.map(() => 0);
+    }
+    const extent = Math.min(transitionLength, totalLength / 2);
+    if (extent <= 0) return cumulativeDistances.map(() => 0);
+    const smoothstep = value => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x); };
+    return cumulativeDistances.map(distance => {
+      if (!Number.isFinite(distance)) return 0;
+      const fromStart = startIsJunction ? 1 - smoothstep(distance / extent) : 0;
+      const fromEnd = endIsJunction ? 1 - smoothstep((totalLength - distance) / extent) : 0;
+      return Math.max(fromStart, fromEnd);
+    });
+  }
+
   // Project the platform rectangle onto the route axis. This is the distance
   // from a station node to the far end of its platform footprint along the track.
   function calculatePlatformAlongTrackExtent(fromPoint, toPoint, bearing, halfLength, halfWidth) {
@@ -417,5 +436,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculateParallelJunctionMergeProfile, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });
