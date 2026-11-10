@@ -92,7 +92,7 @@ for (const required of [
   'getTrackCenterlinePoints(t,endpointStations)',
   'window.sb3dTrackFeatures.push',
   'window.getSubway3DPlatforms=function',
-  "id='sb-pr93-cross-view-build-drag-preview'",
+  'id="sb-pr93-cross-view-build-drag-preview"',
   'window.sbPendingTrackCenterline',
   "sb3dMap.addSource('sb-build-preview'",
   "sb3dMap.on('click',['sb-station-dots','sb-platform-fills']",
