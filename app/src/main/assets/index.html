@@ -4835,22 +4835,31 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
   const stats=document.querySelector('#sb-top-dock>.sb-top-panel-stats');
   const statsRect=stats?.getBoundingClientRect();
   const rect=toggle.getBoundingClientRect();
-  const panelWidth=Math.max(1,Math.min(window.innerWidth-edge*2,dockRect?.width||rect.width));
+  const safeLeft=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-left'))||0;
+  const safeRight=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-right'))||0;
+  const safeTop=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-top'))||0;
+  const safeBottom=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--sb-safe-bottom'))||0;
+  /* Keep the Construction surface a stable size; dock/tool state must not resize it. */
+  const panelWidth=Math.min(320,Math.max(148,Math.min(window.innerWidth-safeLeft-safeRight-edge*2,window.innerWidth*.18)));
   const centerX=dockRect?dockRect.left+dockRect.width/2:rect.left+rect.width/2;
-  const left=Math.max(edge,Math.min(centerX-panelWidth/2,window.innerWidth-panelWidth-edge));
-  const topLimit=statsRect&&statsRect.bottom>0?statsRect.bottom+gap:edge;
-  const bottomLimit=dockRect&&dockRect.top>topLimit?dockRect.top-gap:window.innerHeight-edge;
-  const available=Math.max(120,bottomLimit-topLimit);
+  const minLeft=safeLeft+edge,maxLeft=Math.max(minLeft,window.innerWidth-safeRight-edge-panelWidth);
+  const left=Math.max(minLeft,Math.min(centerX-panelWidth/2,maxLeft));
+  const topLimit=Math.max(statsRect&&statsRect.bottom>0?statsRect.bottom+gap:edge,safeTop+edge);
+  const bottomLimit=Math.min(dockRect&&dockRect.top>topLimit?dockRect.top-gap:window.innerHeight-edge,window.innerHeight-safeBottom-edge);
+  const available=Math.max(0,bottomLimit-topLimit);
+  const preferredHeight=Math.min(available,Math.max(260,Math.min(window.innerHeight*.62,520)));
+  const menuTop=Math.max(topLimit,bottomLimit-preferredHeight);
   menu.style.boxSizing='border-box';
-  menu.style.width=panelWidth+'px';menu.style.maxWidth=panelWidth+'px';
+  menu.style.width=panelWidth+'px';menu.style.minWidth=panelWidth+'px';menu.style.maxWidth=panelWidth+'px';
   menu.style.left=left+'px';menu.style.right='auto';
-  menu.style.top=topLimit+'px';menu.style.bottom='auto';
-  menu.style.height=available+'px';menu.style.maxHeight=available+'px';menu.style.minHeight='0';
+  menu.style.top=menuTop+'px';menu.style.bottom='auto';
+  menu.style.height=preferredHeight+'px';menu.style.maxHeight=available+'px';menu.style.minHeight='0';
   menu.style.display='flex';menu.style.flexDirection='column';
-  menu.style.overflowX='hidden';menu.style.overflowY='hidden';
+  menu.style.overflowX='hidden';menu.style.overflowY='auto';
   menu.style.webkitOverflowScrolling='touch';menu.style.touchAction='pan-y';
   menu.style.overscrollBehaviorY='contain';
  }
+ window.sbPositionConstructionContextMenu=positionConstructionContextMenu;
  function toggleConstructionContextMenu(toggle){
   const existing=document.getElementById('sb-construction-context-menu');
   if(existing){closeConstructionContextMenu();return;}
@@ -10412,3 +10421,184 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
  else observe();
 })();
 </script>
+
+<style id="sb-service-dock-toggle-alignment-and-3d-overflow-fix">
+/* Center the closed-state service toggle inside its own 58px glass capsule. */
+#sb-action-dock #sb-service-dock{
+ box-sizing:border-box!important;min-width:58px!important;min-height:58px!important;
+ padding:6px!important;display:flex!important;align-items:center!important;justify-content:center!important;
+}
+#sb-action-dock #sb-service-dock:not(.is-expanded){
+ flex:0 0 58px!important;width:58px!important;max-width:58px!important;
+}
+#sb-action-dock #sb-service-dock:not(.is-expanded) #sb-service-dock-toggle{
+ position:relative!important;inset:auto!important;transform:none!important;
+ align-self:center!important;justify-self:center!important;margin:0!important;
+}
+#sb-action-dock #sb-service-dock #sb-service-dock-toggle{
+ box-sizing:border-box!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ padding:0!important;margin:0!important;align-items:center!important;justify-content:center!important;
+}
+/* The heading was an extra implicit grid item and forced the 3D control onto a clipped second row. */
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{
+ box-sizing:border-box!important;display:grid!important;
+ grid-template-columns:minmax(0,1fr) 46px 46px!important;
+ grid-template-rows:minmax(0,1fr)!important;
+ align-items:center!important;align-content:center!important;
+ gap:clamp(4px,1vw,8px)!important;
+ min-width:0!important;width:100%!important;height:100%!important;
+ overflow:visible!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>.sb-service-lines-heading{
+ display:none!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-lines-content{
+ grid-column:1!important;grid-row:1!important;
+ min-width:0!important;width:100%!important;max-width:100%!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{
+ grid-column:2!important;grid-row:1!important;justify-self:center!important;
+ flex:0 0 46px!important;width:46px!important;min-width:46px!important;max-width:46px!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{
+ display:inline-flex!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;
+ position:relative!important;grid-column:3!important;grid-row:1!important;justify-self:center!important;
+ box-sizing:border-box!important;flex:0 0 46px!important;
+ width:46px!important;min-width:46px!important;max-width:46px!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0!important;transform:none!important;
+}
+#sb-action-dock #sb-service-dock:not(.is-expanded) #sb-service-lines>#sb-3d-toggle{
+ display:none!important;visibility:hidden!important;pointer-events:none!important;
+}
+@media(max-width:700px){
+ #sb-action-dock #sb-service-dock{min-height:54px!important;height:54px!important;padding:4px!important}
+ #sb-action-dock #sb-service-dock:not(.is-expanded){flex-basis:54px!important;width:54px!important;max-width:54px!important;min-width:54px!important}
+ #sb-action-dock #sb-service-dock #sb-service-dock-toggle{flex-basis:46px!important;width:46px!important;min-width:46px!important;height:46px!important;min-height:46px!important}
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1fr) 42px 42px!important;gap:4px!important}
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot,
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{
+  flex-basis:42px!important;width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+ }
+}
+</style>
+
+<script id="sb-construction-menu-follow-dock-motion">
+(function(){
+ if(window.__sbConstructionDockFollow)return;
+ window.__sbConstructionDockFollow=true;
+ let frame=0;
+ function reposition(){
+  frame=0;
+  const menu=document.getElementById('sb-construction-context-menu');
+  const toggle=document.getElementById('sb-build-dock-btn');
+  if(menu&&toggle&&typeof window.sbPositionConstructionContextMenu==='function')
+   window.sbPositionConstructionContextMenu(menu,toggle);
+ }
+ function schedule(){if(!frame)frame=requestAnimationFrame(reposition);}
+ function bind(){
+  const actionDock=document.getElementById('sb-action-dock');
+  const serviceDock=document.getElementById('sb-service-dock');
+  const rightDock=actionDock?.querySelector('.sb-dock-panel-right');
+  if(!actionDock||!serviceDock||!rightDock)return false;
+  if(window.ResizeObserver&&!window.__sbConstructionDockResizeObserver){
+   const observer=new ResizeObserver(schedule);
+   observer.observe(actionDock);observer.observe(serviceDock);observer.observe(rightDock);
+   window.__sbConstructionDockResizeObserver=observer;
+  }
+  serviceDock.addEventListener('transitionrun',schedule);
+  serviceDock.addEventListener('transitionend',schedule);
+  serviceDock.addEventListener('transitioncancel',schedule);
+  window.addEventListener('orientationchange',schedule,{passive:true});
+  schedule();return true;
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
+ else if(!bind()){
+  const observer=new MutationObserver(()=>{if(bind())observer.disconnect();});
+  observer.observe(document.body,{childList:true,subtree:true});
+ }
+})();
+</script>
+
+
+<style id="sb-service-dock-two-group-control-layout">
+:root{--sb-safe-top:env(safe-area-inset-top,0px);--sb-safe-bottom:env(safe-area-inset-bottom,0px)}
+/* Expanded dock order: toggle | service lines | 3D | divider | Play. */
+#sb-action-dock #sb-service-dock.is-expanded{display:flex!important;flex-flow:row nowrap!important;align-items:center!important;justify-content:flex-start!important;gap:0!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle{position:relative!important;flex:0 0 46px!important;margin:0 8px 0 0!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle:after{
+ content:""!important;display:block!important;position:absolute!important;right:-8px!important;top:9px!important;
+ width:1px!important;height:28px!important;background:rgba(220,238,252,.24)!important;pointer-events:none!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{
+ display:grid!important;flex:1 1 0!important;min-width:0!important;width:0!important;
+ grid-template-columns:minmax(0,1fr) 46px 1px 46px!important;grid-template-rows:minmax(0,1fr)!important;
+ align-items:center!important;gap:clamp(4px,1vw,8px)!important;overflow:hidden!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-lines-content{grid-column:1!important;grid-row:1!important;min-width:0!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle{grid-column:2!important;grid-row:1!important;justify-self:center!important;position:relative!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle:after{
+ content:""!important;display:block!important;position:absolute!important;right:-7px!important;top:9px!important;
+ width:1px!important;height:28px!important;background:rgba(220,238,252,.24)!important;pointer-events:none!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines:after{
+ content:""!important;display:block!important;grid-column:3!important;grid-row:1!important;width:1px!important;height:28px!important;
+ background:rgba(220,238,252,.24)!important;justify-self:center!important;pointer-events:none!important
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{grid-column:4!important;grid-row:1!important;justify-self:center!important}
+@media(max-width:700px){
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{grid-template-columns:minmax(0,1fr) 42px 1px 42px!important;gap:4px!important}
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines:after{height:24px!important}
+}
+</style>
+
+
+<style id="sb-service-dock-grid-and-construction-stable-safe-area-fix">
+:root{
+ --sb-safe-left:env(safe-area-inset-left,0px);
+ --sb-safe-right:env(safe-area-inset-right,0px);
+}
+/* Give the service content a true single-row box with no inherited heading space. */
+#sb-action-dock #sb-service-dock.is-expanded{
+ box-sizing:border-box!important;align-items:center!important;min-height:58px!important;height:58px!important;
+ padding:6px 10px!important;overflow:visible!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-dock-toggle{
+ position:relative!important;flex:0 0 46px!important;width:46px!important;height:46px!important;
+ min-width:46px!important;min-height:46px!important;margin:0 8px 0 0!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{
+ box-sizing:border-box!important;align-self:center!important;flex:1 1 0!important;
+ height:46px!important;min-height:46px!important;max-height:46px!important;
+ margin:0!important;padding:0 0 0 8px!important;border:0!important;border-left:1px solid rgba(220,238,252,.24)!important;
+ grid-template-columns:minmax(0,1fr) 46px 1px 46px!important;
+ grid-template-rows:46px!important;align-content:center!important;align-items:center!important;
+ overflow:hidden!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>.sb-service-lines-heading{display:none!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines:after{height:28px!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-lines-content,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{
+ align-self:center!important;grid-row:1!important;margin-top:0!important;margin-bottom:0!important;
+}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-lines-content{min-height:0!important;height:46px!important}
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle,
+#sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{height:46px!important;min-height:46px!important;max-height:46px!important}
+#sb-construction-context-menu{
+ box-sizing:border-box!important;min-width:148px!important;width:clamp(148px,18vw,320px)!important;
+ max-width:min(320px,calc(100vw - var(--sb-safe-left) - var(--sb-safe-right) - 20px))!important;
+ overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain!important;
+}
+@media(max-width:700px){
+ #sb-action-dock #sb-service-dock.is-expanded{height:54px!important;min-height:54px!important;padding:4px 8px!important}
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines{height:46px!important;min-height:46px!important;max-height:46px!important;
+  grid-template-columns:minmax(0,1fr) 42px 1px 42px!important;gap:4px!important}
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines:after{height:24px!important}
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-3d-toggle,
+ #sb-action-dock #sb-service-dock.is-expanded #sb-service-lines>#sb-service-run-slot{height:42px!important;min-height:42px!important;max-height:42px!important}
+}
+</style>
