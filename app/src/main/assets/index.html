@@ -33,7 +33,6 @@ SUBWAY BUILDER MOBILE - INDEX.HTML GUIDE
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Subway Builder</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@6.16.0/dist/maplibre-gl.css">
 <style>
 
 /* =========================================================
@@ -342,11 +341,11 @@ html,body{background:var(--sb-ink);color:#f5f8fc}
 @media(max-width:560px){.bottom{right:9px;bottom:10px;gap:7px;padding:7px}.bottom button{width:46px;height:46px;min-height:46px;border-radius:13px;font-size:20px}#message{left:9px;bottom:75px;max-width:calc(100% - 82px)}}
 
 /* 3D OpenStreetMap city preview */
-#sb-3d-map{position:absolute;inset:0;z-index:3;display:none;background:#0b1726}
-#sb-3d-map.active{display:block}
-#sb-3d-map .maplibregl-ctrl-group{background:rgba(10,22,38,.9);border:1px solid #ffffff26}#sb-3d-map .maplibregl-ctrl button{width:29px;height:29px;margin:0;background-color:transparent}#sb-3d-map .maplibregl-ctrl button span{}
-#sb-3d-toggle{width:auto;min-width:88px;margin:0;padding:9px 11px;white-space:nowrap}
-#sb-3d-toggle.active{background:linear-gradient(135deg,#087f79,#12a995)}.trash-dock-btn{color:#fff!important;background:linear-gradient(145deg,#d92f45,#a9142a)!important;border:1px solid rgba(255,150,160,.55)!important}
+
+
+
+
+.trash-dock-btn{color:#fff!important;background:linear-gradient(145deg,#d92f45,#a9142a)!important;border:1px solid rgba(255,150,160,.55)!important}
 
 
 .sb-train-marker{background:transparent!important;border:0!important}
@@ -369,7 +368,7 @@ html,body{background:var(--sb-ink);color:#f5f8fc}
 .panel-heading .panel-title{margin-right:auto}
 .bottom{right:12px!important;left:auto!important;bottom:12px!important;gap:8px!important;padding:8px!important}.bottom button{width:46px!important;height:46px!important;min-height:46px!important;border-radius:50%!important;font-size:17px!important}
 #stationContextMenu{border-radius:24px!important}
-#sb-3d-map .maplibregl-ctrl-group{border-radius:18px!important;overflow:hidden}
+
 @media(max-width:560px){#constructionPanel{top:72px!important;width:min(86vw,310px)!important;max-height:calc(100dvh - 82px)!important}#sb-panel-toggle{top:78px;width:38px;height:48px;min-height:48px}.bottom{right:9px!important;bottom:10px!important}.bottom button{width:43px!important;height:43px!important;min-height:43px!important}}
 
 #constructionPanel{width:min(310px,86vw)!important;right:0!important;left:auto!important;border-radius:26px 0 0 26px!important;background:rgba(13,24,40,.52)!important;border:1px solid rgba(255,255,255,.2)!important;border-right:0!important;backdrop-filter:blur(30px) saturate(175%)!important;-webkit-backdrop-filter:blur(30px) saturate(175%)!important}
@@ -386,9 +385,9 @@ html,body{background:var(--sb-ink);color:#f5f8fc}
 #sb-dashboard-info{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:36px;height:36px;min-height:36px;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.09)!important;border:1px solid rgba(255,255,255,.23)!important;color:#f5f9ff!important;font-size:16px!important;display:flex;align-items:center;justify-content:center}
 #sb-dashboard-dialog{position:absolute;z-index:730;top:76px;left:50%;transform:translateX(-50%);width:min(420px,calc(100vw - 32px));padding:16px 18px;border-radius:24px;background:rgba(11,23,39,.76);border:1px solid rgba(255,255,255,.22);box-shadow:0 14px 40px #0006;backdrop-filter:blur(28px) saturate(180%);-webkit-backdrop-filter:blur(28px) saturate(180%);color:#f4f8ff;text-align:center;display:none}
 #sb-dashboard-dialog.open{display:block}#sb-dashboard-dialog button{width:32px;height:32px;min-height:32px;border-radius:50%;padding:0}
-#sb-3d-map{background:linear-gradient(145deg,#15283b,#263f55)!important}
-#sb-3d-map canvas{outline:none}
-#sb-3d-map .maplibregl-ctrl-group{border-radius:18px!important;overflow:hidden;background:rgba(10,22,38,.72)!important;border:1px solid rgba(255,255,255,.2)!important;backdrop-filter:blur(18px)}
+
+
+
 @media(max-width:560px){#constructionPanel{width:min(86vw,310px)!important}#message{top:76px!important;max-width:calc(100vw - 100px)!important}#sb-dashboard-info{right:8px;width:34px;height:34px;min-height:34px}.topbar .stats{margin-right:40px}}
 
 /* Centered iOS-style main menu and navigation controls */
@@ -409,13 +408,13 @@ html,body{background:var(--sb-ink);color:#f5f8fc}
 #constructionPanel{background:rgba(9,20,35,.34)!important;border-color:rgba(255,255,255,.16)!important;backdrop-filter:blur(30px) saturate(175%)!important;-webkit-backdrop-filter:blur(30px) saturate(175%)!important}
 #constructionPanel .panel-heading{background:transparent!important}
 #constructionPanel .panel-title{background:transparent!important}
-#sb-3d-toggle{width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;padding:0!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;border:1px solid rgba(255,255,255,.22)!important;color:#f7fbff!important;font-size:12px!important}
-#sb-3d-toggle.active{background:rgba(66,210,185,.22)!important;border-color:rgba(125,255,228,.5)!important}
+
+
 #sb-zoom-controls{gap:5px!important}#sb-zoom-controls button{width:34px!important;height:34px!important;min-height:34px!important;border-radius:50%!important;background:rgba(255,255,255,.075)!important;border:1px solid rgba(255,255,255,.2)!important}
 #constructionPanel .tool-group{background:rgba(255,255,255,.025)!important}
 .bottom{display:none!important}
 .leaflet-bottom.leaflet-right{bottom:10px!important}
-@media(max-width:560px){.start-card{width:min(90vw,360px);padding:24px 19px}.topbar{gap:6px}.brand{font-size:14px}.stats{gap:7px}.stat{font-size:10px}#trashModeBtn{width:31px;height:31px;min-height:31px;flex-basis:31px}#sb-3d-toggle{width:34px!important;height:34px!important;min-width:34px!important;min-height:34px!important}}
+@media(max-width:560px){.start-card{width:min(90vw,360px);padding:24px 19px}.topbar{gap:6px}.brand{font-size:14px}.stats{gap:7px}.stat{font-size:10px}#trashModeBtn{width:31px;height:31px;min-height:31px;flex-basis:31px}}
 
 
 /* Nov 2026 interaction and edge-control refinement */
@@ -514,7 +513,7 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
  font-size:17px!important;background:rgba(255,255,255,.07)!important}#sb-action-dock .trash-dock-btn{background:rgba(180,42,58,.22)!important}
 #sb-zoom-controls{gap:5px!important}#sb-zoom-controls button{width:32px!important;height:32px!important;min-height:32px!important;border-radius:6px!important}
 #stationContextMenu{background:rgba(17,22,30,.97)!important;border:1px solid var(--sb-desktop-line)!important;border-radius:9px!important}
-#sb-3d-map{background:#080d14}
+
 .leaflet-control-zoom{display:none!important}
 #startMenu{
  background:rgba(4,8,14,.16)!important;backdrop-filter:blur(2px)!important;
@@ -535,7 +534,7 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
  #constructionPanel{width:270px!important}
  .topbar .stats{gap:28px!important}
  #sb-dashboard-dialog{max-width:40vw}
- #sb-3d-toggle{min-width:54px!important}
+ 
 }
 @media(max-width:700px){
  .topbar{left:7px!important;right:7px!important;top:7px!important;padding:8px 9px!important}
@@ -629,12 +628,12 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
 .start-card .menu-icon{width:25px;flex:0 0 25px;text-align:center;font-size:19px}
 .start-card .menu-label{flex:1;text-align:left}
 .start-card .menu-chevron{font-size:22px;color:rgba(235,249,255,.68)}
-#sb-3d-map{z-index:4!important;background:#0a1727}#map{z-index:1}#constructionPanel{z-index:650}#stationContextMenu{z-index:2000}#sb-panel-toggle{z-index:700}#sb-action-dock{z-index:710}
+#map{z-index:1}#constructionPanel{z-index:650}#stationContextMenu{z-index:2000}#sb-panel-toggle{z-index:700}#sb-action-dock{z-index:710}
 @media(prefers-reduced-motion:reduce){.start-card button,button{}}
 
 /* PR#21 — single-play launch, background map blur and optional touch pointer */
 #map.sb-start-blur,.sb-start-blur{filter:blur(4px) brightness(.62) saturate(.82);transform:scale(1.018);transition:filter .35s ease}
-#sb-3d-map.sb-start-blur{filter:blur(4px) brightness(.62)}
+
 #startMenu{background:rgba(5,12,24,.12)!important;backdrop-filter:blur(0)!important;-webkit-backdrop-filter:blur(0)!important}
 .play-launch{display:flex;flex-direction:column;align-items:center;gap:18px;padding:26px 32px;text-align:center;pointer-events:none}
 .play-brand{font-size:clamp(19px,5vw,27px);font-weight:900;letter-spacing:3px;color:#f3fbff;text-shadow:0 2px 22px rgba(65,220,220,.35)}#sb-play-button{pointer-events:auto;width:104px;height:104px;min-height:104px;padding:0;margin:0;border-radius:50%!important;display:grid;place-items:center;background:rgba(19,180,163,.22)!important;border:1px solid rgba(142,255,235,.66)!important}#sb-play-button span{font-size:34px;margin-left:5px;color:#eafffb}
@@ -691,7 +690,7 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
 /* Start screen: OSM map only, softly blurred behind the Play control. */
 body.sb-start-menu-open #map{filter:blur(5px) brightness(.68) saturate(.86)!important;transform:scale(1.025);transition:filter .35s ease,transform .35s ease}
 body.sb-start-menu-open .topbar,body.sb-start-menu-open #constructionPanel,body.sb-start-menu-open #sb-panel-toggle,body.sb-start-menu-open #sb-action-dock,body.sb-start-menu-open #message,body.sb-start-menu-open #sb-dashboard-dialog{visibility:hidden!important;pointer-events:none!important}
-body.sb-start-menu-open #sb-3d-map{visibility:hidden!important;filter:none!important}
+body.sb-start-menu-open 
 #startMenu{background:rgba(4,11,21,.10)!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 #startMenu .play-launch{background:transparent!important;border:0!important;box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 #sb-panel-toggle{pointer-events:auto!important;touch-action:manipulation!important}
@@ -3281,7 +3280,6 @@ function resetSelection(){
  message('Selection cleared.');
 }
 function activateDeleteMode(){
- if(document.getElementById('sb-3d-map')?.classList.contains('active'))toggle3DCityView();
  if(typeof closeStationMenu==='function')closeStationMenu();
  const entering=mode!=='delete';
  if(entering&&typeof toggleToolsPanel==='function')toggleToolsPanel(false);
@@ -3506,7 +3504,7 @@ function scheduleCurvePlacementPreview(){
 }
 function updateCurvePlacementPreview(){
  if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]||
-    document.getElementById('sb-3d-map')?.classList.contains('active')){
+  if(mode!=='curve'||!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){
   clearCurvePlacementPreview();return;
  }
  const baseTrack=tracks[selectedTrackIndex];
@@ -3799,7 +3797,6 @@ function dismissStartupOverlays(){
  if(terms)terms.classList.remove('open');
  document.body.classList.remove('sb-start-menu-open');
  document.getElementById('map')?.classList.remove('sb-start-blur');
- document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
  if(sbStartMapPanTimer){clearInterval(sbStartMapPanTimer);sbStartMapPanTimer=null;}
 }
 function showStartMenuNotice(text){
@@ -5215,7 +5212,7 @@ html,body{
  width:100%!important;height:100%!important;min-height:100%!important;
  overflow:hidden!important;overscroll-behavior:none!important;
 }
-body,#map,#sb-3d-map{touch-action:none!important}
+body,#map,
 #map .leaflet-container{touch-action:none!important;overscroll-behavior:none!important}
 #constructionPanel{
  overscroll-behavior:contain!important;
@@ -5340,7 +5337,7 @@ body.sb-theme-dragging #sb-top-dock #sb-map-theme-toggle{cursor:grabbing!importa
 
 <style id="sb-crosshair-4x2-dark-pill-refresh">
 :root{color-scheme:dark}
-html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
+html,body,#map,
 #sb-top-dock,#sb-action-dock,#sb-construction-menu,#constructionPanel{
  border-radius:999px!important;
 }
@@ -5497,8 +5494,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   if(menuVisible||termsVisible)return;
   document.body.classList.remove('sb-start-menu-open');
   document.getElementById('map')?.classList.remove('sb-start-blur');
-  document.getElementById('sb-3d-map')?.classList.remove('sb-start-blur');
- }
+  }
  function onResume(){
   requestAnimationFrame(()=>requestAnimationFrame(clearStaleStartupBlur));
  }
@@ -5720,7 +5716,6 @@ function waypointAtCrosshair(){
   return best;
  }
  map.on('click',function(){
-  if(document.getElementById('sb-3d-map')?.classList.contains('active'))return;
   const center=map.getCenter();
   const target=stationAtCrosshair();
   if(mode==='track'){
