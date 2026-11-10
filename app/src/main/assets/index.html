@@ -3999,7 +3999,6 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&sbInGameMen
     'theme-light':()=>{setMapTheme('light');document.getElementById('mapMenu').style.display='none';},
     'simulation':()=>toggleSimulation(),'clear-selection':()=>resetSelection(),
     'zoom-in':()=>map.zoomIn(),'zoom-out':()=>map.zoomOut(),
-    'toggle-3d':()=>window.toggle3DCityView(),
    'line-color':()=>document.getElementById('sb-line-color-trigger')?.click()
    };
    if(action==='platform-width')setPlatformWidth(button.dataset.platformWidth);
