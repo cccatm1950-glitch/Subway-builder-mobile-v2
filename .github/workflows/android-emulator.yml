@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [ "main", "feat/top-dock-map-theme-toggle-and-state-guards" ]
   push:
-    branches: [ "main", "fix/glass-dock-crosshair-stations" ]
+    branches: [ "main", "fix/glass-dock-crosshair-stations", "fix/topology-aware-parallel-junctions" ]
   workflow_dispatch:
 
 permissions:
