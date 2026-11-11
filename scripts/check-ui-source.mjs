@@ -45,12 +45,18 @@ assert.ok(!html.includes("'toggle-3d':()=>window.toggle3DCityView()"),
   'Construction touch bridge must not expose the legacy 3D action');
 assert.ok(html.includes("serviceDock.querySelector('#sb-service-lines')?.append(threeDButton)"),
   '3D test switch must be mounted inside the Service Lines panel');
-assert.ok(html.includes('sb-pr92-service-lines-expanded-3d-slot'),
-  'Service Lines must reserve a dedicated expanded-panel slot for the 3D test switch');
-assert.ok(html.includes('grid-template-columns:minmax(0,1fr) 46px 46px!important'),
+assert.match(html, /serviceDock\.className='sb-dock-panel sb-dock-panel-service'/,
+  'Service Lines must retain its dedicated dock-panel identity');
+assert.match(html, /grid-template-columns:minmax\(0,1fr\) 46px 46px!important/,
   'Expanded Service Lines layout must reserve separate Run and 3D button columns');
-assert.ok(html.includes('#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines #sb-3d-toggle'),
-  '3D test switch must be hidden while Service Lines is collapsed');
+const collapsed3DRule = html.match(/#sb-action-dock\s+#sb-service-dock:not\(\.is-expanded\)\s+#sb-service-lines>\s*#sb-3d-toggle\s*\{([^}]*)\}/);
+assert.ok(collapsed3DRule, 'Collapsed Service Lines must have a dedicated 3D switch rule');
+assert.match(collapsed3DRule[1], /display:\s*none\s*!important/,
+  '3D test switch must not display while Service Lines is collapsed');
+assert.match(collapsed3DRule[1], /visibility:\s*hidden\s*!important/,
+  '3D test switch must be hidden from visibility while Service Lines is collapsed');
+assert.match(collapsed3DRule[1], /pointer-events:\s*none\s*!important/,
+  'Collapsed 3D test switch must not receive pointer input');
 
 
 for (const required of [
