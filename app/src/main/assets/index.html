@@ -2922,7 +2922,8 @@ if(mode==='delete'){
   const parallelJunctionMerge=window.SBTrackTopology?.calculateParallelJunctionMergeProfile
    ?window.SBTrackTopology.calculateParallelJunctionMergeProfile(
      cumulativeTrackMeters,totalTrackMeters,
-     stations[t.a]?.nodeType==='junction',stations[t.b]?.nodeType==='junction',
+     stations[t.a]?.nodeType==='junction'?window.SBTrackTopology.classifyParallelJunction(t.a,tracks,trackIndex):false,
+     stations[t.b]?.nodeType==='junction'?window.SBTrackTopology.classifyParallelJunction(t.b,tracks,trackIndex):false,
      OFFSET_TRANSITION_LENGTH_METERS
     )
    :cumulativeTrackMeters.map(()=>0);
