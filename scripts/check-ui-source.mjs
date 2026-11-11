@@ -78,6 +78,29 @@ for (const required of [
     'Expected core interaction ' + required + ' to be present');
 }
 
+// Validate the current crosshair-based curve/waypoint flow by behavior,
+// rather than depending on retired preview element IDs or helper names.
+const placementStart = html.indexOf('function handleMapPlacement(latlng)');
+const placementEnd = html.indexOf("\nmap.on('click',function(e)", placementStart);
+assert.ok(placementStart >= 0 && placementEnd > placementStart,
+  'Map placement handler must be present');
+const placementHandler = html.slice(placementStart, placementEnd);
+for (const required of [
+  "if(mode==='curve'||mode==='waypoint')",
+  'if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])',
+  'window.sbGetCrosshairLatLng?.()',
+  "targetTrack.waypoints.push({lat:crosshair.lat,lng:crosshair.lng,elevation:'at'})",
+  'if(mode===\'curve\')targetTrack.curve=true',
+  'saveHistory();renderNetwork();'
+]) {
+  assert.ok(placementHandler.includes(required),
+    'Curve/waypoint crosshair placement must retain: ' + required);
+}
+assert.ok(html.includes("kind:'waypoint-crosshair'") || html.includes("kind:'track-tap-preview'"),
+  'The active map preview source must expose a rendered placement/track preview');
+assert.ok(html.includes("sb3dMap.addLayer({id:'sb-build-preview-line'"),
+  '3D map must render the shared build-preview line layer');
+
 for (const required of [
   'function splitTrackAtCrosshair',
   'function getTrackElevationAtFraction',
@@ -98,9 +121,7 @@ for (const required of [
   'getTrackCenterlinePoints(t,endpointStations)',
   'window.sb3dTrackFeatures.push',
   'window.getSubway3DPlatforms=function',
-  'id="sb-pr93-cross-view-build-drag-preview"',
-  "if(!['waypoint','curve'].includes(mode))return;",
-  'function commitPoint(state,event)',
+  "sb3dMap.addSource('sb-build-preview'",
   "sb3dMap.addSource('sb-build-preview'",
   "sb3dMap.on('click',['sb-station-dots','sb-platform-fills']",
   "trackIndex,style:t.style||'single'",
