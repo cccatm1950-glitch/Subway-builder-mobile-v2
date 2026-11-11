@@ -2069,7 +2069,7 @@ html,body{
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button><button class="sb-game-menu-action sb-menu-save" type="button" onclick="requestGameLoadFromDevice()">Load Game from Device</button><input id="sb-game-load-file" type="file" accept=".json,application/json" hidden></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -2418,6 +2418,56 @@ function restoreSavedGame(){
   return true;
  }catch(error){console.warn('Could not restore saved game:',error);return false;}
 }
+function sbValidCoordinate(value,limit){return Number.isFinite(Number(value))&&Math.abs(Number(value))<=limit;}
+function validateGameSnapshot(data){
+ if(!data||typeof data!=='object'||!Array.isArray(data.stations)||!Array.isArray(data.tracks)||data.stations.length>5000||data.tracks.length>10000)return false;
+ if(data.lines!==undefined&&!Array.isArray(data.lines))return false;
+ if(data.stations.some(s=>!s||!sbValidCoordinate(s.lat,90)||!sbValidCoordinate(s.lng,180)))return false;
+ const lineIds=new Set((data.lines||[]).filter(x=>x&&typeof x.id==='string').map(x=>x.id));
+ for(const t of data.tracks){
+  if(!t||!Number.isInteger(t.a)||!Number.isInteger(t.b)||t.a<0||t.b<0||t.a>=data.stations.length||t.b>=data.stations.length||t.a===t.b)return false;
+  if(t.style!==undefined&&!['single','parallel'].includes(t.style))return false;
+  if(t.lineIds!==undefined&&(!Array.isArray(t.lineIds)||t.lineIds.some(id=>typeof id!=='string'||(lineIds.size&&!lineIds.has(id)))))return false;
+  if(t.waypoints!==undefined&&(!Array.isArray(t.waypoints)||t.waypoints.some(w=>!w||!sbValidCoordinate(w.lat,90)||!sbValidCoordinate(w.lng,180))))return false;
+  if(t.centerline!==undefined&&t.centerline!==null&&(!Array.isArray(t.centerline)||t.centerline.some(p=>!p||!sbValidCoordinate(p.lat,90)||!sbValidCoordinate(p.lng,180))))return false;
+ }
+ return true;
+}
+function validateGameSavePayload(saved){
+ if(!saved||typeof saved!=='object'||saved.version!==1||!validateGameSnapshot(saved.game))return false;
+ if(saved.viewport!==undefined&&saved.viewport!==null){const v=saved.viewport;if(!v||!sbValidCoordinate(v.lat,90)||!sbValidCoordinate(v.lng,180)||!Number.isFinite(Number(v.zoom))||Number(v.zoom)<1||Number(v.zoom)>22)return false;}
+ if(saved.sbEditHistory!==undefined){if(!Array.isArray(saved.sbEditHistory)||saved.sbEditHistory.length>40||saved.sbEditHistory.some(item=>!validateGameSnapshot(item)))return false;if(!Number.isInteger(saved.historyIndex)||saved.historyIndex<0||saved.historyIndex>=Math.max(1,saved.sbEditHistory.length))return false;}
+ return true;
+}
+function importGameSaveText(raw){
+ let saved;try{saved=JSON.parse(raw);}catch(error){throw new Error('The selected file is not valid JSON.');}
+ if(!validateGameSavePayload(saved))throw new Error('This save is incompatible or contains invalid station or track data.');
+ const previous=snapshot(),previousHistory=sbEditHistory.slice(),previousIndex=historyIndex;
+ try{
+  running=false;restoreSnapshot(saved.game);
+  if(Array.isArray(saved.sbEditHistory)&&saved.sbEditHistory.length){sbEditHistory=saved.sbEditHistory.slice(-40);historyIndex=Math.max(0,Math.min(sbEditHistory.length-1,saved.historyIndex));}
+  else{sbEditHistory=[snapshot()];historyIndex=0;}
+  if(saved.viewport){const lat=Number(saved.viewport.lat),lng=Number(saved.viewport.lng),zoom=Number(saved.viewport.zoom);map.setView([lat,lng],Math.max(3,Math.min(19,zoom)),{animate:false});if(sb3dMap&&document.getElementById('sb-3d-map')?.classList.contains('active'))sb3dMap.jumpTo({center:[lng,lat],zoom:Math.max(12,Math.min(16,zoom))});}
+  const runButton=document.getElementById('runBtn');if(runButton){runButton.textContent='▶';runButton.setAttribute('aria-label','Run trains');runButton.title='Run trains';}
+  if(typeof sb3dRefresh==='function')sb3dRefresh();persistGameState();updateUI();
+ }catch(error){restoreSnapshot(previous);sbEditHistory=previousHistory;historyIndex=previousIndex;throw new Error('The save could not be applied. Your current game was kept.');}
+}
+function requestGameLoadFromDevice(){
+ const status=document.getElementById('sb-game-menu-save-status');if(status)status.textContent='Choose a Subway Builder save file to load.';
+ if(window.AndroidStorage&&typeof window.AndroidStorage.loadGameState==='function'){window.AndroidStorage.loadGameState();return;}
+ const picker=document.getElementById('sb-game-load-file');if(picker){picker.value='';picker.click();}
+}
+window.onDeviceGameLoadComplete=function(success,raw){
+ const status=document.getElementById('sb-game-menu-save-status');if(!success||typeof raw!=='string'){if(status)status.textContent='Load cancelled or unavailable. Current game unchanged.';return;}
+ try{importGameSaveText(raw);sbInGameMenuWasRunning=false;if(status)status.textContent='Game loaded successfully. Simulation remains paused.';}
+ catch(error){console.warn('Game import rejected:',error);if(status)status.textContent=(error.message||'Unable to load save.')+' Current game unchanged.';}
+};
+document.getElementById('sb-game-load-file')?.addEventListener('change',async event=>{
+ const file=event.target.files&&event.target.files[0];if(!file)return;const status=document.getElementById('sb-game-menu-save-status');
+ if(file.size>5000000){if(status)status.textContent='Save file is too large (5 MB maximum). Current game unchanged.';return;}
+ try{importGameSaveText(await file.text());sbInGameMenuWasRunning=false;if(status)status.textContent='Game loaded successfully. Simulation remains paused.';}
+ catch(error){if(status)status.textContent=(error.message||'Unable to load save.')+' Current game unchanged.';}
+});
 window.addEventListener('pagehide',persistGameState);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persistGameState();});
 window.addEventListener('beforeunload',persistGameState);
@@ -3997,6 +4047,8 @@ window.addEventListener('load',function(){
 let sb3dMap=null;
 let sb3dReady=false;
 let sb3dLibraryPromise=null;
+let sb3dRefreshPending=false;
+let sb3dTransitionInFlight=false;
 function sb3dData(){
  const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
  const stations=window.getSubway3DStations?window.getSubway3DStations():[];
@@ -4008,11 +4060,10 @@ function sb3dData(){
  };
 }
 function sb3dRefresh(){
- if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
- const data=sb3dData();
- sb3dMap.getSource('sb-lines')?.setData(data.lines);
- sb3dMap.getSource('sb-stations')?.setData(data.stations);
- sb3dMap.getSource('sb-platforms')?.setData(data.platforms);
+ if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded()){sb3dRefreshPending=true;return false;}
+ const data=sb3dData(),lineSource=sb3dMap.getSource('sb-lines'),stationSource=sb3dMap.getSource('sb-stations'),platformSource=sb3dMap.getSource('sb-platforms');
+ if(!lineSource||!stationSource||!platformSource){sb3dRefreshPending=true;return false;}
+ lineSource.setData(data.lines);stationSource.setData(data.stations);platformSource.setData(data.platforms);sb3dRefreshPending=false;return true;
 }
 function sbGameZoomIn(){
  if(document.getElementById('sb-3d-map')?.classList.contains('active')&&sb3dMap)sb3dMap.zoomIn();
@@ -4065,6 +4116,7 @@ async function ensure3DMap(){
   canvasContextAttributes:{antialias:true},failIfMajorPerformanceCaveat:false
  });
  window.sb3dMap=sb3dMap;
+ sb3dMap.on('style.load',()=>{if(sb3dReady||sb3dRefreshPending){sb3dReady=true;requestAnimationFrame(()=>sb3dRefresh());}});
  sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}),'top-right');
  sb3dMap.on('load',()=>{
   try{
@@ -4180,6 +4232,9 @@ async function ensure3DMap(){
  return sb3dMap;
 }
 window.toggle3DCityView=async function(){
+ if(sb3dTransitionInFlight)return;
+ sb3dTransitionInFlight=true;
+ try{
  const host=document.getElementById('sb-3d-map');
  const toggle=document.getElementById('sb-3d-toggle');
  const buildMap=document.getElementById('map');
@@ -4224,6 +4279,7 @@ window.toggle3DCityView=async function(){
   toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city view';
   map.invalidateSize();message('3D map could not load. '+(error&&error.message?error.message:'Check your connection and try again.'));
  }
+ }finally{sb3dTransitionInFlight=false;}
 };
 window.refreshSubway3D=sb3dRefresh;
 </script>
