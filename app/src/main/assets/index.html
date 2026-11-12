@@ -2379,6 +2379,8 @@ function restoreSnapshot(data){
  mode=activeToolMode;
  selectedTrackIndex=Number.isInteger(activeCurveTrack)&&tracks[activeCurveTrack]?activeCurveTrack:null;
  renderNetwork();updateUI();
+ if(typeof syncConstructionControls==='function')syncConstructionControls();
+ if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
  if(mode==='curve'&&selectedTrackIndex!==null)scheduleCurvePlacementPreview();
  else if(mode==='waypoint'&&selectedTrackIndex!==null&&document.getElementById('sb-3d-map')?.classList.contains('active')){
   const center=window.sb3dMap?.getCenter();
@@ -3788,11 +3790,19 @@ let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
  /* Curve and waypoint placement is handled exclusively by the crosshair router. */
  if(mode==='curve'||mode==='waypoint'){
-  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){message('Select a track first.');return;}
-  /* A second tap commits at the fixed viewport crosshair, never at the finger. */
+  /* Every construction tap resolves against the fixed viewport crosshair. */
   const is3DPlacement=!!document.getElementById('sb-3d-map')?.classList.contains('active');
   const crosshair=is3DPlacement&&window.sb3dMap?window.sb3dMap.getCenter():
    (window.sbGetCrosshairLatLng?.()||map.containerPointToLatLng(map.getSize().divideBy(2)));
+  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){
+   const trackIndex=window.sbTrackAtCrosshairIndex?.();
+   if(!Number.isInteger(trackIndex)){message('Move a track under the crosshair to select it.');return;}
+   selectedTrackIndex=trackIndex;
+   renderNetwork();
+   if(mode==='curve')scheduleCurvePlacementPreview();
+   message('Track selected. Move the crosshair to a point, then tap once to place it.');
+   return;
+  }
   const targetTrack=tracks[selectedTrackIndex];
   targetTrack.waypoints=Array.isArray(targetTrack.waypoints)?targetTrack.waypoints:[];
   if(mode==='curve')targetTrack.curve=true;
@@ -5237,7 +5247,7 @@ function toggleDefaultDarkOnStart(){
    if(!button||button.dataset.directHistoryBound==='true')return;
    button.dataset.directHistoryBound='true';
    button.removeAttribute('onclick');
-   button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();if(button.disabled)return;action();syncHistoryButtons();});
+   button.addEventListener('click',function(event){event.preventDefault();event.stopImmediatePropagation();if(button.disabled)return;action();syncHistoryButtons();},{capture:true});
   });
  }
  const previousSave=window.saveHistory;
@@ -6126,6 +6136,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   return best;
  }
  
+window.sbTrackAtCrosshairIndex=function(){const hit=trackAtCrosshair();return hit?hit.index:null;};
 function junctionAtCrosshair(){
  const center=centerPoint();let best=null,bestDistance=26;
  stations.forEach((node,index)=>{
@@ -6258,26 +6269,6 @@ function waypointAtCrosshair(){
     if(!trackTarget||splitTrackAtCrosshair(trackTarget,center)===null)
      message('Move the map crosshair onto a track to create a junction, or onto a station or junction to select it.');
    }
-   return;
-  }
-  if(mode==='curve'||mode==='waypoint'){
-   if(selectedTrackIndex===null||!tracks[selectedTrackIndex]){
-    const trackTarget=trackAtCrosshair();
-    if(!trackTarget){message('Move the map until a track is under the crosshair to select it.');return;}
-    selectedTrackIndex=trackTarget.index;
-    renderNetwork();
-    message('Track selected. Move the map crosshair to a point and tap to add '+(mode==='curve'?'a curve point.':'a waypoint.'));
-    return;
-   }
-   const track=tracks[selectedTrackIndex];
-   if(!Array.isArray(track.waypoints))track.waypoints=[];
-   if(mode==='curve')track.curve=true;
-   delete track.centerline;
-   // One committed geometry point equals one independent undo/redo entry.
-   track.waypoints.push({lat:center.lat,lng:center.lng,elevation:'at'});
-   saveHistory();
-   renderNetwork();
-   message(mode==='curve'?'Curve point added at crosshair.':'Waypoint added at crosshair.');
    return;
   }
   if(mode==='inspect'){
