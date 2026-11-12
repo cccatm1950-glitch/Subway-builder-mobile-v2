@@ -2904,11 +2904,12 @@ if(mode==='delete'){
   const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
-  // Endpoint anchoring places the route at the physical platform end.
-  // Do not add a second station-side offset to single tracks; parallel track
-  // platform clearance remains handled by the dedicated flare profile below.
-  const startOffset=0;
-  const endOffset=0;
+  // Single tracks serving island platforms must connect to one platform
+  // face, not the island center. Resolve each endpoint independently from its
+  // local approach tangent and platform bearing; side platforms and parallel
+  // groups keep their existing alignment rules.
+  const startOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.a,points[0],points[1],t.style);
+  const endOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
   // Parallel track centerlines use the desktop 3.81 m standard gauge spacing.
@@ -2941,8 +2942,11 @@ if(mode==='delete'){
    const ratio=span>0?Math.max(0,Math.min(1,(distance-left.distance)/span)):0;
    return left.height+(next.height-left.height)*ratio;
   }
-  const startPlatformHold=t.style==='parallel'?0:getIslandPlatformTrackExtent(t.a,points[0],points[1]);
-  const endPlatformHold=t.style==='parallel'?0:getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]);
+  // The route endpoints already sit at the physical platform ends. Apply
+  // the side offset there, then blend it out along the approach; do not extend
+  // the platform-length hold a second time beyond the endpoint.
+  const startPlatformHold=0;
+  const endPlatformHold=0;
   const stationOffsets=window.SBTrackTopology?.calculateOffsetTransitionProfile
    ?window.SBTrackTopology.calculateOffsetTransitionProfile(cumulativeTrackMeters,totalTrackMeters,startOffset,endOffset,t.offsetTransitionZones,OFFSET_TRANSITION_LENGTH_METERS,startPlatformHold,endPlatformHold)
    :cumulativeTrackMeters.map(distance=>{
@@ -3109,7 +3113,24 @@ if(mode==='delete'){
   const active=assigned.length>0;
   const color=active?(assigned[0]?.color||'#55a7ff'):'#82909d';
   const opacity=active?1:.62;
-  const offsets=parallel?[-railOffset,railOffset]:[0];
+  let singleIslandOffset=0;
+  if(isIsland&&!parallel){
+   const single=incident.find(item=>item.track.style!=='parallel'&&Array.isArray(item.track.trainCenterline));
+   const centerline=single?.track.trainCenterline;
+   if(centerline?.length){
+    const endpointPoint=single.track.a===stationIndex?centerline[0]:centerline[centerline.length-1];
+    const normalEast=-axisNorth,normalNorth=axisEast;
+    const east=(endpointPoint[1]-endpoint(-1)[1])*cosLatitude;
+    const north=endpointPoint[0]-endpoint(-1)[0];
+    singleIslandOffset=east*normalEast+north*normalNorth;
+   }
+   if(Math.abs(singleIslandOffset)<1e-6&&single){
+    const adjacent=single.track.a===stationIndex?single.track.trainCenterline?.[1]:single.track.trainCenterline?.[single.track.trainCenterline.length-2];
+    const anchor=single.track.a===stationIndex?endpoint(-1):endpoint(1);
+    if(adjacent)singleIslandOffset=getStationTrackSideOffset(stationIndex,anchor,adjacent,'single');
+   }
+  }
+  const offsets=parallel?[-railOffset,railOffset]:(isIsland?[singleIslandOffset]:[0]);
   offsets.forEach(offset=>{
    const span=[endpoint(-1,offset),endpoint(1,offset)];
    window.sb3dTrackFeatures.push({type:'Feature',properties:{
