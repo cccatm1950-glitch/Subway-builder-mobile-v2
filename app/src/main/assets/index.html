@@ -2646,6 +2646,46 @@ function getTrainRoutePoints(track){
  return getTrackCenterlinePoints(track);
 }
 
+// Junction endpoints inherit the tangent of the best-aligned connected
+// track. This creates a real curved lead-in instead of a straight chord that
+// terminates abruptly at the junction node.
+function getJunctionConnectionBearing(junctionIndex,currentTrack,routeReference){
+ const junction=stations[junctionIndex];
+ if(!junction)return null;
+ const latitude=junction.lat*Math.PI/180,cosLatitude=Math.max(1e-8,Math.cos(latitude));
+ const referenceEast=(routeReference.lng-junction.lng)*cosLatitude;
+ const referenceNorth=routeReference.lat-junction.lat;
+ const referenceLength=Math.hypot(referenceEast,referenceNorth);
+ if(referenceLength<1e-10)return null;
+ const candidates=[];
+ tracks.forEach(candidate=>{
+  if(!candidate||candidate===currentTrack||
+    (candidate.a!==junctionIndex&&candidate.b!==junctionIndex))return;
+  let adjacent=null;
+  if(Array.isArray(candidate.centerline)&&candidate.centerline.length>1){
+   adjacent=candidate.a===junctionIndex
+    ?candidate.centerline[1]:candidate.centerline[candidate.centerline.length-2];
+  }else if(Array.isArray(candidate.waypoints)&&candidate.waypoints.length){
+   adjacent=candidate.a===junctionIndex
+    ?candidate.waypoints[0]:candidate.waypoints[candidate.waypoints.length-1];
+  }
+  if(!adjacent){
+   const otherIndex=candidate.a===junctionIndex?candidate.b:candidate.a;
+   const other=stations[otherIndex];
+   if(other)adjacent=other;
+  }
+  if(!adjacent||!Number.isFinite(adjacent.lat)||!Number.isFinite(adjacent.lng))return;
+  const east=(adjacent.lng-junction.lng)*cosLatitude,north=adjacent.lat-junction.lat;
+  const length=Math.hypot(east,north);
+  if(length<1e-10)return;
+  const alignment=Math.abs((east*referenceEast+north*referenceNorth)/(length*referenceLength));
+  candidates.push({bearing:(Math.atan2(east,north)*180/Math.PI+360)%360,alignment});
+ });
+ if(!candidates.length)return null;
+ candidates.sort((a,b)=>b.alignment-a.alignment);
+ return candidates[0].bearing;
+}
+
 function getTrackStationEndpointStations(track){
  const a=stations[track.a],b=stations[track.b];
  if(!a||!b)return null;
@@ -2656,7 +2696,10 @@ function getTrackStationEndpointStations(track){
   ?track.centerline[track.centerline.length-2]
   :(track.waypoints?.[track.waypoints.length-1]||a);
  const endpointFor=(station,reference)=>{
-  if(station.nodeType==='junction')return {lat:station.lat,lng:station.lng};
+  if(station.nodeType==='junction'){
+   const bearing=getJunctionConnectionBearing(track.a===stations.indexOf(station)?track.a:track.b,track,reference);
+   return {lat:station.lat,lng:station.lng,...(Number.isFinite(bearing)?{platformBearing:bearing}: {})};
+  }
   const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
   const length=Number.isFinite(station.platformLengthMeters)
    ?Math.max(30,Math.min(300,station.platformLengthMeters))
