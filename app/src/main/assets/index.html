@@ -2093,6 +2093,7 @@ html,body{
  <button class="sb-menu-close" type="button" aria-label="Close station menu" onclick="closeStationMenu()">×</button>
  <h3 id="stationMenuTitle">STATION OPTIONS</h3>
  <button onclick="renameSelectedStation()">Rename Station</button>
+ <button id="sb-station-platform-side" onclick="toggleStationPlatformSide()">Platform Side: Left</button>
  <button id="sb-station-move-toggle" aria-pressed="false" onclick="toggleStationMoveMode()">Move Station: Off</button>
  <h3>ELEVATION</h3>
  <button onclick="setStationElevation('above')">Above Grade</button>
@@ -2197,6 +2198,9 @@ function setMapTheme(theme){
    :'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 2v2.2M12 19.8V22M4.93 4.93l1.56 1.56m11.02 11.02 1.56 1.56M2 12h2.2m15.6 0H22M4.93 19.07l1.56-1.56M17.51 6.49l1.56-1.56" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
  }
  document.documentElement.setAttribute('data-sb-theme',theme);
+ if(window.sb3dMap?.isStyleLoaded?.()&&window.sb3dMap.getLayer('sb-3d-buildings')){
+  window.sb3dMap.setPaintProperty('sb-3d-buildings','fill-extrusion-color',theme==='dark'?'#9aabba':'#aebbc4');
+ }
  localStorage.setItem('mapTheme',theme);
 }
 
@@ -2523,7 +2527,7 @@ window.getSubway3DPlatforms=function(){
   const normalEast=-axisNorth,normalNorth=axisEast;
   const cosLatitude=Math.cos(station.lat*Math.PI/180);
   const offsets=(station.platformType||platformType)==='side'
-   ?[-1,1].map(side=>side*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)):[0];
+   ?[(station.platformSide==='right'?-1:1)*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)]:[0];
   offsets.forEach((offset,platformIndex)=>{
    const corners=[];
    for(const along of [-1,1])for(const across of [-1,1]){
@@ -3237,7 +3241,10 @@ if(mode==='delete'){
     platform.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(holdTimer);if(mode==='delete')return;holdTriggered=true;showStationMenu(i);});
     platform.on('click',function(e){L.DomEvent.stopPropagation(e);if(holdTriggered||stationMenuIndex===i){holdTriggered=false;return;}handleStationClick(i);});
   }
-  if((s.platformType||'side')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
+  if((s.platformType||'side')==='side'){
+   const platformSide=s.platformSide==='right'?-1:1;
+   drawPlatform(platformSide*(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));
+  }else{drawPlatform(0);}
 
  });
  syncStationEndpointVisibility();
@@ -3373,9 +3380,21 @@ function showStationMenu(index){
  if(!menu||!stations[index])return;
  stationMenuIndex=index;
  document.getElementById('stationMenuTitle').textContent=stations[index].name;
+ const sideButton=document.getElementById('sb-station-platform-side');
+ if(sideButton){const side=stations[index].platformSide==='right'?'Right':'Left';sideButton.textContent='Platform Side: '+side;sideButton.disabled=(stations[index].platformType||platformType)!=='side';}
  menu.style.display='block';
  positionStationMenu(index);
  requestAnimationFrame(()=>menu.classList.add('sb-station-menu-open'));
+}
+function toggleStationPlatformSide(){
+ if(stationMenuIndex===null||!stations[stationMenuIndex])return;
+ const station=stations[stationMenuIndex];
+ if((station.platformType||platformType)!=='side')return;
+ station.platformSide=station.platformSide==='right'?'left':'right';
+ saveHistory();renderNetwork();
+ const button=document.getElementById('sb-station-platform-side');
+ if(button)button.textContent='Platform Side: '+(station.platformSide==='right'?'Right':'Left');
+ message('Station platform moved to the '+(station.platformSide==='right'?'right':'left')+' side.');
 }
 function closeStationMenu(){
  const menu=document.getElementById('stationContextMenu');
@@ -3840,7 +3859,8 @@ function handleMapPlacement(latlng){
    platformType:platformType,
    platformSize:platformSize,
    platformLengthMeters:geometry.lengthMeters,
-   platformBearing:geometry.bearing
+   platformBearing:geometry.bearing,
+   platformSide:'left'
   });
   saveHistory();
   renderNetwork();
