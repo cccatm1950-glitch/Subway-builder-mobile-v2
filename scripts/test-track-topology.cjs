@@ -7,9 +7,11 @@ const route = [{ x: 0, y: 0 }, { x: 10, y: 0 }, { x: 10, y: 10 }];
 const eastWestAlignment = topology.calculateStationTangentControls(
   { x: 0, y: 0 }, { x: 100, y: 0 }, 90, 90
 );
-assert.ok(Math.abs(eastWestAlignment.firstControl.x - 50) < 1e-9);
+// The active topology helper uses independent 28%-chord handles so
+// each station keeps its own tangent without creating an oversized hook.
+assert.ok(Math.abs(eastWestAlignment.firstControl.x - 28) < 1e-9);
 assert.ok(Math.abs(eastWestAlignment.firstControl.y) < 1e-9);
-assert.ok(Math.abs(eastWestAlignment.secondControl.x - 50) < 1e-9);
+assert.ok(Math.abs(eastWestAlignment.secondControl.x - 72) < 1e-9);
 assert.ok(Math.abs(eastWestAlignment.secondControl.y) < 1e-9);
 assert.equal(eastWestAlignment.startBearing, 90);
 assert.equal(eastWestAlignment.endBearing, 270);
@@ -18,17 +20,17 @@ const reversedAlignment = topology.calculateStationTangentControls(
 );
 assert.equal(reversedAlignment.startBearing, 90);
 assert.equal(reversedAlignment.endBearing, 270);
-assert.ok(Math.abs(reversedAlignment.firstControl.x - 50) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.firstControl.x - 28) < 1e-9);
 assert.ok(Math.abs(reversedAlignment.firstControl.y) < 1e-9);
-assert.ok(Math.abs(reversedAlignment.secondControl.x - 50) < 1e-9);
+assert.ok(Math.abs(reversedAlignment.secondControl.x - 72) < 1e-9);
 assert.ok(Math.abs(reversedAlignment.secondControl.y) < 1e-9);
 const diagonalAlignment = topology.calculateStationTangentControls(
   { x: 0, y: 0 }, { x: 100, y: -100 }, 45, 45
 );
-assert.ok(Math.abs(diagonalAlignment.firstControl.x - 50) < 1e-9);
-assert.ok(Math.abs(diagonalAlignment.firstControl.y + 50) < 1e-9);
-assert.ok(Math.abs(diagonalAlignment.secondControl.x - 50) < 1e-9);
-assert.ok(Math.abs(diagonalAlignment.secondControl.y + 50) < 1e-9);
+assert.ok(Math.abs(diagonalAlignment.firstControl.x - 28) < 1e-9);
+assert.ok(Math.abs(diagonalAlignment.firstControl.y + 28) < 1e-9);
+assert.ok(Math.abs(diagonalAlignment.secondControl.x - 72) < 1e-9);
+assert.ok(Math.abs(diagonalAlignment.secondControl.y + 72) < 1e-9);
 const oneSidedAlignment = topology.calculateStationTangentControls(
   { x: 0, y: 0 }, { x: 0, y: 100 }, 0, null
 );

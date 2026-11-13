@@ -45,12 +45,18 @@ assert.ok(!html.includes("'toggle-3d':()=>window.toggle3DCityView()"),
   'Construction touch bridge must not expose the legacy 3D action');
 assert.ok(html.includes("serviceDock.querySelector('#sb-service-lines')?.append(threeDButton)"),
   '3D test switch must be mounted inside the Service Lines panel');
-assert.ok(html.includes('sb-pr92-service-lines-expanded-3d-slot'),
-  'Service Lines must reserve a dedicated expanded-panel slot for the 3D test switch');
-assert.ok(html.includes('grid-template-columns:minmax(0,1fr) 46px 46px!important'),
+assert.match(html, /serviceDock\.className='sb-dock-panel sb-dock-panel-service'/,
+  'Service Lines must retain its dedicated dock-panel identity');
+assert.match(html, /grid-template-columns:minmax\(0,1fr\) 46px 46px!important/,
   'Expanded Service Lines layout must reserve separate Run and 3D button columns');
-assert.ok(html.includes('#sb-action-dock .sb-dock-panel-service:not(.is-expanded) #sb-service-lines #sb-3d-toggle'),
-  '3D test switch must be hidden while Service Lines is collapsed');
+const collapsed3DRule = html.match(/#sb-action-dock\s+#sb-service-dock:not\(\.is-expanded\)\s+#sb-service-lines>\s*#sb-3d-toggle\s*\{([^}]*)\}/);
+assert.ok(collapsed3DRule, 'Collapsed Service Lines must have a dedicated 3D switch rule');
+assert.match(collapsed3DRule[1], /display:\s*none\s*!important/,
+  '3D test switch must not display while Service Lines is collapsed');
+assert.match(collapsed3DRule[1], /visibility:\s*hidden\s*!important/,
+  '3D test switch must be hidden from visibility while Service Lines is collapsed');
+assert.match(collapsed3DRule[1], /pointer-events:\s*none\s*!important/,
+  'Collapsed 3D test switch must not receive pointer input');
 
 
 for (const required of [
@@ -72,6 +78,29 @@ for (const required of [
     'Expected core interaction ' + required + ' to be present');
 }
 
+// Validate the current crosshair-based curve/waypoint flow by behavior,
+// rather than depending on retired preview element IDs or helper names.
+const placementStart = html.indexOf('function handleMapPlacement(latlng)');
+const placementEnd = html.indexOf("\nmap.on('click',function(e)", placementStart);
+assert.ok(placementStart >= 0 && placementEnd > placementStart,
+  'Map placement handler must be present');
+const placementHandler = html.slice(placementStart, placementEnd);
+for (const required of [
+  "if(mode==='curve'||mode==='waypoint')",
+  'if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex])',
+  'window.sbGetCrosshairLatLng?.()',
+  "targetTrack.waypoints.push({lat:crosshair.lat,lng:crosshair.lng,elevation:'at'})",
+  'if(mode===\'curve\')targetTrack.curve=true',
+  'saveHistory();renderNetwork();'
+]) {
+  assert.ok(placementHandler.includes(required),
+    'Curve/waypoint crosshair placement must retain: ' + required);
+}
+assert.ok(html.includes("kind:'waypoint-crosshair'") || html.includes("kind:'track-tap-preview'"),
+  'The active map preview source must expose a rendered placement/track preview');
+assert.ok(html.includes("sb3dMap.addLayer({id:'sb-build-preview-line'"),
+  '3D map must render the shared build-preview line layer');
+
 for (const required of [
   'function splitTrackAtCrosshair',
   'function getTrackElevationAtFraction',
@@ -92,9 +121,7 @@ for (const required of [
   'getTrackCenterlinePoints(t,endpointStations)',
   'window.sb3dTrackFeatures.push',
   'window.getSubway3DPlatforms=function',
-  'id="sb-pr93-cross-view-build-drag-preview"',
-  "if(!['waypoint','curve'].includes(mode))return;",
-  'function commitPoint(state,event)',
+  "sb3dMap.addSource('sb-build-preview'",
   "sb3dMap.addSource('sb-build-preview'",
   "sb3dMap.on('click',['sb-station-dots','sb-platform-fills']",
   "trackIndex,style:t.style||'single'",

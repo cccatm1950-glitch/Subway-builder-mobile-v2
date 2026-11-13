@@ -291,9 +291,24 @@
     return Math.max(0, platformEdgeClearance - standardTrackSpacing / 2);
   }
 
-  // Fade parallel half-spacing to zero where a parallel route meets a
-  // single-track junction. Station endpoints retain their platform clearance.
-  function calculateParallelJunctionMergeProfile(cumulativeDistances, totalLength, startIsJunction, endIsJunction, transitionLength = 50) {
+  // A junction is a merge only when this parallel pair meets one
+  // single-track continuation through a degree-two node. Branches and
+  // crossovers must retain their parallel spacing and switch connections.
+  function classifyParallelJunction(junctionIndex, tracks, parallelTrackIndex) {
+    if (!Number.isInteger(junctionIndex) || !Array.isArray(tracks)) return 'unknown';
+    const incident = tracks.filter((track, index) => index !== parallelTrackIndex &&
+      track && (track.a === junctionIndex || track.b === junctionIndex));
+    const degree = incident.length + 1;
+    const otherStyles = incident.map(track => track.style || 'single');
+    if (degree === 2 && otherStyles[0] === 'single') return 'merge';
+    if (degree >= 4) return 'crossover';
+    if (degree >= 3) return 'branch';
+    return 'continuation';
+  }
+
+  // Fade parallel half-spacing only at true parallel-to-single merge nodes.
+  // Branches, crossovers and parallel continuations keep their two-rail gauge.
+  function calculateParallelJunctionMergeProfile(cumulativeDistances, totalLength, startJunctionType, endJunctionType, transitionLength = 50) {
     if (!Array.isArray(cumulativeDistances)) return [];
     if (!Number.isFinite(totalLength) || totalLength < 0 ||
         !Number.isFinite(transitionLength) || transitionLength <= 0) {
@@ -302,10 +317,12 @@
     const extent = Math.min(transitionLength, totalLength / 2);
     if (extent <= 0) return cumulativeDistances.map(() => 0);
     const smoothstep = value => { const x = Math.max(0, Math.min(1, value)); return x * x * (3 - 2 * x); };
+    const startIsMerge = startJunctionType === true || startJunctionType === 'merge';
+    const endIsMerge = endJunctionType === true || endJunctionType === 'merge';
     return cumulativeDistances.map(distance => {
       if (!Number.isFinite(distance)) return 0;
-      const fromStart = startIsJunction ? 1 - smoothstep(distance / extent) : 0;
-      const fromEnd = endIsJunction ? 1 - smoothstep((totalLength - distance) / extent) : 0;
+      const fromStart = startIsMerge ? 1 - smoothstep(distance / extent) : 0;
+      const fromEnd = endIsMerge ? 1 - smoothstep((totalLength - distance) / extent) : 0;
       return Math.max(fromStart, fromEnd);
     });
   }
@@ -446,5 +463,5 @@
     return { first, second, splitElevation };
   }
 
-  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, resolveEndpointPlatformBearing, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculateParallelJunctionMergeProfile, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
+  return Object.freeze({ projectPointToPolyline, splitPolylineAtProjection, cloneTrackSections, getConnectedTrackCandidates, findTrackGroupPath, interpolateElevationAtDistance, calculateOffsetTransitionProfile, splitTransitionZones, calculateStationTangentControls, resolveEndpointPlatformBearing, calculateEndpointAlignedNormal, calculateBlendedEndpointNormal, calculateStationEndpoint, calculatePlatformNormalClearance, calculateParallelTrackExtraClearance, calculateParallelJunctionMergeProfile, classifyParallelJunction, calculatePlatformAlongTrackExtent, calculatePlatformClearanceTransitionProfile });
 });

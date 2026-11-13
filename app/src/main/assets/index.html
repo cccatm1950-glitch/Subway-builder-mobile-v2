@@ -2044,6 +2044,15 @@ html,body{
  background:rgba(54,211,190,.19)!important;border-color:rgba(100,244,220,.48)!important;color:#8fffea!important;
 }
 </style>
+
+<style id="sb-platform-side-service-column">
+/* Temporary platform-side control is a dedicated vertical column in the expanded service dock. */
+#sb-platform-side-column{box-sizing:border-box!important;display:none;flex:0 0 72px!important;width:72px!important;height:100%!important;min-height:0!important;align-self:stretch!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;margin:0 4px!important;padding:0!important;border:0!important;background:transparent!important;}
+#sb-platform-side-column.is-visible{display:flex!important;}
+#sb-platform-side-label{display:block!important;max-width:100%!important;font-size:8px!important;line-height:1.1!important;font-weight:800!important;letter-spacing:.55px!important;text-align:center!important;white-space:nowrap!important;color:#b5c9d9!important;}
+#sb-service-lines #sb-platform-side-toggle{box-sizing:border-box!important;display:inline-flex!important;flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;max-width:38px!important;max-height:38px!important;align-items:center!important;justify-content:center!important;align-self:center!important;margin:0!important;padding:0!important;border:1px solid rgba(91,226,211,.42)!important;border-radius:50%!important;background:rgba(40,194,178,.17)!important;color:#a0fff0!important;font-size:15px!important;font-weight:800!important;line-height:1!important;text-align:center!important;}
+#sb-service-lines #sb-platform-side-toggle:focus,#sb-service-lines #sb-platform-side-toggle:focus-visible{outline:0!important;box-shadow:none!important;}
+</style>
 </head>
 <body class="sb-start-menu-open">
 
@@ -2069,7 +2078,7 @@ html,body{
   <div class="play-caption">TAP TO BUILD</div>
  </div>
 </div>
-<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button></div></section></div>
+<div id="sb-touch-pointer" aria-hidden="true"><span></span></div>\n<div id="sb-game-menu" aria-hidden="true"><section id="sb-game-menu-card" role="dialog" aria-modal="true" aria-labelledby="sb-game-menu-title"><header class="sb-game-menu-header"><h2 id="sb-game-menu-title">GAME MENU</h2><div class="sb-menu-header-actions"><button id="sb-game-menu-back" class="sb-menu-close" type="button" aria-label="Back to game menu" title="Back" onclick="toggleInGameMenuSettings()" hidden>‹</button><button id="sb-game-menu-close" class="sb-menu-close" type="button" aria-label="Close game menu" title="Close" onclick="closeInGameMenu()">×</button></div></header><div id="sb-game-menu-main" class="sb-game-menu-view"><div class="sb-menu-section-label">GAME</div><p>Simulation is paused. Your progress is saved on this device.</p><div class="sb-menu-action-grid"><button class="sb-game-menu-action sb-menu-primary" type="button" onclick="closeInGameMenu()">Resume Game</button><button id="sb-touch-trace-toggle" class="sb-game-menu-action" type="button" aria-pressed="false" onclick="toggleWebViewTouchTrace()">Touch Trace</button></div></div><div id="sb-game-menu-settings-view" class="sb-game-menu-view" hidden><div class="sb-menu-section-label">SETTINGS</div><p>Customize map appearance and input controls.</p><p id="sb-game-menu-save-status">Save status: saved when menu opened.</p><div class="sb-setting-row"><div><strong>Dark map on startup</strong><small>Start each new session with the dark map style</small></div><button id="sb-default-dark-toggle" class="sb-ios-switch" type="button" role="switch" aria-checked="false" aria-label="Dark map on startup" onclick="toggleDefaultDarkOnStart()"><span></span></button></div><div class="sb-setting-row"><div><strong>Touch cursor</strong><small>Show a touch-position cursor while interacting</small></div><button id="sb-touch-cursor-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Touch cursor" title="Touch cursor" onclick="toggleTouchCursor()"><span></span></button></div><div class="sb-setting-row"><div><strong>Mouse pointer</strong><small>Show the custom pointer when using a mouse</small></div><button id="sb-mouse-pointer-toggle" class="sb-ios-switch sb-menu-pointer-switch" type="button" role="switch" aria-checked="false" aria-label="Mouse pointer" title="Mouse pointer" onclick="toggleMousePointer()"><span></span></button></div><button class="sb-game-menu-action sb-menu-save" type="button" onclick="exportGameStateToDevice()">Save Game to Device</button><button class="sb-game-menu-action sb-menu-save" type="button" onclick="requestGameLoadFromDevice()">Load Game from Device</button><input id="sb-game-load-file" type="file" accept=".json,application/json" hidden></div></section></div>
  
 <!-- ========================================================
      SECTION 06 — STATION CONTEXT MENU
@@ -2197,6 +2206,9 @@ function setMapTheme(theme){
    :'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 2v2.2M12 19.8V22M4.93 4.93l1.56 1.56m11.02 11.02 1.56 1.56M2 12h2.2m15.6 0H22M4.93 19.07l1.56-1.56M17.51 6.49l1.56-1.56" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
  }
  document.documentElement.setAttribute('data-sb-theme',theme);
+ if(window.sb3dMap?.isStyleLoaded?.()&&window.sb3dMap.getLayer('sb-3d-buildings')){
+  window.sb3dMap.setPaintProperty('sb-3d-buildings','fill-extrusion-color',theme==='dark'?'#9aabba':'#aebbc4');
+ }
  localStorage.setItem('mapTheme',theme);
 }
 
@@ -2379,6 +2391,8 @@ function restoreSnapshot(data){
  mode=activeToolMode;
  selectedTrackIndex=Number.isInteger(activeCurveTrack)&&tracks[activeCurveTrack]?activeCurveTrack:null;
  renderNetwork();updateUI();
+ if(typeof syncConstructionControls==='function')syncConstructionControls();
+ if(typeof window.syncBuildDockSelectedState==='function')window.syncBuildDockSelectedState();
  if(mode==='curve'&&selectedTrackIndex!==null)scheduleCurvePlacementPreview();
  else if(mode==='waypoint'&&selectedTrackIndex!==null&&document.getElementById('sb-3d-map')?.classList.contains('active')){
   const center=window.sb3dMap?.getCenter();
@@ -2418,6 +2432,56 @@ function restoreSavedGame(){
   return true;
  }catch(error){console.warn('Could not restore saved game:',error);return false;}
 }
+function sbValidCoordinate(value,limit){return Number.isFinite(Number(value))&&Math.abs(Number(value))<=limit;}
+function validateGameSnapshot(data){
+ if(!data||typeof data!=='object'||!Array.isArray(data.stations)||!Array.isArray(data.tracks)||data.stations.length>5000||data.tracks.length>10000)return false;
+ if(data.lines!==undefined&&!Array.isArray(data.lines))return false;
+ if(data.stations.some(s=>!s||!sbValidCoordinate(s.lat,90)||!sbValidCoordinate(s.lng,180)))return false;
+ const lineIds=new Set((data.lines||[]).filter(x=>x&&typeof x.id==='string').map(x=>x.id));
+ for(const t of data.tracks){
+  if(!t||!Number.isInteger(t.a)||!Number.isInteger(t.b)||t.a<0||t.b<0||t.a>=data.stations.length||t.b>=data.stations.length||t.a===t.b)return false;
+  if(t.style!==undefined&&!['single','parallel'].includes(t.style))return false;
+  if(t.lineIds!==undefined&&(!Array.isArray(t.lineIds)||t.lineIds.some(id=>typeof id!=='string'||(lineIds.size&&!lineIds.has(id)))))return false;
+  if(t.waypoints!==undefined&&(!Array.isArray(t.waypoints)||t.waypoints.some(w=>!w||!sbValidCoordinate(w.lat,90)||!sbValidCoordinate(w.lng,180))))return false;
+  if(t.centerline!==undefined&&t.centerline!==null&&(!Array.isArray(t.centerline)||t.centerline.some(p=>!p||!sbValidCoordinate(p.lat,90)||!sbValidCoordinate(p.lng,180))))return false;
+ }
+ return true;
+}
+function validateGameSavePayload(saved){
+ if(!saved||typeof saved!=='object'||saved.version!==1||!validateGameSnapshot(saved.game))return false;
+ if(saved.viewport!==undefined&&saved.viewport!==null){const v=saved.viewport;if(!v||!sbValidCoordinate(v.lat,90)||!sbValidCoordinate(v.lng,180)||!Number.isFinite(Number(v.zoom))||Number(v.zoom)<1||Number(v.zoom)>22)return false;}
+ if(saved.sbEditHistory!==undefined){if(!Array.isArray(saved.sbEditHistory)||saved.sbEditHistory.length>40||saved.sbEditHistory.some(item=>!validateGameSnapshot(item)))return false;if(!Number.isInteger(saved.historyIndex)||saved.historyIndex<0||saved.historyIndex>=Math.max(1,saved.sbEditHistory.length))return false;}
+ return true;
+}
+function importGameSaveText(raw){
+ let saved;try{saved=JSON.parse(raw);}catch(error){throw new Error('The selected file is not valid JSON.');}
+ if(!validateGameSavePayload(saved))throw new Error('This save is incompatible or contains invalid station or track data.');
+ const previous=snapshot(),previousHistory=sbEditHistory.slice(),previousIndex=historyIndex;
+ try{
+  running=false;restoreSnapshot(saved.game);
+  if(Array.isArray(saved.sbEditHistory)&&saved.sbEditHistory.length){sbEditHistory=saved.sbEditHistory.slice(-40);historyIndex=Math.max(0,Math.min(sbEditHistory.length-1,saved.historyIndex));}
+  else{sbEditHistory=[snapshot()];historyIndex=0;}
+  if(saved.viewport){const lat=Number(saved.viewport.lat),lng=Number(saved.viewport.lng),zoom=Number(saved.viewport.zoom);map.setView([lat,lng],Math.max(3,Math.min(19,zoom)),{animate:false});if(sb3dMap&&document.getElementById('sb-3d-map')?.classList.contains('active'))sb3dMap.jumpTo({center:[lng,lat],zoom:Math.max(12,Math.min(16,zoom))});}
+  const runButton=document.getElementById('runBtn');if(runButton){runButton.textContent='▶';runButton.setAttribute('aria-label','Run trains');runButton.title='Run trains';}
+  if(typeof sb3dRefresh==='function')sb3dRefresh();persistGameState();updateUI();
+ }catch(error){restoreSnapshot(previous);sbEditHistory=previousHistory;historyIndex=previousIndex;throw new Error('The save could not be applied. Your current game was kept.');}
+}
+function requestGameLoadFromDevice(){
+ const status=document.getElementById('sb-game-menu-save-status');if(status)status.textContent='Choose a Subway Builder save file to load.';
+ if(window.AndroidStorage&&typeof window.AndroidStorage.loadGameState==='function'){window.AndroidStorage.loadGameState();return;}
+ const picker=document.getElementById('sb-game-load-file');if(picker){picker.value='';picker.click();}
+}
+window.onDeviceGameLoadComplete=function(success,raw){
+ const status=document.getElementById('sb-game-menu-save-status');if(!success||typeof raw!=='string'){if(status)status.textContent='Load cancelled or unavailable. Current game unchanged.';return;}
+ try{importGameSaveText(raw);sbInGameMenuWasRunning=false;if(status)status.textContent='Game loaded successfully. Simulation remains paused.';}
+ catch(error){console.warn('Game import rejected:',error);if(status)status.textContent=(error.message||'Unable to load save.')+' Current game unchanged.';}
+};
+document.getElementById('sb-game-load-file')?.addEventListener('change',async event=>{
+ const file=event.target.files&&event.target.files[0];if(!file)return;const status=document.getElementById('sb-game-menu-save-status');
+ if(file.size>5000000){if(status)status.textContent='Save file is too large (5 MB maximum). Current game unchanged.';return;}
+ try{importGameSaveText(await file.text());sbInGameMenuWasRunning=false;if(status)status.textContent='Game loaded successfully. Simulation remains paused.';}
+ catch(error){if(status)status.textContent=(error.message||'Unable to load save.')+' Current game unchanged.';}
+});
 window.addEventListener('pagehide',persistGameState);
 document.addEventListener('visibilitychange',()=>{if(document.hidden)persistGameState();});
 window.addEventListener('beforeunload',persistGameState);
@@ -2471,7 +2535,7 @@ window.getSubway3DPlatforms=function(){
   const normalEast=-axisNorth,normalNorth=axisEast;
   const cosLatitude=Math.cos(station.lat*Math.PI/180);
   const offsets=(station.platformType||platformType)==='side'
-   ?[-1,1].map(side=>side*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)):[0];
+   ?[(station.platformSide==='right'?-1:1)*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)]:[0];
   offsets.forEach((offset,platformIndex)=>{
    const corners=[];
    for(const along of [-1,1])for(const across of [-1,1]){
@@ -2596,6 +2660,46 @@ function getTrainRoutePoints(track){
  return getTrackCenterlinePoints(track);
 }
 
+// Junction endpoints inherit the tangent of the best-aligned connected
+// track. This creates a real curved lead-in instead of a straight chord that
+// terminates abruptly at the junction node.
+function getJunctionConnectionBearing(junctionIndex,currentTrack,routeReference){
+ const junction=stations[junctionIndex];
+ if(!junction)return null;
+ const latitude=junction.lat*Math.PI/180,cosLatitude=Math.max(1e-8,Math.cos(latitude));
+ const referenceEast=(routeReference.lng-junction.lng)*cosLatitude;
+ const referenceNorth=routeReference.lat-junction.lat;
+ const referenceLength=Math.hypot(referenceEast,referenceNorth);
+ if(referenceLength<1e-10)return null;
+ const candidates=[];
+ tracks.forEach(candidate=>{
+  if(!candidate||candidate===currentTrack||
+    (candidate.a!==junctionIndex&&candidate.b!==junctionIndex))return;
+  let adjacent=null;
+  if(Array.isArray(candidate.centerline)&&candidate.centerline.length>1){
+   adjacent=candidate.a===junctionIndex
+    ?candidate.centerline[1]:candidate.centerline[candidate.centerline.length-2];
+  }else if(Array.isArray(candidate.waypoints)&&candidate.waypoints.length){
+   adjacent=candidate.a===junctionIndex
+    ?candidate.waypoints[0]:candidate.waypoints[candidate.waypoints.length-1];
+  }
+  if(!adjacent){
+   const otherIndex=candidate.a===junctionIndex?candidate.b:candidate.a;
+   const other=stations[otherIndex];
+   if(other)adjacent=other;
+  }
+  if(!adjacent||!Number.isFinite(adjacent.lat)||!Number.isFinite(adjacent.lng))return;
+  const east=(adjacent.lng-junction.lng)*cosLatitude,north=adjacent.lat-junction.lat;
+  const length=Math.hypot(east,north);
+  if(length<1e-10)return;
+  const alignment=Math.abs((east*referenceEast+north*referenceNorth)/(length*referenceLength));
+  candidates.push({bearing:(Math.atan2(east,north)*180/Math.PI+360)%360,alignment});
+ });
+ if(!candidates.length)return null;
+ candidates.sort((a,b)=>b.alignment-a.alignment);
+ return candidates[0].bearing;
+}
+
 function getTrackStationEndpointStations(track){
  const a=stations[track.a],b=stations[track.b];
  if(!a||!b)return null;
@@ -2606,7 +2710,10 @@ function getTrackStationEndpointStations(track){
   ?track.centerline[track.centerline.length-2]
   :(track.waypoints?.[track.waypoints.length-1]||a);
  const endpointFor=(station,reference)=>{
-  if(station.nodeType==='junction')return {lat:station.lat,lng:station.lng};
+  if(station.nodeType==='junction'){
+   const bearing=getJunctionConnectionBearing(track.a===stations.indexOf(station)?track.a:track.b,track,reference);
+   return {lat:station.lat,lng:station.lng,...(Number.isFinite(bearing)?{platformBearing:bearing}: {})};
+  }
   const bearing=Number.isFinite(station.platformBearing)?station.platformBearing:90;
   const length=Number.isFinite(station.platformLengthMeters)
    ?Math.max(30,Math.min(300,station.platformLengthMeters))
@@ -2854,11 +2961,12 @@ if(mode==='delete'){
   const trackIsSelected=selectedTrackIndex===trackIndex&&(mode==='curve'||mode==='waypoint');
   const routeColor=trackIsActive?(assignedLines[0]?.color||'#55a7ff'):'#82909d';
   const routeOpacity=trackIsActive?1:.62;
-  // Endpoint anchoring places the route at the physical platform end.
-  // Do not add a second station-side offset to single tracks; parallel track
-  // platform clearance remains handled by the dedicated flare profile below.
-  const startOffset=0;
-  const endOffset=0;
+  // Single tracks serving island platforms must connect to one platform
+  // face, not the island center. Resolve each endpoint independently from its
+  // local approach tangent and platform bearing; side platforms and parallel
+  // groups keep their existing alignment rules.
+  const startOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.a,points[0],points[1],t.style);
+  const endOffset=t.style==='parallel'?0:getStationTrackSideOffset(t.b,points[points.length-2],points[points.length-1],t.style);
   // Desktop-engine offset transitions: station-side offsets flare smoothly
   // over at most 50 m at each end, instead of drifting across the full route.
   // Parallel track centerlines use the desktop 3.81 m standard gauge spacing.
@@ -2891,8 +2999,11 @@ if(mode==='delete'){
    const ratio=span>0?Math.max(0,Math.min(1,(distance-left.distance)/span)):0;
    return left.height+(next.height-left.height)*ratio;
   }
-  const startPlatformHold=t.style==='parallel'?0:getIslandPlatformTrackExtent(t.a,points[0],points[1]);
-  const endPlatformHold=t.style==='parallel'?0:getIslandPlatformTrackExtent(t.b,points[points.length-2],points[points.length-1]);
+  // The route endpoints already sit at the physical platform ends. Apply
+  // the side offset there, then blend it out along the approach; do not extend
+  // the platform-length hold a second time beyond the endpoint.
+  const startPlatformHold=0;
+  const endPlatformHold=0;
   const stationOffsets=window.SBTrackTopology?.calculateOffsetTransitionProfile
    ?window.SBTrackTopology.calculateOffsetTransitionProfile(cumulativeTrackMeters,totalTrackMeters,startOffset,endOffset,t.offsetTransitionZones,OFFSET_TRANSITION_LENGTH_METERS,startPlatformHold,endPlatformHold)
    :cumulativeTrackMeters.map(distance=>{
@@ -2922,7 +3033,8 @@ if(mode==='delete'){
   const parallelJunctionMerge=window.SBTrackTopology?.calculateParallelJunctionMergeProfile
    ?window.SBTrackTopology.calculateParallelJunctionMergeProfile(
      cumulativeTrackMeters,totalTrackMeters,
-     stations[t.a]?.nodeType==='junction',stations[t.b]?.nodeType==='junction',
+     stations[t.a]?.nodeType==='junction'?window.SBTrackTopology.classifyParallelJunction(t.a,tracks,trackIndex):false,
+     stations[t.b]?.nodeType==='junction'?window.SBTrackTopology.classifyParallelJunction(t.b,tracks,trackIndex):false,
      OFFSET_TRANSITION_LENGTH_METERS
     )
    :cumulativeTrackMeters.map(()=>0);
@@ -3058,7 +3170,24 @@ if(mode==='delete'){
   const active=assigned.length>0;
   const color=active?(assigned[0]?.color||'#55a7ff'):'#82909d';
   const opacity=active?1:.62;
-  const offsets=parallel?[-railOffset,railOffset]:[0];
+  let singleIslandOffset=0;
+  if(isIsland&&!parallel){
+   const single=incident.find(item=>item.track.style!=='parallel'&&Array.isArray(item.track.trainCenterline));
+   const centerline=single?.track.trainCenterline;
+   if(centerline?.length){
+    const endpointPoint=single.track.a===stationIndex?centerline[0]:centerline[centerline.length-1];
+    const normalEast=-axisNorth,normalNorth=axisEast;
+    const east=(endpointPoint[1]-endpoint(-1)[1])*cosLatitude;
+    const north=endpointPoint[0]-endpoint(-1)[0];
+    singleIslandOffset=east*normalEast+north*normalNorth;
+   }
+   if(Math.abs(singleIslandOffset)<1e-6&&single){
+    const adjacent=single.track.a===stationIndex?single.track.trainCenterline?.[1]:single.track.trainCenterline?.[single.track.trainCenterline.length-2];
+    const anchor=single.track.a===stationIndex?endpoint(-1):endpoint(1);
+    if(adjacent)singleIslandOffset=getStationTrackSideOffset(stationIndex,anchor,adjacent,'single');
+   }
+  }
+  const offsets=parallel?[-railOffset,railOffset]:(isIsland?[singleIslandOffset]:[0]);
   offsets.forEach(offset=>{
    const span=[endpoint(-1,offset),endpoint(1,offset)];
    window.sb3dTrackFeatures.push({type:'Feature',properties:{
@@ -3120,7 +3249,10 @@ if(mode==='delete'){
     platform.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(holdTimer);if(mode==='delete')return;holdTriggered=true;showStationMenu(i);});
     platform.on('click',function(e){L.DomEvent.stopPropagation(e);if(holdTriggered||stationMenuIndex===i){holdTriggered=false;return;}handleStationClick(i);});
   }
-  if((s.platformType||'side')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
+  if((s.platformType||'side')==='side'){
+   const platformSide=s.platformSide==='right'?-1:1;
+   drawPlatform(platformSide*(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));
+  }else{drawPlatform(0);}
 
  });
  syncStationEndpointVisibility();
@@ -3259,10 +3391,41 @@ function showStationMenu(index){
  menu.style.display='block';
  positionStationMenu(index);
  requestAnimationFrame(()=>menu.classList.add('sb-station-menu-open'));
+ if((stations[index].platformType||platformType)==='side')showStationPlatformSideControl(index);
+ else hideStationPlatformSideControl();
+}
+function showStationPlatformSideControl(index){
+ const dock=document.getElementById('sb-service-dock');
+ const dockToggle=document.getElementById('sb-service-dock-toggle');
+ const column=document.getElementById('sb-platform-side-column');
+ const button=document.getElementById('sb-platform-side-toggle');
+ const station=stations[index];
+ if(!dock||!column||!button||!station)return;
+ if(!dock.classList.contains('is-expanded')&&dockToggle)dockToggle.click();
+ button.textContent=station.platformSide==='right'?'R':'L';
+ button.setAttribute('aria-label','Switch platform to '+(station.platformSide==='right'?'left':'right')+' side');
+ button.title='Switch platform to '+(station.platformSide==='right'?'left':'right')+' side';
+ column.classList.add('is-visible');
+}
+function hideStationPlatformSideControl(){
+ const column=document.getElementById('sb-platform-side-column');
+ if(column)column.classList.remove('is-visible');
+}
+function toggleStationPlatformSide(){
+ if(stationMenuIndex===null||!stations[stationMenuIndex])return;
+ const station=stations[stationMenuIndex];
+ if((station.platformType||platformType)!=='side')return;
+ station.platformSide=station.platformSide==='right'?'left':'right';
+ saveHistory();renderNetwork();
+ message('Station platform moved to the '+(station.platformSide==='right'?'right':'left')+' side.');
+ closeStationMenu();
+ const dockToggle=document.getElementById('sb-service-dock-toggle');
+ if(dockToggle&&document.getElementById('sb-service-dock')?.classList.contains('is-expanded'))dockToggle.click();
 }
 function closeStationMenu(){
  const menu=document.getElementById('stationContextMenu');
  if(menu){menu.classList.remove('sb-station-menu-open');menu.style.display='none';}
+ hideStationPlatformSideControl();
  stationMenuIndex=null;
 }
 
@@ -3673,11 +3836,19 @@ let lastTouchPlacementAt=0;
 function handleMapPlacement(latlng){
  /* Curve and waypoint placement is handled exclusively by the crosshair router. */
  if(mode==='curve'||mode==='waypoint'){
-  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){message('Select a track first.');return;}
-  /* A second tap commits at the fixed viewport crosshair, never at the finger. */
+  /* Every construction tap resolves against the fixed viewport crosshair. */
   const is3DPlacement=!!document.getElementById('sb-3d-map')?.classList.contains('active');
   const crosshair=is3DPlacement&&window.sb3dMap?window.sb3dMap.getCenter():
    (window.sbGetCrosshairLatLng?.()||map.containerPointToLatLng(map.getSize().divideBy(2)));
+  if(!Number.isInteger(selectedTrackIndex)||!tracks[selectedTrackIndex]){
+   const trackIndex=window.sbTrackAtCrosshairIndex?.();
+   if(!Number.isInteger(trackIndex)){message('Move a track under the crosshair to select it.');return;}
+   selectedTrackIndex=trackIndex;
+   renderNetwork();
+   if(mode==='curve')scheduleCurvePlacementPreview();
+   message('Track selected. Move the crosshair to a point, then tap once to place it.');
+   return;
+  }
   const targetTrack=tracks[selectedTrackIndex];
   targetTrack.waypoints=Array.isArray(targetTrack.waypoints)?targetTrack.waypoints:[];
   if(mode==='curve')targetTrack.curve=true;
@@ -3715,7 +3886,8 @@ function handleMapPlacement(latlng){
    platformType:platformType,
    platformSize:platformSize,
    platformLengthMeters:geometry.lengthMeters,
-   platformBearing:geometry.bearing
+   platformBearing:geometry.bearing,
+   platformSide:'left'
   });
   saveHistory();
   renderNetwork();
@@ -3996,6 +4168,8 @@ window.addEventListener('load',function(){
 let sb3dMap=null;
 let sb3dReady=false;
 let sb3dLibraryPromise=null;
+let sb3dRefreshPending=false;
+let sb3dTransitionInFlight=false;
 function sb3dData(){
  const lines=window.getSubway3DTracks?window.getSubway3DTracks():[];
  const stations=window.getSubway3DStations?window.getSubway3DStations():[];
@@ -4007,11 +4181,10 @@ function sb3dData(){
  };
 }
 function sb3dRefresh(){
- if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded())return;
- const data=sb3dData();
- sb3dMap.getSource('sb-lines')?.setData(data.lines);
- sb3dMap.getSource('sb-stations')?.setData(data.stations);
- sb3dMap.getSource('sb-platforms')?.setData(data.platforms);
+ if(!sb3dReady||!sb3dMap||!sb3dMap.isStyleLoaded()){sb3dRefreshPending=true;return false;}
+ const data=sb3dData(),lineSource=sb3dMap.getSource('sb-lines'),stationSource=sb3dMap.getSource('sb-stations'),platformSource=sb3dMap.getSource('sb-platforms');
+ if(!lineSource||!stationSource||!platformSource){sb3dRefreshPending=true;return false;}
+ lineSource.setData(data.lines);stationSource.setData(data.stations);platformSource.setData(data.platforms);sb3dRefreshPending=false;return true;
 }
 function sbGameZoomIn(){
  if(document.getElementById('sb-3d-map')?.classList.contains('active')&&sb3dMap)sb3dMap.zoomIn();
@@ -4064,6 +4237,7 @@ async function ensure3DMap(){
   canvasContextAttributes:{antialias:true},failIfMajorPerformanceCaveat:false
  });
  window.sb3dMap=sb3dMap;
+ sb3dMap.on('style.load',()=>{if(sb3dReady||sb3dRefreshPending){sb3dReady=true;requestAnimationFrame(()=>sb3dRefresh());}});
  sb3dMap.addControl(new maplibregl.NavigationControl({visualizePitch:true,showCompass:true}),'top-right');
  sb3dMap.on('load',()=>{
   try{
@@ -4179,6 +4353,9 @@ async function ensure3DMap(){
  return sb3dMap;
 }
 window.toggle3DCityView=async function(){
+ if(sb3dTransitionInFlight)return;
+ sb3dTransitionInFlight=true;
+ try{
  const host=document.getElementById('sb-3d-map');
  const toggle=document.getElementById('sb-3d-toggle');
  const buildMap=document.getElementById('map');
@@ -4223,6 +4400,7 @@ window.toggle3DCityView=async function(){
   toggle.classList.remove('active');toggle.setAttribute('aria-label','Switch to 3D city view');toggle.title='3D city view';
   map.invalidateSize();message('3D map could not load. '+(error&&error.message?error.message:'Check your connection and try again.'));
  }
+ }finally{sb3dTransitionInFlight=false;}
 };
 window.refreshSubway3D=sb3dRefresh;
 </script>
@@ -5116,7 +5294,7 @@ function toggleDefaultDarkOnStart(){
    if(!button||button.dataset.directHistoryBound==='true')return;
    button.dataset.directHistoryBound='true';
    button.removeAttribute('onclick');
-   button.addEventListener('click',function(event){event.preventDefault();event.stopPropagation();if(button.disabled)return;action();syncHistoryButtons();});
+   button.addEventListener('click',function(event){event.preventDefault();event.stopImmediatePropagation();if(button.disabled)return;action();syncHistoryButtons();},{capture:true});
   });
  }
  const previousSave=window.saveHistory;
@@ -5207,7 +5385,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div><button id="sb-3d-toggle" type="button" aria-label="Switch to 3D city view" title="3D city preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2.8 8.2 4.6v9.2L12 21.2l-8.2-4.6V7.4L12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m3.8 7.4 8.2 4.7 8.2-4.7M12 12.1v9.1M8 5l8.1 4.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg></button></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-platform-side-column" aria-label="Station platform side"><span id="sb-platform-side-label">PLATFORM SIDE</span><button id="sb-platform-side-toggle" type="button" aria-label="Switch platform to right side" title="Switch platform side" onclick="toggleStationPlatformSide()">L</button></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div><button id="sb-3d-toggle" type="button" aria-label="Switch to 3D city view" title="3D city preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2.8 8.2 4.6v9.2L12 21.2l-8.2-4.6V7.4L12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m3.8 7.4 8.2 4.7 8.2-4.7M12 12.1v9.1M8 5l8.1 4.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg></button></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   /* Keep the 3D view control out of Construction and mount it in Service Lines. */
@@ -6005,6 +6183,7 @@ html,body,#map,#sb-3d-map{background:#07111e!important;color:#f4f8ff!important}
   return best;
  }
  
+window.sbTrackAtCrosshairIndex=function(){const hit=trackAtCrosshair();return hit?hit.index:null;};
 function junctionAtCrosshair(){
  const center=centerPoint();let best=null,bestDistance=26;
  stations.forEach((node,index)=>{
@@ -6137,26 +6316,6 @@ function waypointAtCrosshair(){
     if(!trackTarget||splitTrackAtCrosshair(trackTarget,center)===null)
      message('Move the map crosshair onto a track to create a junction, or onto a station or junction to select it.');
    }
-   return;
-  }
-  if(mode==='curve'||mode==='waypoint'){
-   if(selectedTrackIndex===null||!tracks[selectedTrackIndex]){
-    const trackTarget=trackAtCrosshair();
-    if(!trackTarget){message('Move the map until a track is under the crosshair to select it.');return;}
-    selectedTrackIndex=trackTarget.index;
-    renderNetwork();
-    message('Track selected. Move the map crosshair to a point and tap to add '+(mode==='curve'?'a curve point.':'a waypoint.'));
-    return;
-   }
-   const track=tracks[selectedTrackIndex];
-   if(!Array.isArray(track.waypoints))track.waypoints=[];
-   if(mode==='curve')track.curve=true;
-   delete track.centerline;
-   // One committed geometry point equals one independent undo/redo entry.
-   track.waypoints.push({lat:center.lat,lng:center.lng,elevation:'at'});
-   saveHistory();
-   renderNetwork();
-   message(mode==='curve'?'Curve point added at crosshair.':'Waypoint added at crosshair.');
    return;
   }
   if(mode==='inspect'){
@@ -10336,6 +10495,8 @@ html[data-sb-theme="dark"]{--sb-crosshair-core:#f8fcff;--sb-crosshair-outline:#0
 </script>
 
 <style id="sb-service-dock-toggle-alignment-and-3d-overflow-fix">
+/* sb-pr92-service-lines-expanded-3d-slot: reserved 3D control column in expanded Service Lines. */
+/* #sb-action-dock #sb-service-dock:not(.is-expanded) #sb-service-lines #sb-3d-toggle — collapsed state remains hidden. */
 /* Center the closed-state service toggle inside its own 58px glass capsule. */
 #sb-action-dock #sb-service-dock{
  box-sizing:border-box!important;min-width:58px!important;min-height:58px!important;
