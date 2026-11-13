@@ -637,6 +637,7 @@ html,body{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Ari
 #sb-3d-map.sb-start-blur{filter:blur(4px) brightness(.62)}
 #startMenu{background:rgba(5,12,24,.12)!important;backdrop-filter:blur(0)!important;-webkit-backdrop-filter:blur(0)!important}
 .play-launch{display:flex;flex-direction:column;align-items:center;gap:18px;padding:26px 32px;text-align:center;pointer-events:none}
+.play-logo{display:block!important;width:92px!important;height:92px!important;object-fit:contain!important;margin:0 0 2px!important;filter:drop-shadow(0 10px 24px rgba(0,0,0,.3))}
 .play-brand{font-size:clamp(19px,5vw,27px);font-weight:900;letter-spacing:3px;color:#f3fbff;text-shadow:0 2px 22px rgba(65,220,220,.35)}#sb-play-button{pointer-events:auto;width:104px;height:104px;min-height:104px;padding:0;margin:0;border-radius:50%!important;display:grid;place-items:center;background:rgba(19,180,163,.22)!important;border:1px solid rgba(142,255,235,.66)!important}#sb-play-button span{font-size:34px;margin-left:5px;color:#eafffb}
 .play-caption{font-size:10px;letter-spacing:3px;color:rgba(230,248,255,.8)}
 #sb-touch-pointer{position:fixed;z-index:100000;left:-100px;top:-100px;width:26px;height:26px;border:2px solid rgba(235,246,255,.96);border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);opacity:0;visibility:hidden;display:block;transition:opacity .12s,transform .12s;filter:drop-shadow(0 0 4px rgba(220,240,255,.28))}
@@ -2073,6 +2074,7 @@ html,body{
 <div id="sb-3d-map" aria-label="3D OpenStreetMap city preview"></div>
 <div id="startMenu" aria-label="Start Subway Builder">
  <div class="play-launch">
+  <img class="play-logo" src="subway-builder-logo.svg" alt="Subway Builder logo">
   <div class="play-brand">SUBWAY BUILDER</div>
   <button id="sb-play-button" type="button" aria-label="Play Subway Builder" onclick="closeStartMenu()"><span>▶</span></button>
   <div class="play-caption">TAP TO BUILD</div>

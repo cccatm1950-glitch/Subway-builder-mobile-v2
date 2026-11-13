@@ -4,8 +4,8 @@
     <application
         android:allowBackup="true"
         android:label="Subway Builder"
-        android:icon="@drawable/subway_builder_logo"
-        android:roundIcon="@drawable/subway_builder_logo"
+        android:icon="@drawable/sb_app_icon"
+        android:roundIcon="@drawable/sb_app_icon"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false">
 
