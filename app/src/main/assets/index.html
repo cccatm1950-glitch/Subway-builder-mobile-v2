@@ -2044,6 +2044,15 @@ html,body{
  background:rgba(54,211,190,.19)!important;border-color:rgba(100,244,220,.48)!important;color:#8fffea!important;
 }
 </style>
+
+<style id="sb-platform-side-service-column">
+/* Temporary platform-side control is a dedicated vertical column in the expanded service dock. */
+#sb-platform-side-column{box-sizing:border-box!important;display:none;flex:0 0 72px!important;width:72px!important;height:100%!important;min-height:0!important;align-self:stretch!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;margin:0 4px!important;padding:0!important;border:0!important;background:transparent!important;}
+#sb-platform-side-column.is-visible{display:flex!important;}
+#sb-platform-side-label{display:block!important;max-width:100%!important;font-size:8px!important;line-height:1.1!important;font-weight:800!important;letter-spacing:.55px!important;text-align:center!important;white-space:nowrap!important;color:#b5c9d9!important;}
+#sb-service-lines #sb-platform-side-toggle{box-sizing:border-box!important;display:inline-flex!important;flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;min-height:38px!important;max-width:38px!important;max-height:38px!important;align-items:center!important;justify-content:center!important;align-self:center!important;margin:0!important;padding:0!important;border:1px solid rgba(91,226,211,.42)!important;border-radius:50%!important;background:rgba(40,194,178,.17)!important;color:#a0fff0!important;font-size:15px!important;font-weight:800!important;line-height:1!important;text-align:center!important;}
+#sb-service-lines #sb-platform-side-toggle:focus,#sb-service-lines #sb-platform-side-toggle:focus-visible{outline:0!important;box-shadow:none!important;}
+</style>
 </head>
 <body class="sb-start-menu-open">
 
@@ -2197,6 +2206,9 @@ function setMapTheme(theme){
    :'<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 2v2.2M12 19.8V22M4.93 4.93l1.56 1.56m11.02 11.02 1.56 1.56M2 12h2.2m15.6 0H22M4.93 19.07l1.56-1.56M17.51 6.49l1.56-1.56" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
  }
  document.documentElement.setAttribute('data-sb-theme',theme);
+ if(window.sb3dMap?.isStyleLoaded?.()&&window.sb3dMap.getLayer('sb-3d-buildings')){
+  window.sb3dMap.setPaintProperty('sb-3d-buildings','fill-extrusion-color',theme==='dark'?'#9aabba':'#aebbc4');
+ }
  localStorage.setItem('mapTheme',theme);
 }
 
@@ -2523,7 +2535,7 @@ window.getSubway3DPlatforms=function(){
   const normalEast=-axisNorth,normalNorth=axisEast;
   const cosLatitude=Math.cos(station.lat*Math.PI/180);
   const offsets=(station.platformType||platformType)==='side'
-   ?[-1,1].map(side=>side*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)):[0];
+   ?[(station.platformSide==='right'?-1:1)*(halfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS)]:[0];
   offsets.forEach((offset,platformIndex)=>{
    const corners=[];
    for(const along of [-1,1])for(const across of [-1,1]){
@@ -3237,7 +3249,10 @@ if(mode==='delete'){
     platform.on('contextmenu',function(e){L.DomEvent.preventDefault(e);clearTimeout(holdTimer);if(mode==='delete')return;holdTriggered=true;showStationMenu(i);});
     platform.on('click',function(e){L.DomEvent.stopPropagation(e);if(holdTriggered||stationMenuIndex===i){holdTriggered=false;return;}handleStationClick(i);});
   }
-  if((s.platformType||'side')==='side'){drawPlatform(-(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));drawPlatform(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS);}else{drawPlatform(0);}
+  if((s.platformType||'side')==='side'){
+   const platformSide=s.platformSide==='right'?-1:1;
+   drawPlatform(platformSide*(platformHalfWidth+MOBILE_SIDE_PLATFORM_OFFSET_METERS));
+  }else{drawPlatform(0);}
 
  });
  syncStationEndpointVisibility();
@@ -3376,10 +3391,41 @@ function showStationMenu(index){
  menu.style.display='block';
  positionStationMenu(index);
  requestAnimationFrame(()=>menu.classList.add('sb-station-menu-open'));
+ if((stations[index].platformType||platformType)==='side')showStationPlatformSideControl(index);
+ else hideStationPlatformSideControl();
+}
+function showStationPlatformSideControl(index){
+ const dock=document.getElementById('sb-service-dock');
+ const dockToggle=document.getElementById('sb-service-dock-toggle');
+ const column=document.getElementById('sb-platform-side-column');
+ const button=document.getElementById('sb-platform-side-toggle');
+ const station=stations[index];
+ if(!dock||!column||!button||!station)return;
+ if(!dock.classList.contains('is-expanded')&&dockToggle)dockToggle.click();
+ button.textContent=station.platformSide==='right'?'R':'L';
+ button.setAttribute('aria-label','Switch platform to '+(station.platformSide==='right'?'left':'right')+' side');
+ button.title='Switch platform to '+(station.platformSide==='right'?'left':'right')+' side';
+ column.classList.add('is-visible');
+}
+function hideStationPlatformSideControl(){
+ const column=document.getElementById('sb-platform-side-column');
+ if(column)column.classList.remove('is-visible');
+}
+function toggleStationPlatformSide(){
+ if(stationMenuIndex===null||!stations[stationMenuIndex])return;
+ const station=stations[stationMenuIndex];
+ if((station.platformType||platformType)!=='side')return;
+ station.platformSide=station.platformSide==='right'?'left':'right';
+ saveHistory();renderNetwork();
+ message('Station platform moved to the '+(station.platformSide==='right'?'right':'left')+' side.');
+ closeStationMenu();
+ const dockToggle=document.getElementById('sb-service-dock-toggle');
+ if(dockToggle&&document.getElementById('sb-service-dock')?.classList.contains('is-expanded'))dockToggle.click();
 }
 function closeStationMenu(){
  const menu=document.getElementById('stationContextMenu');
  if(menu){menu.classList.remove('sb-station-menu-open');menu.style.display='none';}
+ hideStationPlatformSideControl();
  stationMenuIndex=null;
 }
 
@@ -3840,7 +3886,8 @@ function handleMapPlacement(latlng){
    platformType:platformType,
    platformSize:platformSize,
    platformLengthMeters:geometry.lengthMeters,
-   platformBearing:geometry.bearing
+   platformBearing:geometry.bearing,
+   platformSide:'left'
   });
   saveHistory();
   renderNetwork();
@@ -5338,7 +5385,7 @@ function toggleDefaultDarkOnStart(){
   if(!serviceDock){
    serviceDock=document.createElement('section');serviceDock.id='sb-service-dock';
    serviceDock.className='sb-dock-panel sb-dock-panel-service';serviceDock.setAttribute('aria-label','Service lines');
-   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div><button id="sb-3d-toggle" type="button" aria-label="Switch to 3D city view" title="3D city preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2.8 8.2 4.6v9.2L12 21.2l-8.2-4.6V7.4L12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m3.8 7.4 8.2 4.7 8.2-4.7M12 12.1v9.1M8 5l8.1 4.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg></button></div>';
+   serviceDock.innerHTML='<button id="sb-service-dock-toggle" type="button" aria-label="Open service lines" aria-expanded="false" title="Service lines"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 6.5h5.5a3 3 0 0 1 3 3v5a3 3 0 0 0 3 3H19M5 17.5h2.5a3 3 0 0 0 3-3v-5a3 3 0 0 1 3-3H19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="5" cy="6.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="17.5" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button><div id="sb-service-lines"><div class="sb-service-lines-heading" aria-hidden="true">SERVICE LINES</div><div id="sb-service-lines-content" aria-label="Existing service lines"></div><div id="sb-platform-side-column" aria-label="Station platform side"><span id="sb-platform-side-label">PLATFORM SIDE</span><button id="sb-platform-side-toggle" type="button" aria-label="Switch platform to right side" title="Switch platform side" onclick="toggleStationPlatformSide()">L</button></div><div id="sb-service-run-slot"><button id="runBtn" type="button" aria-label="Run trains" title="Run trains" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 5.5v13l10-6.5z" fill="currentColor"/></svg></button></div><button id="sb-3d-toggle" type="button" aria-label="Switch to 3D city view" title="3D city preview"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m12 2.8 8.2 4.6v9.2L12 21.2l-8.2-4.6V7.4L12 2.8Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="m3.8 7.4 8.2 4.7 8.2-4.7M12 12.1v9.1M8 5l8.1 4.7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/></svg></button></div>';
    const right=dock.querySelector('.sb-dock-panel-right');if(right)dock.insertBefore(serviceDock,right);else dock.append(serviceDock);
   }
   /* Keep the 3D view control out of Construction and mount it in Service Lines. */
